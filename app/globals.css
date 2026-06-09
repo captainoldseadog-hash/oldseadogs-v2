@@ -65,6 +65,19 @@ a {
   z-index: -2;
 }
 
+.hero-credit {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 1;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(10, 22, 27, 0.7);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .hero-scrim {
   z-index: -1;
   background:
@@ -286,9 +299,26 @@ a {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 10;
+  position: relative;
   background-position: center;
   background-size: cover;
-  background: #d7e3e0;
+  background-color: #d7e3e0;
+}
+
+.image-credit-chip {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  max-width: calc(100% - 16px);
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(10, 22, 27, 0.72);
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .story-card-body {
@@ -411,6 +441,7 @@ a {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
+  position: relative;
   background-position: center;
   background-size: cover;
   background-color: #d7e3e0;
@@ -502,10 +533,17 @@ a {
 }
 
 .article-figure figcaption {
+  display: grid;
+  gap: 4px;
   margin-top: 10px;
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 700;
+}
+
+.photo-credit {
+  color: var(--ink);
+  font-weight: 900;
 }
 
 .article-body {
@@ -824,6 +862,31 @@ a {
 .editor-list > p {
   margin: 8px 0 0;
   color: var(--muted);
+}
+
+.editor-search {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.editor-search input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fbfcfa;
+  color: var(--ink);
+  font: inherit;
+}
+
+.story-count {
+  font-size: 0.86rem;
+  font-weight: 800;
 }
 
 .editor-list > button {

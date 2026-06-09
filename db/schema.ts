@@ -12,6 +12,8 @@ export const stories = sqliteTable("stories", {
   sourceUrl: text("source_url"),
   imageUrl: text("image_url").notNull(),
   imageAlt: text("image_alt").notNull(),
+  imageCredit: text("image_credit").notNull().default(""),
+  imageCaption: text("image_caption").notNull().default(""),
   summary: text("summary").notNull(),
   bodyJson: text("body_json").notNull(),
   tagsJson: text("tags_json").notNull(),

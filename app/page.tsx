@@ -92,6 +92,9 @@ export default async function Home() {
           aria-hidden="true"
           style={{ backgroundImage: `url(${featuredStory.imageUrl})` }}
         />
+        {featuredStory.imageCredit ? (
+          <div className="hero-credit">{featuredStory.imageCredit}</div>
+        ) : null}
         <div className="hero-scrim" />
         <nav className="topbar" aria-label="Primary navigation">
           <Link href="/" className="brand-lockup" aria-label="Old Sea Dogs home">
@@ -151,7 +154,11 @@ export default async function Home() {
                     role="img"
                     aria-label={story.imageAlt}
                     style={{ backgroundImage: `url(${story.imageUrl})` }}
-                  />
+                  >
+                    {story.imageCredit ? (
+                      <small className="image-credit-chip">{story.imageCredit}</small>
+                    ) : null}
+                  </span>
                 </Link>
                 <div className="story-card-body">
                   <div className="story-meta">
@@ -210,7 +217,11 @@ export default async function Home() {
                 role="img"
                 aria-label={story.imageAlt}
                 style={{ backgroundImage: `url(${story.imageUrl})` }}
-              />
+              >
+                {story.imageCredit ? (
+                  <small className="image-credit-chip">{story.imageCredit}</small>
+                ) : null}
+              </span>
               <div>
                 <span>{story.category}</span>
                 <h3>

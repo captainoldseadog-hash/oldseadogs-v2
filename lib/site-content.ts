@@ -2,6 +2,7 @@ import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDbOrNull } from "../db";
 import { ads, mediaAssets, siteSettings, stories as storyRows } from "../db/schema";
 import { stories as seedStories } from "../content/stories";
+import legacyStories from "../content/legacy-stories.json";
 
 export type EditableStory = {
   id: string;
@@ -15,6 +16,8 @@ export type EditableStory = {
   sourceUrl: string;
   imageUrl: string;
   imageAlt: string;
+  imageCredit: string;
+  imageCaption: string;
   summary: string;
   body: string[];
   tags: string[];
@@ -94,6 +97,8 @@ function rowToStory(row: typeof storyRows.$inferSelect): EditableStory {
     sourceUrl: row.sourceUrl ?? "",
     imageUrl: row.imageUrl,
     imageAlt: row.imageAlt,
+    imageCredit: row.imageCredit ?? "",
+    imageCaption: row.imageCaption ?? "",
     summary: row.summary,
     body: parseJsonList(row.bodyJson),
     tags: parseJsonList(row.tagsJson),
@@ -123,6 +128,8 @@ function seedToStoryRow(
     sourceUrl: story.sourceUrl ?? null,
     imageUrl: story.image,
     imageAlt: story.imageAlt,
+    imageCredit: "",
+    imageCaption: "",
     summary: story.summary,
     bodyJson: JSON.stringify(story.body),
     tagsJson: JSON.stringify(story.tags),
@@ -133,6 +140,60 @@ function seedToStoryRow(
     createdAt: stamp,
     updatedAt: stamp,
   };
+}
+
+type LegacyStoryRecord = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  date: string;
+  author: string;
+  sourceName: string;
+  sourceUrl: string;
+  imageUrl: string;
+  imageAlt: string;
+  imageCredit: string;
+  imageCaption: string;
+  summary: string;
+  body: string[];
+  tags: string[];
+  readMinutes: number;
+  featured?: boolean;
+};
+
+const legacyStoryRecords = legacyStories as LegacyStoryRecord[];
+
+function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
+  const stamp = `${story.date || "2025-01-01"}T00:00:00.000Z`;
+  return {
+    id: story.id,
+    slug: story.slug,
+    title: story.title,
+    category: story.category,
+    date: story.date || "2025-01-01",
+    author: story.author || "Old Sea Dogs",
+    sourceType: "Original",
+    sourceName: story.sourceName || "Old Sea Dogs archive",
+    sourceUrl: story.sourceUrl || "",
+    imageUrl: story.imageUrl || "/images/marina-hero.png",
+    imageAlt: story.imageAlt || story.title,
+    imageCredit: story.imageCredit || "",
+    imageCaption: story.imageCaption || "",
+    summary: story.summary || story.body[0] || "",
+    body: story.body.length > 0 ? story.body : [story.summary || story.title],
+    tags: story.tags,
+    readMinutes: story.readMinutes || 3,
+    isFeatured: Boolean(story.featured),
+    status: "published",
+    sortOrder: index,
+    createdAt: stamp,
+    updatedAt: stamp,
+  };
+}
+
+function legacyStaticStories() {
+  return legacyStoryRecords.map(legacyToStory);
 }
 
 async function ensureSeedData() {
@@ -154,10 +215,42 @@ async function ensureSeedData() {
   return true;
 }
 
-function staticStories() {
+function seedStaticStories() {
   return seedStories.map((story, index) =>
     rowToStory(seedToStoryRow(story, index) as typeof storyRows.$inferSelect)
   );
+}
+
+function staticStories() {
+  const legacy = legacyStaticStories();
+  return legacy.length > 0 ? legacy : seedStaticStories();
+}
+
+function sortStories(stories: EditableStory[]) {
+  return [...stories].sort((a, b) => {
+    if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+    const dateCompare = b.date.localeCompare(a.date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.sortOrder - b.sortOrder;
+  });
+}
+
+function mergeDbStoriesWithStatic(rows: Array<typeof storyRows.$inferSelect>, includeDrafts = false) {
+  const legacyEnabled = legacyStoryRecords.length > 0;
+  const merged = new Map(staticStories().map((story) => [story.id, story]));
+
+  for (const row of rows) {
+    if (legacyEnabled && row.id.startsWith("seed_")) continue;
+    const story = rowToStory(row);
+    if (!includeDrafts && story.status === "draft") {
+      merged.delete(story.id);
+      continue;
+    }
+    merged.set(story.id, story);
+  }
+
+  const stories = [...merged.values()].filter((story) => includeDrafts || story.status === "published");
+  return sortStories(stories);
 }
 
 export async function getPublishedStories() {
@@ -169,9 +262,8 @@ export async function getPublishedStories() {
     const rows = await db
       .select()
       .from(storyRows)
-      .where(eq(storyRows.status, "published"))
       .orderBy(desc(storyRows.isFeatured), desc(storyRows.date), asc(storyRows.sortOrder));
-    return rows.map(rowToStory);
+    return mergeDbStoriesWithStatic(rows);
   } catch {
     return staticStories();
   }
@@ -188,7 +280,11 @@ export async function getStoryBySlug(slug: string) {
       .from(storyRows)
       .where(eq(storyRows.slug, slug))
       .limit(1);
-    return row ? rowToStory(row) : null;
+    if (row) {
+      const story = rowToStory(row);
+      return story.status === "draft" ? null : story;
+    }
+    return staticStories().find((story) => story.slug === slug) ?? null;
   } catch {
     return staticStories().find((story) => story.slug === slug) ?? null;
   }
@@ -246,7 +342,7 @@ export async function getEditorData() {
   ]);
 
   return {
-    stories: storyList.map(rowToStory),
+    stories: mergeDbStoriesWithStatic(storyList, true),
     media,
     ads: advertList,
     settings,
@@ -273,6 +369,8 @@ export async function saveStory(input: Partial<EditableStory>) {
     sourceUrl: input.sourceUrl?.trim() || null,
     imageUrl: input.imageUrl || "/images/marina-hero.png",
     imageAlt: input.imageAlt?.trim() || input.title?.trim() || "Old Sea Dogs story image",
+    imageCredit: input.imageCredit?.trim() || "",
+    imageCaption: input.imageCaption?.trim() || "",
     summary: input.summary?.trim() || "",
     bodyJson: JSON.stringify(
       Array.isArray(input.body)
@@ -309,6 +407,8 @@ export async function saveStory(input: Partial<EditableStory>) {
         sourceUrl: record.sourceUrl,
         imageUrl: record.imageUrl,
         imageAlt: record.imageAlt,
+        imageCredit: record.imageCredit,
+        imageCaption: record.imageCaption,
         summary: record.summary,
         bodyJson: record.bodyJson,
         tagsJson: record.tagsJson,

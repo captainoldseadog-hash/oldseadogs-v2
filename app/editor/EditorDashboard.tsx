@@ -17,6 +17,8 @@ type EditorStory = {
   sourceUrl: string;
   imageUrl: string;
   imageAlt: string;
+  imageCredit: string;
+  imageCaption: string;
   summary: string;
   body: string[];
   tags: string[];
@@ -82,6 +84,8 @@ const blankStory = (): EditorStory => ({
   sourceUrl: "",
   imageUrl: "/images/marina-hero.png",
   imageAlt: "",
+  imageCredit: "",
+  imageCaption: "",
   summary: "",
   body: [""],
   tags: [],
@@ -125,6 +129,7 @@ export default function EditorDashboard() {
   const [adDraft, setAdDraft] = useState<Advert>(blankAd);
   const [settingsDraft, setSettingsDraft] = useState<Settings | null>(null);
   const [photoAlt, setPhotoAlt] = useState("");
+  const [storySearch, setStorySearch] = useState("");
   const [message, setMessage] = useState("Loading editor...");
   const [busy, setBusy] = useState(false);
 
@@ -167,6 +172,25 @@ export default function EditorDashboard() {
     ],
     [data?.media]
   );
+
+  const visibleStories = useMemo(() => {
+    const stories = data?.stories ?? [];
+    const query = storySearch.trim().toLowerCase();
+    if (!query) return stories.slice(0, 200);
+    return stories.filter((story) =>
+      [
+        story.title,
+        story.category,
+        story.date,
+        story.author,
+        story.sourceName,
+        story.tags.join(" "),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [data?.stories, storySearch]);
 
   function pickStory(story: EditorStory) {
     setSelectedStoryId(story.id);
@@ -233,12 +257,7 @@ export default function EditorDashboard() {
     const response = await fetch("/api/editor", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        action: "saveStoryImage",
-        id: storyDraft.id,
-        imageUrl,
-        imageAlt,
-      }),
+      body: JSON.stringify({ action: "saveStory", story: { ...storyDraft, imageUrl, imageAlt } }),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "Could not save the photo to this story.");
@@ -440,7 +459,19 @@ export default function EditorDashboard() {
               <h2>Stories</h2>
               <button onClick={newStory}>New story</button>
             </div>
-            {data.stories.map((story) => (
+            <label className="editor-search">
+              Search stories
+              <input
+                value={storySearch}
+                placeholder="Headline, category, tag, date..."
+                onChange={(event) => setStorySearch(event.target.value)}
+              />
+            </label>
+            <p className="story-count">
+              Showing {visibleStories.length} of {data.stories.length}
+              {!storySearch ? " latest stories" : " matching stories"}
+            </p>
+            {visibleStories.map((story) => (
               <button
                 key={story.id}
                 className={selectedStoryId === story.id ? "selected" : ""}
@@ -624,7 +655,14 @@ function StoryForm({
             <option>Cruising</option>
             <option>Maintenance</option>
             <option>Regatta</option>
+            <option>Shows</option>
+            <option>Racing</option>
+            <option>Gear</option>
+            <option>Destinations</option>
+            <option>Masterclass</option>
             <option>Lifestyle</option>
+            <option>Clubs</option>
+            <option>Ports</option>
           </select>
         </label>
       </div>
@@ -743,6 +781,18 @@ function StoryForm({
           <label>
             Photo description
             <input value={story.imageAlt} onChange={(event) => setStory({ ...story, imageAlt: event.target.value })} />
+          </label>
+          <label>
+            Photo caption
+            <input value={story.imageCaption} onChange={(event) => setStory({ ...story, imageCaption: event.target.value })} />
+          </label>
+          <label>
+            Photo credit
+            <input
+              value={story.imageCredit}
+              placeholder="Example: © Michael Hodges"
+              onChange={(event) => setStory({ ...story, imageCredit: event.target.value })}
+            />
           </label>
           <label className="upload-button">
             Upload new photo

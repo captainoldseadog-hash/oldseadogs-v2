@@ -67,7 +67,9 @@ export default async function StoryPage({ params }: StoryPageProps) {
         <figure className="article-figure">
           <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.imageUrl})` }} />
           <figcaption>
-            {story.sourceType} · {story.sourceName}
+            {story.imageCaption ? <span>{story.imageCaption}</span> : null}
+            {story.imageCredit ? <span className="photo-credit">{story.imageCredit}</span> : null}
+            <span>{story.sourceType} · {story.sourceName}</span>
           </figcaption>
         </figure>
 
@@ -93,7 +95,11 @@ export default async function StoryPage({ params }: StoryPageProps) {
           <div className="related-grid">
             {related.map((item) => (
               <article key={item.slug} className="compact-card">
-                <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.imageUrl})` }} />
+                <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.imageUrl})` }}>
+                  {item.imageCredit ? (
+                    <small className="image-credit-chip">{item.imageCredit}</small>
+                  ) : null}
+                </span>
                 <div>
                   <span>{formatDate(item.date)}</span>
                   <h3>
