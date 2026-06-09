@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "../content/stories";
-import { getActiveAds, getPublishedStories, getSiteSettings, type Advert } from "../lib/site-content";
+import {
+  getActiveAds,
+  getLegacyArchiveStats,
+  getPublishedStories,
+  getSiteSettings,
+  type Advert,
+} from "../lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const sections = [
   { label: "News", href: "#latest" },
+  { label: "Archive", href: "/archive" },
   { label: "Boat Reviews", href: "#reviews" },
   { label: "Cruising", href: "#latest" },
   { label: "Press Watch", href: "#press-watch" },
@@ -70,10 +77,11 @@ function AdCard({ ad }: { ad: Advert }) {
 }
 
 export default async function Home() {
-  const [stories, settings, ads] = await Promise.all([
+  const [stories, settings, ads, archiveStats] = await Promise.all([
     getPublishedStories(),
     getSiteSettings(),
     getActiveAds(),
+    Promise.resolve(getLegacyArchiveStats()),
   ]);
   const featuredStory = stories.find((story) => story.isFeatured) ?? stories[0];
   const latestStories = stories
@@ -114,9 +122,16 @@ export default async function Home() {
           <p className="eyebrow">{settings.kicker}</p>
           <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
+          <div className="archive-proof" aria-label="Restored archive status">
+            <strong>{archiveStats.storyCount.toLocaleString("en-GB")}</strong>
+            <span>old OldSeaDogs.com stories copied into this new site</span>
+          </div>
           <div className="hero-actions">
             <Link href={`/stories/${featuredStory.slug}`} className="button-primary">
               Read the lead story
+            </Link>
+            <Link href="/archive" className="button-secondary">
+              Browse restored archive
             </Link>
             <a href="#latest" className="button-secondary">
               Latest dispatches
@@ -126,7 +141,9 @@ export default async function Home() {
       </header>
 
       <section className="ticker-band" aria-label="Current editorial watch">
-        <p>On watch today</p>
+        <p>Archive restored</p>
+        <span>{archiveStats.storyCount.toLocaleString("en-GB")} stories</span>
+        <span>{archiveStats.photoCount.toLocaleString("en-GB")} approved photos</span>
         <span>Cowes 200</span>
         <span>Flybridge launches</span>
         <span>Refit yards</span>

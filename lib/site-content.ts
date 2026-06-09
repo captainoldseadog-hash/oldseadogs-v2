@@ -196,6 +196,19 @@ function legacyStaticStories() {
   return legacyStoryRecords.map(legacyToStory);
 }
 
+export function getLegacyArchiveStats() {
+  const photoUrls = new Set(
+    legacyStoryRecords
+      .map((story) => story.imageUrl)
+      .filter((url) => url.startsWith("/legacy-photos/"))
+  );
+
+  return {
+    storyCount: legacyStoryRecords.length,
+    photoCount: photoUrls.size,
+  };
+}
+
 async function ensureSeedData() {
   const db = getDbOrNull();
   if (!db) return false;
