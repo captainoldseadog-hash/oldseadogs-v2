@@ -1,10 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  featuredStory,
-  formatDate,
-  latestStories,
-  stories,
-} from "../content/stories";
+import { formatDate } from "../content/stories";
+import { getActiveAds, getPublishedStories, getSiteSettings, type Advert } from "../lib/site-content";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    title: settings.brandName,
+    description: settings.siteDescription,
+  };
+}
 
 const sections = [
   { label: "News", href: "#latest" },
@@ -31,9 +38,51 @@ const watchItems = [
   },
 ];
 
-export default function Home() {
+function AdCard({ ad }: { ad: Advert }) {
+  if (ad.kind === "network" && ad.code) {
+    return (
+      <aside
+        className="ad-card network-ad"
+        aria-label={ad.label}
+        dangerouslySetInnerHTML={{ __html: ad.code }}
+      />
+    );
+  }
+
+  return (
+    <aside className="ad-card" aria-label={ad.label}>
+      {ad.imageUrl ? (
+        <span
+          className="ad-image"
+          role="img"
+          aria-label={ad.title || ad.label}
+          style={{ backgroundImage: `url(${ad.imageUrl})` }}
+        />
+      ) : null}
+      <div>
+        <p>{ad.label}</p>
+        {ad.title ? <h3>{ad.title}</h3> : null}
+        {ad.body ? <span>{ad.body}</span> : null}
+        {ad.linkUrl ? <a href={ad.linkUrl}>Visit advertiser</a> : null}
+      </div>
+    </aside>
+  );
+}
+
+export default async function Home() {
+  const [stories, settings, ads] = await Promise.all([
+    getPublishedStories(),
+    getSiteSettings(),
+    getActiveAds(),
+  ]);
+  const featuredStory = stories.find((story) => story.isFeatured) ?? stories[0];
+  const latestStories = stories
+    .filter((story) => story.slug !== featuredStory.slug)
+    .slice(0, 4);
   const reviewStories = stories.filter((story) => story.category === "Boat Reviews");
   const practicalStories = stories.filter((story) => story.category === "Maintenance");
+  const bannerAd = ads.find((ad) => ad.placement === "banner");
+  const sidebarAds = ads.filter((ad) => ad.placement === "sidebar").slice(0, 2);
 
   return (
     <main className="site-shell">
@@ -41,7 +90,7 @@ export default function Home() {
         <div
           className="hero-image"
           aria-hidden="true"
-          style={{ backgroundImage: `url(${featuredStory.image})` }}
+          style={{ backgroundImage: `url(${featuredStory.imageUrl})` }}
         />
         <div className="hero-scrim" />
         <nav className="topbar" aria-label="Primary navigation">
@@ -59,8 +108,8 @@ export default function Home() {
         </nav>
 
         <section className="hero-content" aria-labelledby="site-title">
-          <p className="eyebrow">Boating news, reviews, and sea stories</p>
-          <h1 id="site-title">Old Sea Dogs</h1>
+          <p className="eyebrow">{settings.kicker}</p>
+          <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
           <div className="hero-actions">
             <Link href={`/stories/${featuredStory.slug}`} className="button-primary">
@@ -81,6 +130,12 @@ export default function Home() {
         <span>Practical maintenance</span>
       </section>
 
+      {bannerAd ? (
+        <section className="ad-band" aria-label="Advertisement">
+          <AdCard ad={bannerAd} />
+        </section>
+      ) : null}
+
       <section className="section-grid lead-section" id="latest">
         <div>
           <div className="section-heading">
@@ -95,7 +150,7 @@ export default function Home() {
                     className="story-image"
                     role="img"
                     aria-label={story.imageAlt}
-                    style={{ backgroundImage: `url(${story.image})` }}
+                    style={{ backgroundImage: `url(${story.imageUrl})` }}
                   />
                 </Link>
                 <div className="story-card-body">
@@ -131,6 +186,9 @@ export default function Home() {
               </div>
             ))}
           </div>
+          {sidebarAds.map((ad) => (
+            <AdCard ad={ad} key={ad.id} />
+          ))}
         </aside>
       </section>
 
@@ -151,7 +209,7 @@ export default function Home() {
                 className="compact-image"
                 role="img"
                 aria-label={story.imageAlt}
-                style={{ backgroundImage: `url(${story.image})` }}
+                style={{ backgroundImage: `url(${story.imageUrl})` }}
               />
               <div>
                 <span>{story.category}</span>
@@ -168,9 +226,9 @@ export default function Home() {
         <div>
           <p className="brand-footer">
             <span className="brand-mark footer-mark" aria-hidden="true" />
-            <span>Old Sea Dogs</span>
+            <span>{settings.brandName}</span>
           </p>
-          <p>Boating, yachting, boat reviews, and the practical business of life afloat.</p>
+          <p>{settings.footerText}</p>
         </div>
         <div className="footer-links">
           <a href="#latest">Latest</a>

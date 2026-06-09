@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatDate, getStory, stories } from "../../../content/stories";
+import { formatDate } from "../../../content/stories";
+import { getPublishedStories, getStoryBySlug } from "../../../lib/site-content";
+
+export const dynamic = "force-dynamic";
 
 type StoryPageProps = {
   params: Promise<{
@@ -9,15 +12,11 @@ type StoryPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return stories.map((story) => ({ slug: story.slug }));
-}
-
 export async function generateMetadata({
   params,
 }: StoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const story = getStory(slug);
+  const story = await getStoryBySlug(slug);
 
   if (!story) {
     return {
@@ -33,13 +32,13 @@ export async function generateMetadata({
 
 export default async function StoryPage({ params }: StoryPageProps) {
   const { slug } = await params;
-  const story = getStory(slug);
+  const story = await getStoryBySlug(slug);
 
   if (!story) {
     notFound();
   }
 
-  const related = stories
+  const related = (await getPublishedStories())
     .filter((item) => item.slug !== story.slug && item.category === story.category)
     .slice(0, 2);
 
@@ -66,7 +65,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
         </header>
 
         <figure className="article-figure">
-          <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.image})` }} />
+          <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.imageUrl})` }} />
           <figcaption>
             {story.sourceType} · {story.sourceName}
           </figcaption>
@@ -94,7 +93,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
           <div className="related-grid">
             {related.map((item) => (
               <article key={item.slug} className="compact-card">
-                <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.image})` }} />
+                <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.imageUrl})` }} />
                 <div>
                   <span>{formatDate(item.date)}</span>
                   <h3>

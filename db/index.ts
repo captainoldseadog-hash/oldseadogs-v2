@@ -11,3 +11,30 @@ export function getDb() {
 
   return drizzle(env.DB, { schema });
 }
+
+export function getDbOrNull() {
+  try {
+    return getDb();
+  } catch {
+    return null;
+  }
+}
+
+type MediaObject = {
+  body: ReadableStream;
+  httpMetadata?: { contentType?: string };
+  writeHttpMetadata(headers: Headers): void;
+};
+
+type MediaBucket = {
+  get(key: string): Promise<MediaObject | null>;
+  put(
+    key: string,
+    value: ArrayBuffer | ArrayBufferView | ReadableStream,
+    options?: { httpMetadata?: { contentType?: string } }
+  ): Promise<unknown>;
+};
+
+export function getMediaBucket() {
+  return (env as unknown as { MEDIA?: MediaBucket }).MEDIA ?? null;
+}

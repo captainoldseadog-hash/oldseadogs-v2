@@ -1,37 +1,45 @@
 # Old Sea Dogs
 
-This is a new Sites-ready version of Old Sea Dogs: a boating and yachting
-publication with a maintainable story structure, reusable article pages, and
-local editorial assets.
+Old Sea Dogs is a Sites-ready boating and yachting publication with a private
+editor for day-to-day updates.
 
-## Updating Stories
+## Adding Stories
 
-Stories live in `content/stories.ts`. Each record includes the headline,
-category, date, author, source type, image, summary, body paragraphs, tags, and
-reading time.
+Open the private editor at `/editor`.
 
-To add a new story:
+1. Choose **Stories**.
+2. Press **New story**.
+3. Add the headline, summary, article text, source details, and photo.
+4. Leave the story as **Draft** while you are working.
+5. Change it to **Published** and press **Save story** when it is ready.
 
-1. Put the story image in `public/images/`.
-2. Add a new story record to `content/stories.ts`.
-3. Use a unique `slug`, such as `new-boat-launch-solent`.
-4. Run the build before publishing.
+The **Page address** can be left blank. The site will make one from the
+headline.
 
-The `sourceType`, `sourceName`, and optional `sourceUrl` fields are ready for
-future automation from press releases, RSS/search feeds, or email ingestion.
+## Adding Photos
 
-## Useful Commands
+Open **Photos**, add a short description, and upload the image. You can then
+pick that photo for the current story.
+
+## Changing Site Words
+
+Open **Site words** to edit the site name, homepage line, footer sentence, and
+search description.
+
+## Adding Adverts
+
+Open **Adverts**.
+
+- Use **Manual advert** for a simple advert with a headline, text, image, and
+  link.
+- Use **Google or advert network** when you need to paste advert code from a
+  provider.
+- Untick **Show this advert on the site** to pause it without deleting it.
+
+## Development
 
 ```bash
 npm install
 npm run dev
 npm run build
 ```
-
-## Site Shape
-
-- `app/page.tsx` is the publication home page.
-- `app/stories/[slug]/page.tsx` renders every article page.
-- `content/stories.ts` is the editorial content model.
-- `public/images/` contains the site imagery.
-- `.openai/hosting.json` contains Sites hosting metadata.
