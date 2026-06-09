@@ -99,7 +99,7 @@ a {
 .brand-lockup {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -109,14 +109,15 @@ a {
 }
 
 .brand-mark {
-  display: inline-grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 0.72rem;
-  font-weight: 900;
+  display: inline-block;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  background-image: url("/images/old-sea-dogs-logo.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.24));
 }
 
 .nav-links {
@@ -438,11 +439,20 @@ a {
 }
 
 .brand-footer {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   margin: 0 0 8px;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.5rem;
   font-weight: 700;
+}
+
+.footer-mark {
+  width: 44px;
+  height: 44px;
+  filter: none;
 }
 
 .site-footer p:last-child {

@@ -47,7 +47,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
     <main className="article-shell">
       <nav className="article-nav" aria-label="Story navigation">
         <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark">OSD</span>
+          <span className="brand-mark" aria-hidden="true" />
           <span>Old Sea Dogs</span>
         </Link>
         <Link href="/#latest">Latest dispatches</Link>

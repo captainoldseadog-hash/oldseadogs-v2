@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description:
     "Boating, yachting, boat reviews, and practical sea stories from Old Sea Dogs.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
   },
 };
 

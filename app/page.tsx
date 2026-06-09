@@ -46,7 +46,7 @@ export default function Home() {
         <div className="hero-scrim" />
         <nav className="topbar" aria-label="Primary navigation">
           <Link href="/" className="brand-lockup" aria-label="Old Sea Dogs home">
-            <span className="brand-mark">OSD</span>
+            <span className="brand-mark" aria-hidden="true" />
             <span>Old Sea Dogs</span>
           </Link>
           <div className="nav-links">
@@ -166,7 +166,10 @@ export default function Home() {
 
       <footer className="site-footer">
         <div>
-          <p className="brand-footer">Old Sea Dogs</p>
+          <p className="brand-footer">
+            <span className="brand-mark footer-mark" aria-hidden="true" />
+            <span>Old Sea Dogs</span>
+          </p>
           <p>Boating, yachting, boat reviews, and the practical business of life afloat.</p>
         </div>
         <div className="footer-links">
