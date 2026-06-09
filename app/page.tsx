@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { oldSeaDogsSections } from "../content/sections";
 import { formatDate } from "../content/stories";
 import {
   getActiveAds,
-  getLegacyArchiveStats,
   getPublishedStories,
   getSiteSettings,
   hasStoryPhoto,
@@ -21,29 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const sections = [
-  { label: "News", href: "#latest" },
-  { label: "Archive", href: "/archive" },
-  { label: "Boat Reviews", href: "#reviews" },
-  { label: "Cruising", href: "#latest" },
-  { label: "Press Watch", href: "#press-watch" },
-];
-
-const watchItems = [
-  {
-    source: "Press releases",
-    detail: "Manufacturer launches, yard news, race notices",
-    count: "18",
-  },
-  {
-    source: "Yachting feeds",
-    detail: "Brokerage, regattas, superyacht movements",
-    count: "42",
-  },
-  {
-    source: "Practical alerts",
-    detail: "Safety, maintenance, navigation, club updates",
-    count: "9",
-  },
+  ...oldSeaDogsSections.map((section) => ({
+    label: section.label,
+    href: `/${section.slug}`,
+  })),
 ];
 
 function AdCard({ ad }: { ad: Advert }) {
@@ -78,11 +59,10 @@ function AdCard({ ad }: { ad: Advert }) {
 }
 
 export default async function Home() {
-  const [stories, settings, ads, archiveStats] = await Promise.all([
+  const [stories, settings, ads] = await Promise.all([
     getPublishedStories(),
     getSiteSettings(),
     getActiveAds(),
-    Promise.resolve(getLegacyArchiveStats()),
   ]);
   const featuredStory = stories.find((story) => story.isFeatured) ?? stories[0];
   const latestStories = stories
@@ -126,16 +106,9 @@ export default async function Home() {
           <p className="eyebrow">{settings.kicker}</p>
           <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
-          <div className="archive-proof" aria-label="Restored archive status">
-            <strong>{archiveStats.storyCount.toLocaleString("en-GB")}</strong>
-            <span>old OldSeaDogs.com stories copied into this new site</span>
-          </div>
           <div className="hero-actions">
             <Link href={`/stories/${featuredStory.slug}`} className="button-primary">
               Read the lead story
-            </Link>
-            <Link href="/archive" className="button-secondary">
-              Browse restored archive
             </Link>
             <a href="#latest" className="button-secondary">
               Latest dispatches
@@ -144,14 +117,13 @@ export default async function Home() {
         </section>
       </header>
 
-      <section className="ticker-band" aria-label="Current editorial watch">
-        <p>Archive restored</p>
-        <span>{archiveStats.storyCount.toLocaleString("en-GB")} stories</span>
-        <span>{archiveStats.photoCount.toLocaleString("en-GB")} approved photos</span>
-        <span>Cowes 200</span>
-        <span>Flybridge launches</span>
-        <span>Refit yards</span>
-        <span>Practical maintenance</span>
+      <section className="ticker-band section-link-band" aria-label="Old Sea Dogs sections">
+        <p>Sections</p>
+        {oldSeaDogsSections.map((section) => (
+          <Link href={`/${section.slug}`} key={section.slug}>
+            {section.label}
+          </Link>
+        ))}
       </section>
 
       {bannerAd ? (
@@ -208,17 +180,14 @@ export default async function Home() {
         </div>
 
         <aside className="watch-panel" id="press-watch" aria-label="Press and source watch">
-          <p className="eyebrow">Press Watch</p>
-          <h2>Incoming story signals</h2>
-          <div className="watch-list">
-            {watchItems.map((item) => (
-              <div className="watch-item" key={item.source}>
-                <strong>{item.count}</strong>
-                <div>
-                  <h3>{item.source}</h3>
-                  <p>{item.detail}</p>
-                </div>
-              </div>
+          <p className="eyebrow">Sections</p>
+          <h2>Browse the old site departments</h2>
+          <div className="watch-list section-list">
+            {oldSeaDogsSections.map((section) => (
+              <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
+                <strong>{section.label}</strong>
+                <span>{section.description}</span>
+              </Link>
             ))}
           </div>
           {sidebarAds.map((ad) => (
