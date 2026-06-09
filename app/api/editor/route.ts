@@ -9,6 +9,7 @@ import {
   saveMediaAsset,
   saveSettings,
   saveStory,
+  saveStoryImage,
 } from "../../../lib/site-content";
 
 export async function GET(request: Request) {
@@ -38,10 +39,18 @@ export async function POST(request: Request) {
     settings?: Parameters<typeof saveSettings>[0];
     ad?: Parameters<typeof saveAd>[0];
     id?: string;
+    imageUrl?: string;
+    imageAlt?: string;
   };
 
   if (payload.action === "saveStory") {
     return Response.json({ story: await saveStory(payload.story ?? {}) });
+  }
+
+  if (payload.action === "saveStoryImage" && payload.id && payload.imageUrl) {
+    return Response.json({
+      story: await saveStoryImage(payload.id, payload.imageUrl, payload.imageAlt ?? ""),
+    });
   }
 
   if (payload.action === "deleteStory" && payload.id) {

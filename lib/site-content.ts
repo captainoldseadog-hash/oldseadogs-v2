@@ -331,6 +331,25 @@ export async function saveStory(input: Partial<EditableStory>) {
   return rowToStory(row);
 }
 
+export async function saveStoryImage(id: string, imageUrl: string, imageAlt: string) {
+  const db = getDbOrNull();
+  if (!db) throw new Error("The story database is not available yet.");
+
+  const stamp = nowIso();
+  await db
+    .update(storyRows)
+    .set({
+      imageUrl,
+      imageAlt: imageAlt.trim() || "Old Sea Dogs story image",
+      updatedAt: stamp,
+    })
+    .where(eq(storyRows.id, id));
+
+  const [row] = await db.select().from(storyRows).where(eq(storyRows.id, id)).limit(1);
+  if (!row) throw new Error("I could not find that story.");
+  return rowToStory(row);
+}
+
 export async function deleteStory(id: string) {
   const db = getDbOrNull();
   if (!db) throw new Error("The story database is not available yet.");

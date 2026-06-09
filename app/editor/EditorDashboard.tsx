@@ -113,6 +113,7 @@ const starterImages = [
   { url: "/images/racing-yachts.png", label: "Racing yachts" },
   { url: "/images/motor-yacht-review.png", label: "Motor yacht" },
   { url: "/images/boatyard-maintenance.png", label: "Boatyard" },
+  { url: "/images/monaco-port-hercules-grand-prix.png", label: "Port Hercules, Monaco Grand Prix" },
 ];
 
 export default function EditorDashboard() {
@@ -194,6 +195,72 @@ export default function EditorDashboard() {
     setMessage("New advert ready.");
   }
 
+  function addMediaToGallery(media: MediaAsset) {
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            media: [media, ...current.media.filter((asset) => asset.id !== media.id)],
+          }
+        : current
+    );
+  }
+
+  function showStoryPhoto(imageUrl: string, imageAlt: string, storyId = storyDraft.id) {
+    setStoryDraft((story) => ({
+      ...story,
+      imageUrl,
+      imageAlt,
+    }));
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            stories: current.stories.map((story) =>
+              story.id === storyId ? { ...story, imageUrl, imageAlt } : story
+            ),
+          }
+        : current
+    );
+  }
+
+  async function saveCurrentStoryPhoto(imageUrl: string, imageAlt: string) {
+    if (!storyDraft.id) {
+      setMessage("Photo selected. Press Save story when the new story is ready.");
+      return;
+    }
+
+    const response = await fetch("/api/editor", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "saveStoryImage",
+        id: storyDraft.id,
+        imageUrl,
+        imageAlt,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Could not save the photo to this story.");
+    showStoryPhoto(payload.story.imageUrl, payload.story.imageAlt, payload.story.id);
+    setMessage("Photo saved to this story.");
+  }
+
+  async function chooseStoryPhoto(image: { url: string; label: string }) {
+    const imageAlt = image.label || storyDraft.imageAlt || "Old Sea Dogs story image";
+    setBusy(true);
+    setMessage("Saving photo to this story...");
+    try {
+      showStoryPhoto(image.url, imageAlt);
+      setActiveTab("stories");
+      await saveCurrentStoryPhoto(image.url, imageAlt);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not save the photo to this story.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveStoryDraft() {
     setBusy(true);
     setMessage("Saving story...");
@@ -249,13 +316,12 @@ export default function EditorDashboard() {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Could not upload photo.");
-      await loadEditor();
-      setStoryDraft((story) => ({
-        ...story,
-        imageUrl: payload.media.url,
-        imageAlt: payload.media.alt || story.imageAlt,
-      }));
-      setMessage("Photo uploaded and selected for the story.");
+      const media = payload.media as MediaAsset;
+      const imageAlt = media.alt || alt || media.filename || "Old Sea Dogs story image";
+      addMediaToGallery(media);
+      showStoryPhoto(media.url, imageAlt);
+      setActiveTab("stories");
+      await saveCurrentStoryPhoto(media.url, imageAlt);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not upload photo.");
     } finally {
@@ -391,6 +457,7 @@ export default function EditorDashboard() {
             setStory={setStoryDraft}
             images={imageChoices}
             onUpload={uploadPhoto}
+            onChooseImage={chooseStoryPhoto}
             onSave={saveStoryDraft}
             onDelete={deleteCurrentStory}
             busy={busy}
@@ -419,7 +486,10 @@ export default function EditorDashboard() {
                 accept="image/*"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) void uploadPhoto(file, photoAlt);
+                  if (file) {
+                    void uploadPhoto(file, photoAlt);
+                    event.currentTarget.value = "";
+                  }
                 }}
               />
             </label>
@@ -428,11 +498,7 @@ export default function EditorDashboard() {
             {imageChoices.map((image) => (
               <button
                 key={image.url}
-                onClick={() => {
-                  setStoryDraft((story) => ({ ...story, imageUrl: image.url, imageAlt: image.label }));
-                  setActiveTab("stories");
-                  setMessage("Photo selected for the current story.");
-                }}
+                onClick={() => void chooseStoryPhoto(image)}
               >
                 <span style={{ backgroundImage: `url(${image.url})` }} />
                 <strong>{image.label}</strong>
@@ -518,6 +584,7 @@ function StoryForm({
   setStory,
   images,
   onUpload,
+  onChooseImage,
   onSave,
   onDelete,
   busy,
@@ -526,6 +593,7 @@ function StoryForm({
   setStory: (story: EditorStory | ((story: EditorStory) => EditorStory)) => void;
   images: Array<{ url: string; label: string }>;
   onUpload: (file: File, alt?: string) => Promise<void>;
+  onChooseImage: (image: { url: string; label: string }) => Promise<void>;
   onSave: () => Promise<void>;
   onDelete: () => Promise<void>;
   busy: boolean;
@@ -661,10 +729,9 @@ function StoryForm({
               value={story.imageUrl}
               onChange={(event) => {
                 const chosen = images.find((image) => image.url === event.target.value);
-                setStory({
-                  ...story,
-                  imageUrl: event.target.value,
-                  imageAlt: chosen?.label || story.imageAlt,
+                void onChooseImage({
+                  url: event.target.value,
+                  label: chosen?.label || story.imageAlt,
                 });
               }}
             >
@@ -684,7 +751,10 @@ function StoryForm({
               accept="image/*"
               onChange={(event) => {
                 const file = event.target.files?.[0];
-                if (file) void onUpload(file, story.imageAlt);
+                if (file) {
+                  void onUpload(file, story.imageAlt);
+                  event.currentTarget.value = "";
+                }
               }}
             />
           </label>
