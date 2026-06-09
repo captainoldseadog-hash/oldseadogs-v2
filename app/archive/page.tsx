@@ -130,6 +130,9 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
                 <h3>
                   <Link href={`/stories/${story.slug}`}>{story.title}</Link>
                 </h3>
+                <Link href={`/stories/${story.slug}`} className="story-summary-link archive-summary-link">
+                  {story.summary}
+                </Link>
               </article>
             ))}
           </div>

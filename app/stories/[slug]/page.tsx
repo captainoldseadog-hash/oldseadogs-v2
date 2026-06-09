@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate } from "../../../content/stories";
-import { getPublishedStories, getStoryBySlug } from "../../../lib/site-content";
+import { getPublishedStories, getStoryBySlug, hasStoryPhoto } from "../../../lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +41,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
   const related = (await getPublishedStories())
     .filter((item) => item.slug !== story.slug && item.category === story.category)
     .slice(0, 2);
+  const storyHasPhoto = hasStoryPhoto(story);
 
   return (
     <main className="article-shell">
@@ -64,14 +65,16 @@ export default async function StoryPage({ params }: StoryPageProps) {
           </div>
         </header>
 
-        <figure className="article-figure">
-          <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.imageUrl})` }} />
-          <figcaption>
-            {story.imageCaption ? <span>{story.imageCaption}</span> : null}
-            {story.imageCredit ? <span className="photo-credit">{story.imageCredit}</span> : null}
-            <span>{story.sourceType} · {story.sourceName}</span>
-          </figcaption>
-        </figure>
+        {storyHasPhoto ? (
+          <figure className="article-figure">
+            <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.imageUrl})` }} />
+            <figcaption>
+              {story.imageCaption ? <span>{story.imageCaption}</span> : null}
+              {story.imageCredit ? <span className="photo-credit">{story.imageCredit}</span> : null}
+              <span>{story.sourceType} · {story.sourceName}</span>
+            </figcaption>
+          </figure>
+        ) : null}
 
         <div className="article-body">
           {story.body.map((paragraph) => (
@@ -94,17 +97,24 @@ export default async function StoryPage({ params }: StoryPageProps) {
           </div>
           <div className="related-grid">
             {related.map((item) => (
-              <article key={item.slug} className="compact-card">
-                <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.imageUrl})` }}>
-                  {item.imageCredit ? (
-                    <small className="image-credit-chip">{item.imageCredit}</small>
-                  ) : null}
-                </span>
+              <article key={item.slug} className={`compact-card ${hasStoryPhoto(item) ? "" : "text-only-story"}`}>
+                {hasStoryPhoto(item) ? (
+                  <span className="compact-image" role="img" aria-label={item.imageAlt} style={{ backgroundImage: `url(${item.imageUrl})` }}>
+                    {item.imageCredit ? (
+                      <small className="image-credit-chip">{item.imageCredit}</small>
+                    ) : null}
+                  </span>
+                ) : null}
                 <div>
                   <span>{formatDate(item.date)}</span>
                   <h3>
                     <Link href={`/stories/${item.slug}`}>{item.title}</Link>
                   </h3>
+                  {!hasStoryPhoto(item) ? (
+                    <Link href={`/stories/${item.slug}`} className="story-summary-link compact-summary-link">
+                      {item.summary}
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             ))}

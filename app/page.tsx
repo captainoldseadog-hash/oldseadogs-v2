@@ -6,6 +6,7 @@ import {
   getLegacyArchiveStats,
   getPublishedStories,
   getSiteSettings,
+  hasStoryPhoto,
   type Advert,
 } from "../lib/site-content";
 
@@ -91,16 +92,19 @@ export default async function Home() {
   const practicalStories = stories.filter((story) => story.category === "Maintenance");
   const bannerAd = ads.find((ad) => ad.placement === "banner");
   const sidebarAds = ads.filter((ad) => ad.placement === "sidebar").slice(0, 2);
+  const featuredHasPhoto = hasStoryPhoto(featuredStory);
 
   return (
     <main className="site-shell">
-      <header className="hero">
-        <div
-          className="hero-image"
-          aria-hidden="true"
-          style={{ backgroundImage: `url(${featuredStory.imageUrl})` }}
-        />
-        {featuredStory.imageCredit ? (
+      <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
+        {featuredHasPhoto ? (
+          <div
+            className="hero-image"
+            aria-hidden="true"
+            style={{ backgroundImage: `url(${featuredStory.imageUrl})` }}
+          />
+        ) : null}
+        {featuredHasPhoto && featuredStory.imageCredit ? (
           <div className="hero-credit">{featuredStory.imageCredit}</div>
         ) : null}
         <div className="hero-scrim" />
@@ -163,36 +167,43 @@ export default async function Home() {
             <h2>Fresh from the waterline</h2>
           </div>
           <div className="story-grid">
-            {latestStories.map((story) => (
-              <article className="story-card" key={story.slug}>
-                <Link href={`/stories/${story.slug}`} className="image-link">
-                  <span
-                    className="story-image"
-                    role="img"
-                    aria-label={story.imageAlt}
-                    style={{ backgroundImage: `url(${story.imageUrl})` }}
-                  >
-                    {story.imageCredit ? (
-                      <small className="image-credit-chip">{story.imageCredit}</small>
-                    ) : null}
-                  </span>
-                </Link>
-                <div className="story-card-body">
-                  <div className="story-meta">
-                    <span>{story.category}</span>
-                    <span>{formatDate(story.date)}</span>
+            {latestStories.map((story) => {
+              const storyHasPhoto = hasStoryPhoto(story);
+              return (
+                <article className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`} key={story.slug}>
+                  {storyHasPhoto ? (
+                    <Link href={`/stories/${story.slug}`} className="image-link">
+                      <span
+                        className="story-image"
+                        role="img"
+                        aria-label={story.imageAlt}
+                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                      >
+                        {story.imageCredit ? (
+                          <small className="image-credit-chip">{story.imageCredit}</small>
+                        ) : null}
+                      </span>
+                    </Link>
+                  ) : null}
+                  <div className="story-card-body">
+                    <div className="story-meta">
+                      <span>{story.category}</span>
+                      <span>{formatDate(story.date)}</span>
+                    </div>
+                    <h3>
+                      <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                    </h3>
+                    <Link href={`/stories/${story.slug}`} className="story-summary-link">
+                      {story.summary}
+                    </Link>
+                    <div className="source-row">
+                      <span>{story.sourceType}</span>
+                      <span>{story.readMinutes} min read</span>
+                    </div>
                   </div>
-                  <h3>
-                    <Link href={`/stories/${story.slug}`}>{story.title}</Link>
-                  </h3>
-                  <p>{story.summary}</p>
-                  <div className="source-row">
-                    <span>{story.sourceType}</span>
-                    <span>{story.readMinutes} min read</span>
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </div>
 
@@ -227,26 +238,36 @@ export default async function Home() {
           </p>
         </div>
         <div className="feature-cards">
-          {[...reviewStories, ...practicalStories].slice(0, 2).map((story) => (
-            <article key={story.slug} className="compact-card">
-              <span
-                className="compact-image"
-                role="img"
-                aria-label={story.imageAlt}
-                style={{ backgroundImage: `url(${story.imageUrl})` }}
-              >
-                {story.imageCredit ? (
-                  <small className="image-credit-chip">{story.imageCredit}</small>
+          {[...reviewStories, ...practicalStories].slice(0, 2).map((story) => {
+            const storyHasPhoto = hasStoryPhoto(story);
+            return (
+              <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
+                {storyHasPhoto ? (
+                  <span
+                    className="compact-image"
+                    role="img"
+                    aria-label={story.imageAlt}
+                    style={{ backgroundImage: `url(${story.imageUrl})` }}
+                  >
+                    {story.imageCredit ? (
+                      <small className="image-credit-chip">{story.imageCredit}</small>
+                    ) : null}
+                  </span>
                 ) : null}
-              </span>
-              <div>
-                <span>{story.category}</span>
-                <h3>
-                  <Link href={`/stories/${story.slug}`}>{story.title}</Link>
-                </h3>
-              </div>
-            </article>
-          ))}
+                <div>
+                  <span>{story.category}</span>
+                  <h3>
+                    <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                  </h3>
+                  {!storyHasPhoto ? (
+                    <Link href={`/stories/${story.slug}`} className="story-summary-link compact-summary-link">
+                      {story.summary}
+                    </Link>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 

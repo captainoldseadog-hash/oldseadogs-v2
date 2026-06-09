@@ -39,6 +39,8 @@ export type SiteSettings = {
   siteDescription: string;
 };
 
+const placeholderStoryImages = new Set(["", "/images/marina-hero.png"]);
+
 export const defaultSettings: SiteSettings = {
   brandName: "Old Sea Dogs",
   kicker: "Boating news, reviews, and sea stories",
@@ -176,7 +178,7 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
     sourceType: "Original",
     sourceName: story.sourceName || "Old Sea Dogs archive",
     sourceUrl: story.sourceUrl || "",
-    imageUrl: story.imageUrl || "/images/marina-hero.png",
+    imageUrl: story.imageUrl || "",
     imageAlt: story.imageAlt || story.title,
     imageCredit: story.imageCredit || "",
     imageCaption: story.imageCaption || "",
@@ -190,6 +192,10 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
     createdAt: stamp,
     updatedAt: stamp,
   };
+}
+
+export function hasStoryPhoto(story: Pick<EditableStory, "imageUrl">) {
+  return !placeholderStoryImages.has(story.imageUrl.trim());
 }
 
 function legacyStaticStories() {
@@ -380,7 +386,7 @@ export async function saveStory(input: Partial<EditableStory>) {
     sourceType: input.sourceType?.trim() || "Original",
     sourceName: input.sourceName?.trim() || "Old Sea Dogs desk",
     sourceUrl: input.sourceUrl?.trim() || null,
-    imageUrl: input.imageUrl || "/images/marina-hero.png",
+    imageUrl: input.imageUrl?.trim() || "",
     imageAlt: input.imageAlt?.trim() || input.title?.trim() || "Old Sea Dogs story image",
     imageCredit: input.imageCredit?.trim() || "",
     imageCaption: input.imageCaption?.trim() || "",

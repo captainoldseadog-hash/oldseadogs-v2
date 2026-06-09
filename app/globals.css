@@ -379,6 +379,32 @@ a {
   line-height: 1.55;
 }
 
+.story-summary-link {
+  display: block;
+  margin: 12px 0 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.story-summary-link:hover {
+  color: var(--signal);
+}
+
+.story-card.text-only-story .story-card-body,
+.compact-card.text-only-story > div {
+  padding-top: 22px;
+}
+
+.text-only-story h3 {
+  margin-top: 10px;
+}
+
+.compact-summary-link,
+.archive-summary-link {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
 .source-row {
   margin-top: auto;
   padding-top: 14px;
@@ -1221,6 +1247,15 @@ a {
   background-color: #d7e3e0;
   background-position: center;
   background-size: cover;
+}
+
+.no-picked-image {
+  display: grid;
+  place-items: center;
+  background:
+    repeating-linear-gradient(135deg, #f4f7f5 0 12px, #e9f1ee 12px 24px);
+  color: var(--muted);
+  font-weight: 900;
 }
 
 .image-controls {

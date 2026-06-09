@@ -82,7 +82,7 @@ const blankStory = (): EditorStory => ({
   sourceType: "Original",
   sourceName: "Old Sea Dogs desk",
   sourceUrl: "",
-  imageUrl: "/images/marina-hero.png",
+  imageUrl: "",
   imageAlt: "",
   imageCredit: "",
   imageCaption: "",
@@ -113,6 +113,7 @@ const blankAd = (): Advert => ({
 });
 
 const starterImages = [
+  { url: "", label: "No photo" },
   { url: "/images/marina-hero.png", label: "Classic marina" },
   { url: "/images/racing-yachts.png", label: "Racing yachts" },
   { url: "/images/motor-yacht-review.png", label: "Motor yacht" },
@@ -250,7 +251,7 @@ export default function EditorDashboard() {
 
   async function saveCurrentStoryPhoto(imageUrl: string, imageAlt: string) {
     if (!storyDraft.id) {
-      setMessage("Photo selected. Press Save story when the new story is ready.");
+      setMessage(imageUrl ? "Photo selected. Press Save story when the new story is ready." : "No photo selected. Press Save story when the new story is ready.");
       return;
     }
 
@@ -262,13 +263,13 @@ export default function EditorDashboard() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "Could not save the photo to this story.");
     showStoryPhoto(payload.story.imageUrl, payload.story.imageAlt, payload.story.id);
-    setMessage("Photo saved to this story.");
+    setMessage(payload.story.imageUrl ? "Photo saved to this story." : "This story now has no photo.");
   }
 
   async function chooseStoryPhoto(image: { url: string; label: string }) {
-    const imageAlt = image.label || storyDraft.imageAlt || "Old Sea Dogs story image";
+    const imageAlt = image.url ? image.label || storyDraft.imageAlt || "Old Sea Dogs story image" : "";
     setBusy(true);
-    setMessage("Saving photo to this story...");
+    setMessage(image.url ? "Saving photo to this story..." : "Removing photo from this story...");
     try {
       showStoryPhoto(image.url, imageAlt);
       setActiveTab("stories");
@@ -755,11 +756,13 @@ function StoryForm({
 
       <div className="image-picker">
         <div
-          className="picked-image"
-          style={{ backgroundImage: `url(${story.imageUrl})` }}
+          className={`picked-image ${story.imageUrl ? "" : "no-picked-image"}`}
+          style={story.imageUrl ? { backgroundImage: `url(${story.imageUrl})` } : undefined}
           role="img"
           aria-label={story.imageAlt || "Selected story image"}
-        />
+        >
+          {!story.imageUrl ? <span>No photo</span> : null}
+        </div>
         <div className="image-controls">
           <label>
             Story photo
