@@ -5,6 +5,13 @@ export type OldSeaDogsSection = {
   description: string;
 };
 
+export type SectionHeroPhoto = {
+  imageUrl: string;
+  imageAlt: string;
+  imageCredit: string;
+  imageCaption: string;
+};
+
 export const oldSeaDogsSections: OldSeaDogsSection[] = [
   {
     label: "News",
@@ -77,4 +84,9 @@ export function storyMatchesSection(
   section: OldSeaDogsSection
 ) {
   return section.categories.includes(story.category);
+}
+
+export function pickRandomSectionPhoto(photos: SectionHeroPhoto[]) {
+  if (photos.length === 0) return null;
+  return photos[Math.floor(Math.random() * photos.length)];
 }

@@ -1,6 +1,7 @@
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDbOrNull } from "../db";
 import { ads, mediaAssets, siteSettings, stories as storyRows } from "../db/schema";
+import { oldSeaDogsSocialLinks } from "../content/social-links";
 import { stories as seedStories } from "../content/stories";
 import legacyStories from "../content/legacy-stories.json";
 
@@ -37,6 +38,11 @@ export type SiteSettings = {
   kicker: string;
   footerText: string;
   siteDescription: string;
+  socialFacebook: string;
+  socialInstagram: string;
+  socialX: string;
+  socialYouTube: string;
+  socialLinkedIn: string;
 };
 
 const placeholderStoryImages = new Set(["", "/images/marina-hero.png"]);
@@ -48,6 +54,11 @@ export const defaultSettings: SiteSettings = {
     "Boating, yachting, boat reviews, and the practical business of life afloat.",
   siteDescription:
     "Boating, yachting, boat reviews, and practical sea stories from Old Sea Dogs.",
+  socialFacebook: oldSeaDogsSocialLinks.facebook,
+  socialInstagram: oldSeaDogsSocialLinks.instagram,
+  socialX: oldSeaDogsSocialLinks.x,
+  socialYouTube: "",
+  socialLinkedIn: oldSeaDogsSocialLinks.linkedin,
 };
 
 function nowIso() {
@@ -198,6 +209,10 @@ export function hasStoryPhoto(story: Pick<EditableStory, "imageUrl">) {
   return !placeholderStoryImages.has(story.imageUrl.trim());
 }
 
+export function isPromotedStory(story: Pick<EditableStory, "sortOrder">) {
+  return story.sortOrder < 0;
+}
+
 function legacyStaticStories() {
   return legacyStoryRecords.map(legacyToStory);
 }
@@ -248,6 +263,12 @@ function staticStories() {
 function sortStories(stories: EditableStory[]) {
   return [...stories].sort((a, b) => {
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+    const aPromoted = isPromotedStory(a);
+    const bPromoted = isPromotedStory(b);
+    if (aPromoted !== bPromoted) return aPromoted ? -1 : 1;
+    if (aPromoted && bPromoted && a.sortOrder !== b.sortOrder) {
+      return a.sortOrder - b.sortOrder;
+    }
     const dateCompare = b.date.localeCompare(a.date);
     if (dateCompare !== 0) return dateCompare;
     return a.sortOrder - b.sortOrder;
@@ -274,7 +295,7 @@ function mergeDbStoriesWithStatic(rows: Array<typeof storyRows.$inferSelect>, in
 
 export async function getPublishedStories() {
   const db = getDbOrNull();
-  if (!db) return staticStories();
+  if (!db) return sortStories(staticStories());
 
   try {
     await ensureSeedData();
@@ -284,7 +305,7 @@ export async function getPublishedStories() {
       .orderBy(desc(storyRows.isFeatured), desc(storyRows.date), asc(storyRows.sortOrder));
     return mergeDbStoriesWithStatic(rows);
   } catch {
-    return staticStories();
+    return sortStories(staticStories());
   }
 }
 
@@ -345,7 +366,7 @@ export async function getEditorData() {
   const db = getDbOrNull();
   if (!db) {
     return {
-      stories: staticStories(),
+      stories: sortStories(staticStories()),
       media: [] as MediaAsset[],
       ads: [] as Advert[],
       settings: defaultSettings,

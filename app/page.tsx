@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { oldSeaDogsSections } from "../content/sections";
+import { SiteFooter } from "../components/SiteFooter";
+import { oldSeaDogsSections, storyMatchesSection } from "../content/sections";
 import { formatDate } from "../content/stories";
 import {
   getActiveAds,
@@ -9,15 +10,17 @@ import {
   hasStoryPhoto,
   type Advert,
 } from "../lib/site-content";
+import { createPageMetadata } from "../lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  return {
+  return createPageMetadata({
     title: settings.brandName,
     description: settings.siteDescription,
-  };
+    path: "/",
+  });
 }
 
 const sections = [
@@ -26,6 +29,18 @@ const sections = [
     href: `/${section.slug}`,
   })),
 ];
+
+function getSectionPreviewPhoto(
+  stories: Awaited<ReturnType<typeof getPublishedStories>>,
+  section: (typeof oldSeaDogsSections)[number]
+) {
+  const photos = stories
+    .filter((story) => storyMatchesSection(story, section))
+    .filter((story) => hasStoryPhoto(story));
+
+  if (photos.length === 0) return null;
+  return photos[Math.floor(Math.random() * Math.min(photos.length, 24))];
+}
 
 function AdCard({ ad }: { ad: Advert }) {
   if (ad.kind === "network" && ad.code) {
@@ -73,6 +88,10 @@ export default async function Home() {
   const bannerAd = ads.find((ad) => ad.placement === "banner");
   const sidebarAds = ads.filter((ad) => ad.placement === "sidebar").slice(0, 2);
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
+  const sectionCards = oldSeaDogsSections.map((section) => ({
+    ...section,
+    photo: getSectionPreviewPhoto(stories, section),
+  }));
 
   return (
     <main className="site-shell">
@@ -99,6 +118,7 @@ export default async function Home() {
                 {section.label}
               </a>
             ))}
+            <Link href="/search">Search</Link>
           </div>
         </nav>
 
@@ -169,7 +189,6 @@ export default async function Home() {
                       {story.summary}
                     </Link>
                     <div className="source-row">
-                      <span>{story.sourceType}</span>
                       <span>{story.readMinutes} min read</span>
                     </div>
                   </div>
@@ -181,12 +200,21 @@ export default async function Home() {
 
         <aside className="watch-panel" id="press-watch" aria-label="Press and source watch">
           <p className="eyebrow">Sections</p>
-          <h2>Browse the old site departments</h2>
+          <h2>Explore Old Sea Dogs</h2>
           <div className="watch-list section-list">
-            {oldSeaDogsSections.map((section) => (
+            {sectionCards.map((section) => (
               <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
-                <strong>{section.label}</strong>
-                <span>{section.description}</span>
+                {section.photo ? (
+                  <span
+                    className="section-list-image"
+                    aria-hidden="true"
+                    style={{ backgroundImage: `url(${section.photo.imageUrl})` }}
+                  />
+                ) : null}
+                <span className="section-list-copy">
+                  <strong>{section.label}</strong>
+                  <span>{section.description}</span>
+                </span>
               </Link>
             ))}
           </div>
@@ -240,20 +268,15 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <div>
-          <p className="brand-footer">
-            <span className="brand-mark footer-mark" aria-hidden="true" />
-            <span>{settings.brandName}</span>
-          </p>
-          <p>{settings.footerText}</p>
-        </div>
-        <div className="footer-links">
-          <a href="#latest">Latest</a>
-          <a href="#reviews">Reviews</a>
-          <a href="#press-watch">Press Watch</a>
-        </div>
-      </footer>
+      <SiteFooter
+        brandName={settings.brandName}
+        footerText={settings.footerText}
+        extraLinks={[
+          { href: "#latest", label: "Latest" },
+          { href: "#reviews", label: "Reviews" },
+          { href: "#press-watch", label: "Press Watch" },
+        ]}
+      />
     </main>
   );
 }

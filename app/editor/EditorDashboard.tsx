@@ -60,6 +60,11 @@ type Settings = {
   kicker: string;
   footerText: string;
   siteDescription: string;
+  socialFacebook: string;
+  socialInstagram: string;
+  socialX: string;
+  socialYouTube: string;
+  socialLinkedIn: string;
 };
 
 type EditorData = {
@@ -121,6 +126,17 @@ const starterImages = [
   { url: "/images/monaco-port-hercules-grand-prix.png", label: "Port Hercules, Monaco Grand Prix" },
 ];
 
+const promotedStoryOrder = -100;
+const placeholderStoryImages = new Set(["", "/images/marina-hero.png"]);
+
+function isPromotedStory(story: Pick<EditorStory, "sortOrder">) {
+  return story.sortOrder < 0;
+}
+
+function hasPickedPhoto(story: Pick<EditorStory, "imageUrl">) {
+  return !placeholderStoryImages.has(story.imageUrl.trim());
+}
+
 export default function EditorDashboard() {
   const [data, setData] = useState<EditorData | null>(null);
   const [activeTab, setActiveTab] = useState<"stories" | "photos" | "ads" | "settings">("stories");
@@ -131,6 +147,7 @@ export default function EditorDashboard() {
   const [settingsDraft, setSettingsDraft] = useState<Settings | null>(null);
   const [photoAlt, setPhotoAlt] = useState("");
   const [storySearch, setStorySearch] = useState("");
+  const [photoStoriesOnly, setPhotoStoriesOnly] = useState(false);
   const [message, setMessage] = useState("Loading editor...");
   const [busy, setBusy] = useState(false);
 
@@ -177,21 +194,24 @@ export default function EditorDashboard() {
   const visibleStories = useMemo(() => {
     const stories = data?.stories ?? [];
     const query = storySearch.trim().toLowerCase();
-    if (!query) return stories.slice(0, 200);
-    return stories.filter((story) =>
-      [
-        story.title,
-        story.category,
-        story.date,
-        story.author,
-        story.sourceName,
-        story.tags.join(" "),
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(query)
-    );
-  }, [data?.stories, storySearch]);
+    return stories
+      .filter((story) => !photoStoriesOnly || hasPickedPhoto(story))
+      .filter((story) => {
+        if (!query) return true;
+        return [
+          story.title,
+          story.category,
+          story.date,
+          story.author,
+          story.sourceName,
+          story.tags.join(" "),
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      })
+      .slice(0, 200);
+  }, [data?.stories, photoStoriesOnly, storySearch]);
 
   function pickStory(story: EditorStory) {
     setSelectedStoryId(story.id);
@@ -443,7 +463,7 @@ export default function EditorDashboard() {
         <button className={activeTab === "stories" ? "active" : ""} onClick={() => setActiveTab("stories")}>Stories</button>
         <button className={activeTab === "photos" ? "active" : ""} onClick={() => setActiveTab("photos")}>Photos</button>
         <button className={activeTab === "ads" ? "active" : ""} onClick={() => setActiveTab("ads")}>Adverts</button>
-        <button className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>Site words</button>
+        <button className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>Site & social</button>
       </nav>
 
       {!data ? (
@@ -468,9 +488,17 @@ export default function EditorDashboard() {
                 onChange={(event) => setStorySearch(event.target.value)}
               />
             </label>
+            <label className="editor-filter-row">
+              <input
+                type="checkbox"
+                checked={photoStoriesOnly}
+                onChange={(event) => setPhotoStoriesOnly(event.target.checked)}
+              />
+              Photo stories only
+            </label>
             <p className="story-count">
               Showing {visibleStories.length} of {data.stories.length}
-              {!storySearch ? " latest stories" : " matching stories"}
+              {storySearch || photoStoriesOnly ? " matching stories" : " latest stories"}
             </p>
             {visibleStories.map((story) => (
               <button
@@ -479,7 +507,10 @@ export default function EditorDashboard() {
                 onClick={() => pickStory(story)}
               >
                 <span>{story.title || "Untitled story"}</span>
-                <small>{story.status === "published" ? "Published" : "Draft"} · {story.category}</small>
+                <small>
+                  {isPromotedStory(story) ? "Promoted · " : ""}
+                  {story.status === "published" ? "Published" : "Draft"} · {story.category}
+                </small>
               </button>
             ))}
           </aside>
@@ -573,37 +604,86 @@ export default function EditorDashboard() {
 
       {data && activeTab === "settings" && settingsDraft ? (
         <section className="editor-panel editor-form">
-          <h2>Site words</h2>
-          <label>
-            Site name
-            <input
-              value={settingsDraft.brandName}
-              onChange={(event) => setSettingsDraft({ ...settingsDraft, brandName: event.target.value })}
-            />
-          </label>
-          <label>
-            Short line above the homepage title
-            <input
-              value={settingsDraft.kicker}
-              onChange={(event) => setSettingsDraft({ ...settingsDraft, kicker: event.target.value })}
-            />
-          </label>
-          <label>
-            Footer sentence
-            <textarea
-              value={settingsDraft.footerText}
-              onChange={(event) => setSettingsDraft({ ...settingsDraft, footerText: event.target.value })}
-            />
-          </label>
-          <label>
-            Search description
-            <textarea
-              value={settingsDraft.siteDescription}
-              onChange={(event) => setSettingsDraft({ ...settingsDraft, siteDescription: event.target.value })}
-            />
-          </label>
+          <h2>Site and social links</h2>
+          <div className="settings-group">
+            <h3>Site words</h3>
+            <label>
+              Site name
+              <input
+                value={settingsDraft.brandName}
+                onChange={(event) => setSettingsDraft({ ...settingsDraft, brandName: event.target.value })}
+              />
+            </label>
+            <label>
+              Short line above the homepage title
+              <input
+                value={settingsDraft.kicker}
+                onChange={(event) => setSettingsDraft({ ...settingsDraft, kicker: event.target.value })}
+              />
+            </label>
+            <label>
+              Footer sentence
+              <textarea
+                value={settingsDraft.footerText}
+                onChange={(event) => setSettingsDraft({ ...settingsDraft, footerText: event.target.value })}
+              />
+            </label>
+            <label>
+              Search description
+              <textarea
+                value={settingsDraft.siteDescription}
+                onChange={(event) => setSettingsDraft({ ...settingsDraft, siteDescription: event.target.value })}
+              />
+            </label>
+          </div>
+
+          <div className="settings-group">
+            <h3>Social media links</h3>
+            <div className="split-fields">
+              <label>
+                Facebook
+                <input
+                  value={settingsDraft.socialFacebook}
+                  placeholder="oldseadogs or full Facebook link"
+                  onChange={(event) => setSettingsDraft({ ...settingsDraft, socialFacebook: event.target.value })}
+                />
+              </label>
+              <label>
+                Instagram
+                <input
+                  value={settingsDraft.socialInstagram}
+                  placeholder="@oldseadogs or full Instagram link"
+                  onChange={(event) => setSettingsDraft({ ...settingsDraft, socialInstagram: event.target.value })}
+                />
+              </label>
+              <label>
+                X / Twitter
+                <input
+                  value={settingsDraft.socialX}
+                  placeholder="@oldseadogs or full X link"
+                  onChange={(event) => setSettingsDraft({ ...settingsDraft, socialX: event.target.value })}
+                />
+              </label>
+              <label>
+                YouTube
+                <input
+                  value={settingsDraft.socialYouTube}
+                  placeholder="@oldseadogs or full YouTube link"
+                  onChange={(event) => setSettingsDraft({ ...settingsDraft, socialYouTube: event.target.value })}
+                />
+              </label>
+              <label>
+                LinkedIn
+                <input
+                  value={settingsDraft.socialLinkedIn}
+                  placeholder="oldseadogs or full LinkedIn link"
+                  onChange={(event) => setSettingsDraft({ ...settingsDraft, socialLinkedIn: event.target.value })}
+                />
+              </label>
+            </div>
+          </div>
           <div className="form-actions">
-            <button onClick={saveSettingsDraft} disabled={busy}>Save site words</button>
+            <button onClick={saveSettingsDraft} disabled={busy}>Save site and social links</button>
           </div>
         </section>
       ) : null}
@@ -632,6 +712,18 @@ function StoryForm({
 }) {
   const bodyText = story.body.join("\n\n");
   const tagText = story.tags.join(", ");
+  const storyPromoted = isPromotedStory(story);
+
+  function setStoryPromoted(promoted: boolean) {
+    setStory((current) => ({
+      ...current,
+      sortOrder: promoted
+        ? current.sortOrder < 0
+          ? current.sortOrder
+          : promotedStoryOrder
+        : Math.max(0, current.sortOrder),
+    }));
+  }
 
   return (
     <section className="editor-panel editor-form">
@@ -640,7 +732,10 @@ function StoryForm({
           <p className="eyebrow">{story.id ? "Edit story" : "New story"}</p>
           <h2>{story.title || "Untitled story"}</h2>
         </div>
-        <span className={story.status === "published" ? "pill live" : "pill"}>{story.status}</span>
+        <div className="form-pill-row">
+          {storyPromoted ? <span className="pill promoted">Promoted</span> : null}
+          <span className={story.status === "published" ? "pill live" : "pill"}>{story.status}</span>
+        </div>
       </div>
 
       <div className="split-fields">
@@ -815,6 +910,17 @@ function StoryForm({
       </div>
 
       <div className="publish-row">
+        <label className={`check-row promotion-row ${storyPromoted ? "active" : ""}`}>
+          <input
+            type="checkbox"
+            checked={storyPromoted}
+            onChange={(event) => setStoryPromoted(event.target.checked)}
+          />
+          <span>
+            <strong>Bring this story to the top of its section</strong>
+            <small>Useful for older stories with strong photos.</small>
+          </span>
+        </label>
         <label className="check-row">
           <input type="checkbox" checked={story.isFeatured} onChange={(event) => setStory({ ...story, isFeatured: event.target.checked })} />
           Make this the main homepage story

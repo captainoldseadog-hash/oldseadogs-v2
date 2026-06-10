@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteFooter } from "../../components/SiteFooter";
 import { formatDate } from "../../content/stories";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
+import { createPageMetadata } from "../../lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Restored Archive | Old Sea Dogs",
   description: "Browse the restored Old Sea Dogs story archive.",
-};
+  path: "/archive",
+});
 
 type ArchivePageProps = {
   searchParams?: Promise<{
@@ -159,6 +162,13 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           </nav>
         </div>
       </section>
+
+      <SiteFooter
+        extraLinks={[
+          { href: "/", label: "Home" },
+          { href: "/news", label: "News" },
+        ]}
+      />
     </main>
   );
 }
