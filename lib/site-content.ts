@@ -593,22 +593,55 @@ async function readLocalEditorStoreUncached(): Promise<LocalEditorStore> {
 }
 
 
-let localEditorStoreReadInFlight:
-  Promise<LocalEditorStore> | null = null;
+let localEditorStoreReadCache: {
+  signature: string;
+  store: LocalEditorStore;
+} | null = null;
+
+let localEditorStoreReadInFlight: {
+  signature: string;
+  promise: Promise<LocalEditorStore>;
+} | null = null;
 
 async function readLocalEditorStore():
   Promise<LocalEditorStore> {
-  if (localEditorStoreReadInFlight) {
-    return localEditorStoreReadInFlight;
+  const paths = await localEditorStorePaths();
+  if (!paths) return emptyLocalEditorStore();
+
+  const fsSpecifier = "node:fs/promises";
+  const fs = await import(/* @vite-ignore */ fsSpecifier) as {
+    stat(path: string): Promise<{
+      ino: number | bigint;
+      mtimeMs: number;
+      size: number;
+    }>;
+  };
+
+  let signature: string;
+  try {
+    const details = await fs.stat(paths.filePath);
+    signature = `${details.ino}:${details.size}:${details.mtimeMs}`;
+  } catch {
+    return readLocalEditorStoreUncached();
+  }
+
+  if (localEditorStoreReadCache?.signature === signature) {
+    return localEditorStoreReadCache.store;
+  }
+
+  if (localEditorStoreReadInFlight?.signature === signature) {
+    return localEditorStoreReadInFlight.promise;
   }
 
   const promise = readLocalEditorStoreUncached();
-  localEditorStoreReadInFlight = promise;
+  localEditorStoreReadInFlight = { signature, promise };
 
   try {
-    return await promise;
+    const store = await promise;
+    localEditorStoreReadCache = { signature, store };
+    return store;
   } finally {
-    if (localEditorStoreReadInFlight === promise) {
+    if (localEditorStoreReadInFlight?.promise === promise) {
       localEditorStoreReadInFlight = null;
     }
   }
