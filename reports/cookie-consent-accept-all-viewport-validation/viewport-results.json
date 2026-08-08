@@ -1,0 +1,897 @@
+{
+  "generatedAt": "2026-08-06T13:42:20.845Z",
+  "url": "http://127.0.0.1:3001/",
+  "results": [
+    {
+      "buttons": [
+        {
+          "contrast": 21,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 629,
+            "height": 50,
+            "right": 559,
+            "width": 234,
+            "x": 325,
+            "y": 579
+          },
+          "tag": "BUTTON",
+          "text": "Accept all",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 629,
+            "height": 50,
+            "right": 803,
+            "width": 234,
+            "x": 569,
+            "y": 579
+          },
+          "tag": "BUTTON",
+          "text": "Reject non-essential",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 629,
+            "height": 50,
+            "right": 1047,
+            "width": 234,
+            "x": 813,
+            "y": 579
+          },
+          "tag": "BUTTON",
+          "text": "Manage choices",
+          "touchTarget": true,
+          "visible": true
+        }
+      ],
+      "copyOverlap": false,
+      "dialog": {
+        "bottom": 648,
+        "height": 288.2421875,
+        "right": 1066,
+        "width": 760,
+        "x": 306,
+        "y": 359.7578125
+      },
+      "dialogHorizontalOverflow": false,
+      "documentHorizontalOverflow": false,
+      "focusRules": [
+        {
+          "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+          "selector": ".cookie-actions button:focus-visible"
+        }
+      ],
+      "focusStylePass": true,
+      "height": 666,
+      "nestedInteractive": false,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "pairOverlaps": [],
+      "pass": true,
+      "width": 1084,
+      "screenshot": "/Users/driftwood/Documents/Codex/2026-06-09/sites-plugin-sites-openai-bundled-create/.release-work/cookie-consent-preservation-r1/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-accept-all-viewport-validation/1084x666.png"
+    },
+    {
+      "buttons": [
+        {
+          "contrast": 21,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 731,
+            "height": 50,
+            "right": 499,
+            "width": 234,
+            "x": 265,
+            "y": 681
+          },
+          "tag": "BUTTON",
+          "text": "Accept all",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 731,
+            "height": 50,
+            "right": 743,
+            "width": 234,
+            "x": 509,
+            "y": 681
+          },
+          "tag": "BUTTON",
+          "text": "Reject non-essential",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 731,
+            "height": 50,
+            "right": 987,
+            "width": 234,
+            "x": 753,
+            "y": 681
+          },
+          "tag": "BUTTON",
+          "text": "Manage choices",
+          "touchTarget": true,
+          "visible": true
+        }
+      ],
+      "copyOverlap": false,
+      "dialog": {
+        "bottom": 750,
+        "height": 288.2421875,
+        "right": 1006,
+        "width": 760,
+        "x": 246,
+        "y": 461.7578125
+      },
+      "dialogHorizontalOverflow": false,
+      "documentHorizontalOverflow": false,
+      "focusRules": [
+        {
+          "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+          "selector": ".cookie-actions button:focus-visible"
+        }
+      ],
+      "focusStylePass": true,
+      "height": 768,
+      "nestedInteractive": false,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "pairOverlaps": [],
+      "pass": true,
+      "width": 1024,
+      "screenshot": "/Users/driftwood/Documents/Codex/2026-06-09/sites-plugin-sites-openai-bundled-create/.release-work/cookie-consent-preservation-r1/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-accept-all-viewport-validation/1024x768.png"
+    },
+    {
+      "buttons": [
+        {
+          "contrast": 21,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 987,
+            "height": 50,
+            "right": 261.6640625,
+            "width": 224.6640625,
+            "x": 37,
+            "y": 937
+          },
+          "tag": "BUTTON",
+          "text": "Accept all",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 987,
+            "height": 50,
+            "right": 496.328125,
+            "width": 224.6640625,
+            "x": 271.6640625,
+            "y": 937
+          },
+          "tag": "BUTTON",
+          "text": "Reject non-essential",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 987,
+            "height": 50,
+            "right": 731,
+            "width": 224.671875,
+            "x": 506.328125,
+            "y": 937
+          },
+          "tag": "BUTTON",
+          "text": "Manage choices",
+          "touchTarget": true,
+          "visible": true
+        }
+      ],
+      "copyOverlap": false,
+      "dialog": {
+        "bottom": 1006,
+        "height": 288.2421875,
+        "right": 750,
+        "width": 732,
+        "x": 18,
+        "y": 717.7578125
+      },
+      "dialogHorizontalOverflow": false,
+      "documentHorizontalOverflow": false,
+      "focusRules": [
+        {
+          "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+          "selector": ".cookie-actions button:focus-visible"
+        }
+      ],
+      "focusStylePass": true,
+      "height": 1024,
+      "nestedInteractive": false,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "pairOverlaps": [],
+      "pass": true,
+      "width": 768,
+      "screenshot": "/Users/driftwood/Documents/Codex/2026-06-09/sites-plugin-sites-openai-bundled-create/.release-work/cookie-consent-preservation-r1/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-accept-all-viewport-validation/768x1024.png"
+    },
+    {
+      "buttons": [
+        {
+          "contrast": 21,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 699,
+            "height": 50,
+            "right": 365,
+            "width": 340,
+            "x": 25,
+            "y": 649
+          },
+          "tag": "BUTTON",
+          "text": "Accept all",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 759,
+            "height": 50,
+            "right": 365,
+            "width": 340,
+            "x": 25,
+            "y": 709
+          },
+          "tag": "BUTTON",
+          "text": "Reject non-essential",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 819,
+            "height": 50,
+            "right": 365,
+            "width": 340,
+            "x": 25,
+            "y": 769
+          },
+          "tag": "BUTTON",
+          "text": "Manage choices",
+          "touchTarget": true,
+          "visible": true
+        }
+      ],
+      "copyOverlap": false,
+      "dialog": {
+        "bottom": 834,
+        "height": 443.8046875,
+        "right": 380,
+        "width": 370,
+        "x": 10,
+        "y": 390.1953125
+      },
+      "dialogHorizontalOverflow": false,
+      "documentHorizontalOverflow": false,
+      "focusRules": [
+        {
+          "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+          "selector": ".cookie-actions button:focus-visible"
+        }
+      ],
+      "focusStylePass": true,
+      "height": 844,
+      "nestedInteractive": false,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "pairOverlaps": [],
+      "pass": true,
+      "width": 390,
+      "screenshot": "/Users/driftwood/Documents/Codex/2026-06-09/sites-plugin-sites-openai-bundled-create/.release-work/cookie-consent-preservation-r1/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-accept-all-viewport-validation/390x844.png"
+    },
+    {
+      "buttons": [
+        {
+          "contrast": 21,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 522,
+            "height": 50,
+            "right": 350,
+            "width": 325,
+            "x": 25,
+            "y": 472
+          },
+          "tag": "BUTTON",
+          "text": "Accept all",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 582,
+            "height": 50,
+            "right": 350,
+            "width": 325,
+            "x": 25,
+            "y": 532
+          },
+          "tag": "BUTTON",
+          "text": "Reject non-essential",
+          "touchTarget": true,
+          "visible": true
+        },
+        {
+          "contrast": 16.522104310112766,
+          "covered": false,
+          "inDialog": true,
+          "inViewport": true,
+          "rect": {
+            "bottom": 642,
+            "height": 50,
+            "right": 350,
+            "width": 325,
+            "x": 25,
+            "y": 592
+          },
+          "tag": "BUTTON",
+          "text": "Manage choices",
+          "touchTarget": true,
+          "visible": true
+        }
+      ],
+      "copyOverlap": false,
+      "dialog": {
+        "bottom": 657,
+        "height": 443.8046875,
+        "right": 365,
+        "width": 355,
+        "x": 10,
+        "y": 213.1953125
+      },
+      "dialogHorizontalOverflow": false,
+      "documentHorizontalOverflow": false,
+      "focusRules": [
+        {
+          "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+          "selector": ".cookie-actions button:focus-visible"
+        }
+      ],
+      "focusStylePass": true,
+      "height": 667,
+      "nestedInteractive": false,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "pairOverlaps": [],
+      "pass": true,
+      "width": 375,
+      "screenshot": "/Users/driftwood/Documents/Codex/2026-06-09/sites-plugin-sites-openai-bundled-create/.release-work/cookie-consent-preservation-r1/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-accept-all-viewport-validation/375x667.png"
+    }
+  ],
+  "accessibility": {
+    "order": [
+      "Accept all",
+      "Reject non-essential",
+      "Manage choices"
+    ],
+    "realButtons": true,
+    "focusRules": [
+      {
+        "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+        "selector": ".cookie-actions button:focus-visible"
+      }
+    ],
+    "focusStylePass": true,
+    "nestedInteractive": false,
+    "pass": true
+  },
+  "allPassed": true,
+  "extractedPackage": {
+    "archive": "/private/tmp/oldseadogs-cookie-consent-browser-rehearsal.tar.gz",
+    "archiveSha256": "8848bb5264c2e5cddc6b3fb89fb5aac526258f4d9362ed77307cb92dc5dae24d",
+    "url": "http://127.0.0.1:3002/",
+    "results": [
+      {
+        "buttons": [
+          {
+            "contrast": 21,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 629,
+              "height": 50,
+              "right": 559,
+              "width": 234,
+              "x": 325,
+              "y": 579
+            },
+            "tag": "BUTTON",
+            "text": "Accept all",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 629,
+              "height": 50,
+              "right": 803,
+              "width": 234,
+              "x": 569,
+              "y": 579
+            },
+            "tag": "BUTTON",
+            "text": "Reject non-essential",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 629,
+              "height": 50,
+              "right": 1047,
+              "width": 234,
+              "x": 813,
+              "y": 579
+            },
+            "tag": "BUTTON",
+            "text": "Manage choices",
+            "touchTarget": true,
+            "visible": true
+          }
+        ],
+        "copyOverlap": false,
+        "dialog": {
+          "bottom": 648,
+          "height": 288.2421875,
+          "right": 1066,
+          "width": 760,
+          "x": 306,
+          "y": 359.7578125
+        },
+        "dialogHorizontalOverflow": false,
+        "documentHorizontalOverflow": false,
+        "focusRules": [
+          {
+            "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+            "selector": ".cookie-actions button:focus-visible"
+          }
+        ],
+        "focusStylePass": true,
+        "height": 666,
+        "nestedInteractive": false,
+        "order": [
+          "Accept all",
+          "Reject non-essential",
+          "Manage choices"
+        ],
+        "pairOverlaps": [],
+        "pass": true,
+        "width": 1084
+      },
+      {
+        "buttons": [
+          {
+            "contrast": 21,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 731,
+              "height": 50,
+              "right": 499,
+              "width": 234,
+              "x": 265,
+              "y": 681
+            },
+            "tag": "BUTTON",
+            "text": "Accept all",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 731,
+              "height": 50,
+              "right": 743,
+              "width": 234,
+              "x": 509,
+              "y": 681
+            },
+            "tag": "BUTTON",
+            "text": "Reject non-essential",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 731,
+              "height": 50,
+              "right": 987,
+              "width": 234,
+              "x": 753,
+              "y": 681
+            },
+            "tag": "BUTTON",
+            "text": "Manage choices",
+            "touchTarget": true,
+            "visible": true
+          }
+        ],
+        "copyOverlap": false,
+        "dialog": {
+          "bottom": 750,
+          "height": 288.2421875,
+          "right": 1006,
+          "width": 760,
+          "x": 246,
+          "y": 461.7578125
+        },
+        "dialogHorizontalOverflow": false,
+        "documentHorizontalOverflow": false,
+        "focusRules": [
+          {
+            "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+            "selector": ".cookie-actions button:focus-visible"
+          }
+        ],
+        "focusStylePass": true,
+        "height": 768,
+        "nestedInteractive": false,
+        "order": [
+          "Accept all",
+          "Reject non-essential",
+          "Manage choices"
+        ],
+        "pairOverlaps": [],
+        "pass": true,
+        "width": 1024
+      },
+      {
+        "buttons": [
+          {
+            "contrast": 21,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 987,
+              "height": 50,
+              "right": 261.6640625,
+              "width": 224.6640625,
+              "x": 37,
+              "y": 937
+            },
+            "tag": "BUTTON",
+            "text": "Accept all",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 987,
+              "height": 50,
+              "right": 496.328125,
+              "width": 224.6640625,
+              "x": 271.6640625,
+              "y": 937
+            },
+            "tag": "BUTTON",
+            "text": "Reject non-essential",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 987,
+              "height": 50,
+              "right": 731,
+              "width": 224.671875,
+              "x": 506.328125,
+              "y": 937
+            },
+            "tag": "BUTTON",
+            "text": "Manage choices",
+            "touchTarget": true,
+            "visible": true
+          }
+        ],
+        "copyOverlap": false,
+        "dialog": {
+          "bottom": 1006,
+          "height": 288.2421875,
+          "right": 750,
+          "width": 732,
+          "x": 18,
+          "y": 717.7578125
+        },
+        "dialogHorizontalOverflow": false,
+        "documentHorizontalOverflow": false,
+        "focusRules": [
+          {
+            "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+            "selector": ".cookie-actions button:focus-visible"
+          }
+        ],
+        "focusStylePass": true,
+        "height": 1024,
+        "nestedInteractive": false,
+        "order": [
+          "Accept all",
+          "Reject non-essential",
+          "Manage choices"
+        ],
+        "pairOverlaps": [],
+        "pass": true,
+        "width": 768
+      },
+      {
+        "buttons": [
+          {
+            "contrast": 21,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 699,
+              "height": 50,
+              "right": 365,
+              "width": 340,
+              "x": 25,
+              "y": 649
+            },
+            "tag": "BUTTON",
+            "text": "Accept all",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 759,
+              "height": 50,
+              "right": 365,
+              "width": 340,
+              "x": 25,
+              "y": 709
+            },
+            "tag": "BUTTON",
+            "text": "Reject non-essential",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 819,
+              "height": 50,
+              "right": 365,
+              "width": 340,
+              "x": 25,
+              "y": 769
+            },
+            "tag": "BUTTON",
+            "text": "Manage choices",
+            "touchTarget": true,
+            "visible": true
+          }
+        ],
+        "copyOverlap": false,
+        "dialog": {
+          "bottom": 834,
+          "height": 443.8046875,
+          "right": 380,
+          "width": 370,
+          "x": 10,
+          "y": 390.1953125
+        },
+        "dialogHorizontalOverflow": false,
+        "documentHorizontalOverflow": false,
+        "focusRules": [
+          {
+            "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+            "selector": ".cookie-actions button:focus-visible"
+          }
+        ],
+        "focusStylePass": true,
+        "height": 844,
+        "nestedInteractive": false,
+        "order": [
+          "Accept all",
+          "Reject non-essential",
+          "Manage choices"
+        ],
+        "pairOverlaps": [],
+        "pass": true,
+        "width": 390
+      },
+      {
+        "buttons": [
+          {
+            "contrast": 21,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 522,
+              "height": 50,
+              "right": 350,
+              "width": 325,
+              "x": 25,
+              "y": 472
+            },
+            "tag": "BUTTON",
+            "text": "Accept all",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 582,
+              "height": 50,
+              "right": 350,
+              "width": 325,
+              "x": 25,
+              "y": 532
+            },
+            "tag": "BUTTON",
+            "text": "Reject non-essential",
+            "touchTarget": true,
+            "visible": true
+          },
+          {
+            "contrast": 16.522104310112766,
+            "covered": false,
+            "inDialog": true,
+            "inViewport": true,
+            "rect": {
+              "bottom": 642,
+              "height": 50,
+              "right": 350,
+              "width": 325,
+              "x": 25,
+              "y": 592
+            },
+            "tag": "BUTTON",
+            "text": "Manage choices",
+            "touchTarget": true,
+            "visible": true
+          }
+        ],
+        "copyOverlap": false,
+        "dialog": {
+          "bottom": 657,
+          "height": 443.8046875,
+          "right": 365,
+          "width": 355,
+          "x": 10,
+          "y": 213.1953125
+        },
+        "dialogHorizontalOverflow": false,
+        "documentHorizontalOverflow": false,
+        "focusRules": [
+          {
+            "css": "outline: 3px solid var(--sea); outline-offset: 3px;",
+            "selector": ".cookie-actions button:focus-visible"
+          }
+        ],
+        "focusStylePass": true,
+        "height": 667,
+        "nestedInteractive": false,
+        "order": [
+          "Accept all",
+          "Reject non-essential",
+          "Manage choices"
+        ],
+        "pairOverlaps": [],
+        "pass": true,
+        "width": 375
+      }
+    ],
+    "allPassed": true
+  }
+}

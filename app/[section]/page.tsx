@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PortsInteractiveMap } from "../../components/PortsInteractiveMap";
 import { SiteFooter } from "../../components/SiteFooter";
-import { getPortMapMarkers, type PortMapMarker } from "../../content/port-map";
+import { getClubProfileExcerpt } from "../../content/club-profiles";
+import { getPortMapMarkers } from "../../content/port-map";
 import {
   getOldSeaDogsSection,
+  displayCategoryLabel,
+  getSectionHeroArtwork,
   oldSeaDogsSections,
-  pickRandomSectionPhoto,
   storyMatchesSection,
-  type SectionHeroPhoto,
 } from "../../content/sections";
 import { formatDate } from "../../content/stories";
+import { isLogoLikeStoryImage } from "../../content/story-images";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
 
@@ -27,83 +30,6 @@ type SectionPageProps = {
 
 function makeSectionHref(slug: string, page = 1) {
   return page > 1 ? `/${slug}?page=${page}` : `/${slug}`;
-}
-
-function getSectionHeroPhotos(
-  stories: Array<{
-    title: string;
-    imageUrl: string;
-    imageAlt: string;
-    imageCredit: string;
-    imageCaption: string;
-  }>
-): SectionHeroPhoto[] {
-  const seen = new Set<string>();
-  return stories
-    .filter((story) => hasStoryPhoto(story))
-    .filter((story) => {
-      if (seen.has(story.imageUrl)) return false;
-      seen.add(story.imageUrl);
-      return true;
-    })
-    .slice(0, 24)
-    .map((story) => ({
-      imageUrl: story.imageUrl,
-      imageAlt: story.imageAlt || story.title,
-      imageCredit: story.imageCredit,
-      imageCaption: story.imageCaption || story.title,
-    }));
-}
-
-function PortsWorldMap({ markers }: { markers: PortMapMarker[] }) {
-  return (
-    <section className="ports-map-panel" aria-labelledby="ports-map-title">
-      <div className="ports-map-heading">
-        <div>
-          <p className="eyebrow">Harbour map</p>
-          <h3 id="ports-map-title">Ports we have covered</h3>
-        </div>
-        <span>{markers.length.toLocaleString("en-GB")} mapped ports</span>
-      </div>
-      <div className="ports-map-canvas" aria-label="World map of Old Sea Dogs ports">
-        <svg className="ports-world-map" viewBox="0 0 1000 500" aria-hidden="true">
-          <rect x="0" y="0" width="1000" height="500" rx="18" />
-          <path d="M104 135 L156 96 L235 108 L289 151 L271 214 L306 268 L276 331 L229 329 L206 274 L154 248 L120 201 Z" />
-          <path d="M268 268 L318 286 L347 351 L335 430 L292 454 L252 397 L242 330 Z" />
-          <path d="M431 118 L498 82 L590 99 L633 147 L613 197 L536 212 L477 183 Z" />
-          <path d="M487 208 L559 226 L603 288 L579 365 L535 421 L486 390 L459 303 Z" />
-          <path d="M605 160 L699 122 L804 146 L842 209 L798 268 L694 248 L629 210 Z" />
-          <path d="M756 302 L826 329 L858 396 L820 436 L747 397 L714 342 Z" />
-          <path d="M842 278 L888 255 L929 280 L911 313 L861 313 Z" />
-          <path d="M312 112 L345 103 L365 125 L337 148 Z" />
-        </svg>
-        {markers.map((marker) => (
-          <Link
-            aria-label={`${marker.title} port information`}
-            className="port-map-marker"
-            href={`/stories/${marker.slug}`}
-            key={marker.slug}
-            style={{
-              left: `${marker.left}%`,
-              top: `${marker.top}%`,
-              transform: `translate(-50%, -50%) translate(${marker.offsetX ?? 0}px, ${marker.offsetY ?? 0}px)`,
-            }}
-            title={marker.title}
-          >
-            <span className="port-map-dot" aria-hidden="true" />
-            <span className="port-map-label">{marker.title}</span>
-          </Link>
-        ))}
-      </div>
-      <div className="ports-map-list" aria-label="Mapped ports">
-        {markers.map((marker) => (
-          <Link href={`/stories/${marker.slug}`} key={marker.slug}>
-            {marker.title}
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
 }
 
 export async function generateMetadata({
@@ -149,7 +75,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
   const pageStories = stories.slice(start, start + pageSize);
   const pageStart = stories.length === 0 ? 0 : start + 1;
   const pageEnd = Math.min(start + pageSize, stories.length);
-  const heroPhoto = pickRandomSectionPhoto(getSectionHeroPhotos(stories));
+  const heroPhoto = getSectionHeroArtwork(section.slug);
   const isPortsSection = section.slug === "ports";
   const portMapMarkers = isPortsSection ? getPortMapMarkers(stories) : [];
   const sectionStoryHeading = isPortsSection
@@ -177,7 +103,25 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
         </div>
       </nav>
 
-      <header className={`section-page-hero ${heroPhoto ? "" : "section-page-hero-text"}`}>
+      <header
+        className={`section-page-hero ${
+          heroPhoto
+            ? `section-page-hero-art section-hero-supplied-v1 section-hero-overlay-${heroPhoto.overlayStrength}`
+            : "section-page-hero-text"
+        }`}
+        data-section-hero-style={heroPhoto ? "section-hero-supplied-v1" : undefined}
+      >
+        {heroPhoto ? (
+          <figure className="section-hero-artwork">
+            <img
+              src={heroPhoto.imageUrl}
+              alt={heroPhoto.imageAlt}
+              loading="eager"
+              decoding="async"
+              style={{ objectPosition: heroPhoto.focalPoint }}
+            />
+          </figure>
+        ) : null}
         <div className="section-page-copy">
           <p className="eyebrow">{section.label}</p>
           <h1>{section.label}</h1>
@@ -185,18 +129,10 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
           <span>{stories.length.toLocaleString("en-GB")} stories</span>
         </div>
         {heroPhoto ? (
-          <figure className="section-hero-figure">
-            <span
-              className="section-hero-image"
-              role="img"
-              aria-label={heroPhoto.imageAlt}
-              style={{ backgroundImage: `url(${heroPhoto.imageUrl})` }}
-            />
-            <figcaption>
-              <span>{heroPhoto.imageCaption}</span>
-              {heroPhoto.imageCredit ? <small>{heroPhoto.imageCredit}</small> : null}
-            </figcaption>
-          </figure>
+          <div className="section-hero-credit">
+            <span>{heroPhoto.imageCaption}</span>
+            {heroPhoto.imageCredit ? <small>{heroPhoto.imageCredit}</small> : null}
+          </div>
         ) : null}
       </header>
 
@@ -213,12 +149,13 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
           </p>
         </div>
 
-        {portMapMarkers.length > 0 ? <PortsWorldMap markers={portMapMarkers} /> : null}
+        {portMapMarkers.length > 0 ? <PortsInteractiveMap markers={portMapMarkers} /> : null}
 
         {pageStories.length > 0 ? (
           <div className="story-grid section-story-grid">
             {pageStories.map((story) => {
               const storyHasPhoto = hasStoryPhoto(story);
+              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
               return (
                 <article
                   className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`}
@@ -227,7 +164,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
                       <span
-                        className="story-image"
+                        className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
                         role="img"
                         aria-label={story.imageAlt}
                         style={{ backgroundImage: `url(${story.imageUrl})` }}
@@ -241,13 +178,13 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                   <div className="story-card-body">
                     <div className="story-meta">
                       <span>{formatDate(story.date)}</span>
-                      <span>{story.category}</span>
+                      <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>
                       <Link href={`/stories/${story.slug}`}>{story.title}</Link>
                     </h3>
                     <Link href={`/stories/${story.slug}`} className="story-summary-link">
-                      {story.summary}
+                      {getClubProfileExcerpt(story)}
                     </Link>
                     <div className="source-row">
                       <span>{story.readMinutes} min read</span>
@@ -285,6 +222,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
             Next
           </Link>
         </nav>
+
       </section>
 
       <SiteFooter extraLinks={[{ href: "/", label: "Home" }]} />

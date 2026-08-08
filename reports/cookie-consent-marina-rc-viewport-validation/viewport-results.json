@@ -1,0 +1,381 @@
+{
+  "generatedAt": "2026-08-08T08:04:15.880Z",
+  "url": "http://localhost:3003/",
+  "results": [
+    {
+      "acceptBackground": "rgb(184, 75, 44)",
+      "acceptColor": "rgb(255, 255, 255)",
+      "acceptVisible": true,
+      "buttons": [
+        {
+          "background": "rgb(184, 75, 44)",
+          "borderColor": "rgb(184, 75, 44)",
+          "bottom": 629,
+          "color": "rgb(255, 255, 255)",
+          "enabled": true,
+          "height": 50,
+          "right": 559,
+          "text": "Accept all",
+          "visible": true,
+          "width": 234,
+          "x": 325,
+          "y": 579
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 629,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 803,
+          "text": "Reject non-essential",
+          "visible": true,
+          "width": 234,
+          "x": 569,
+          "y": 579
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 629,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 1047,
+          "text": "Manage choices",
+          "visible": true,
+          "width": 234,
+          "x": 813,
+          "y": 579
+        }
+      ],
+      "correctOrder": true,
+      "dialog": {
+        "bottom": 648,
+        "height": 288.2421875,
+        "right": 1066,
+        "width": 760,
+        "x": 306,
+        "y": 359.7578125
+      },
+      "height": 666,
+      "manageUsable": true,
+      "mobileStack": true,
+      "noClipping": true,
+      "noHorizontalOverflow": true,
+      "noOverlap": true,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "overlaps": [],
+      "primaryDistinct": true,
+      "rejectUsable": true,
+      "width": 1084,
+      "pass": true,
+      "screenshot": "/private/tmp/oldseadogs-marina-rc.4VH7PG/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-marina-rc-viewport-validation/1084x666.png"
+    },
+    {
+      "acceptBackground": "rgb(184, 75, 44)",
+      "acceptColor": "rgb(255, 255, 255)",
+      "acceptVisible": true,
+      "buttons": [
+        {
+          "background": "rgb(184, 75, 44)",
+          "borderColor": "rgb(184, 75, 44)",
+          "bottom": 731,
+          "color": "rgb(255, 255, 255)",
+          "enabled": true,
+          "height": 50,
+          "right": 499,
+          "text": "Accept all",
+          "visible": true,
+          "width": 234,
+          "x": 265,
+          "y": 681
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 731,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 743,
+          "text": "Reject non-essential",
+          "visible": true,
+          "width": 234,
+          "x": 509,
+          "y": 681
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 731,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 987,
+          "text": "Manage choices",
+          "visible": true,
+          "width": 234,
+          "x": 753,
+          "y": 681
+        }
+      ],
+      "correctOrder": true,
+      "dialog": {
+        "bottom": 750,
+        "height": 288.2421875,
+        "right": 1006,
+        "width": 760,
+        "x": 246,
+        "y": 461.7578125
+      },
+      "height": 768,
+      "manageUsable": true,
+      "mobileStack": true,
+      "noClipping": true,
+      "noHorizontalOverflow": true,
+      "noOverlap": true,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "overlaps": [],
+      "primaryDistinct": true,
+      "rejectUsable": true,
+      "width": 1024,
+      "pass": true,
+      "screenshot": "/private/tmp/oldseadogs-marina-rc.4VH7PG/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-marina-rc-viewport-validation/1024x768.png"
+    },
+    {
+      "acceptBackground": "rgb(184, 75, 44)",
+      "acceptColor": "rgb(255, 255, 255)",
+      "acceptVisible": true,
+      "buttons": [
+        {
+          "background": "rgb(184, 75, 44)",
+          "borderColor": "rgb(184, 75, 44)",
+          "bottom": 987,
+          "color": "rgb(255, 255, 255)",
+          "enabled": true,
+          "height": 50,
+          "right": 261.6640625,
+          "text": "Accept all",
+          "visible": true,
+          "width": 224.6640625,
+          "x": 37,
+          "y": 937
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 987,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 496.328125,
+          "text": "Reject non-essential",
+          "visible": true,
+          "width": 224.6640625,
+          "x": 271.6640625,
+          "y": 937
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 987,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 731,
+          "text": "Manage choices",
+          "visible": true,
+          "width": 224.671875,
+          "x": 506.328125,
+          "y": 937
+        }
+      ],
+      "correctOrder": true,
+      "dialog": {
+        "bottom": 1006,
+        "height": 288.2421875,
+        "right": 750,
+        "width": 732,
+        "x": 18,
+        "y": 717.7578125
+      },
+      "height": 1024,
+      "manageUsable": true,
+      "mobileStack": true,
+      "noClipping": true,
+      "noHorizontalOverflow": true,
+      "noOverlap": true,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "overlaps": [],
+      "primaryDistinct": true,
+      "rejectUsable": true,
+      "width": 768,
+      "pass": true,
+      "screenshot": "/private/tmp/oldseadogs-marina-rc.4VH7PG/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-marina-rc-viewport-validation/768x1024.png"
+    },
+    {
+      "acceptBackground": "rgb(184, 75, 44)",
+      "acceptColor": "rgb(255, 255, 255)",
+      "acceptVisible": true,
+      "buttons": [
+        {
+          "background": "rgb(184, 75, 44)",
+          "borderColor": "rgb(184, 75, 44)",
+          "bottom": 699,
+          "color": "rgb(255, 255, 255)",
+          "enabled": true,
+          "height": 50,
+          "right": 365,
+          "text": "Accept all",
+          "visible": true,
+          "width": 340,
+          "x": 25,
+          "y": 649
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 759,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 365,
+          "text": "Reject non-essential",
+          "visible": true,
+          "width": 340,
+          "x": 25,
+          "y": 709
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 819,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 365,
+          "text": "Manage choices",
+          "visible": true,
+          "width": 340,
+          "x": 25,
+          "y": 769
+        }
+      ],
+      "correctOrder": true,
+      "dialog": {
+        "bottom": 834,
+        "height": 443.8046875,
+        "right": 380,
+        "width": 370,
+        "x": 10,
+        "y": 390.1953125
+      },
+      "height": 844,
+      "manageUsable": true,
+      "mobileStack": true,
+      "noClipping": true,
+      "noHorizontalOverflow": true,
+      "noOverlap": true,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "overlaps": [],
+      "primaryDistinct": true,
+      "rejectUsable": true,
+      "width": 390,
+      "pass": true,
+      "screenshot": "/private/tmp/oldseadogs-marina-rc.4VH7PG/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-marina-rc-viewport-validation/390x844.png"
+    },
+    {
+      "acceptBackground": "rgb(184, 75, 44)",
+      "acceptColor": "rgb(255, 255, 255)",
+      "acceptVisible": true,
+      "buttons": [
+        {
+          "background": "rgb(184, 75, 44)",
+          "borderColor": "rgb(184, 75, 44)",
+          "bottom": 522,
+          "color": "rgb(255, 255, 255)",
+          "enabled": true,
+          "height": 50,
+          "right": 350,
+          "text": "Accept all",
+          "visible": true,
+          "width": 325,
+          "x": 25,
+          "y": 472
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 582,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 350,
+          "text": "Reject non-essential",
+          "visible": true,
+          "width": 325,
+          "x": 25,
+          "y": 532
+        },
+        {
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(216, 224, 220)",
+          "bottom": 642,
+          "color": "rgb(23, 32, 38)",
+          "enabled": true,
+          "height": 50,
+          "right": 350,
+          "text": "Manage choices",
+          "visible": true,
+          "width": 325,
+          "x": 25,
+          "y": 592
+        }
+      ],
+      "correctOrder": true,
+      "dialog": {
+        "bottom": 657,
+        "height": 443.8046875,
+        "right": 365,
+        "width": 355,
+        "x": 10,
+        "y": 213.1953125
+      },
+      "height": 667,
+      "manageUsable": true,
+      "mobileStack": true,
+      "noClipping": true,
+      "noHorizontalOverflow": true,
+      "noOverlap": true,
+      "order": [
+        "Accept all",
+        "Reject non-essential",
+        "Manage choices"
+      ],
+      "overlaps": [],
+      "primaryDistinct": true,
+      "rejectUsable": true,
+      "width": 375,
+      "pass": true,
+      "screenshot": "/private/tmp/oldseadogs-marina-rc.4VH7PG/oldseadogs-cookie-consent-accept-all-2026-08-06-r1/reports/cookie-consent-marina-rc-viewport-validation/375x667.png"
+    }
+  ]
+}

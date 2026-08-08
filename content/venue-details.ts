@@ -1,17 +1,29 @@
 import type { EditableStory } from "../lib/site-content";
+import { getClubProfileForStory } from "./club-profiles";
+import { getPortCountry, getPortMapLocation } from "./port-map";
+import { categoryMatchesLabel } from "./sections";
+
+export type VenuePracticalSection = {
+  label: string;
+  value: string;
+};
 
 export type VenueDetails = {
   name: string;
   kind: "Port / Marina" | "Club";
+  country?: string;
+  coordinates?: string;
   website?: {
     label: string;
     url: string;
     host?: string;
   };
+  address?: string;
   email?: string;
   telephone?: string;
   vhf?: string;
   mapQuery: string;
+  practicalSections: VenuePracticalSection[];
 };
 
 const venueOverrides: Record<string, Partial<VenueDetails>> = {
@@ -48,23 +60,159 @@ function extractVhf(text: string) {
   return "";
 }
 
+function paragraphWith(paragraphs: string[], patterns: RegExp[]) {
+  return paragraphs.find((paragraph) =>
+    paragraph.length > 35 && patterns.some((pattern) => pattern.test(paragraph))
+  );
+}
+
+function buildPortPracticalSections(story: EditableStory): VenuePracticalSection[] {
+  const paragraphs = story.body.map(compactWhitespace).filter(Boolean);
+  const sections: VenuePracticalSection[] = [];
+  const seenLabels = new Set<string>();
+
+  function add(label: string, value?: string) {
+    if (!value || seenLabels.has(label)) return;
+    seenLabels.add(label);
+    sections.push({ label, value });
+  }
+
+  add(
+    "Approach and access",
+    paragraphWith(paragraphs, [
+      /\bapproach\b/i,
+      /\bentrance\b/i,
+      /\baccessible\b/i,
+      /\baccess\b/i,
+      /\bbreakwater\b/i,
+      /\bsheltered\b/i,
+      /\bprotected\b/i,
+      /\bdepths?\b/i,
+      /\bdraft\b/i,
+      /\bchannel\b/i,
+      /\ball tides\b/i,
+    ])
+  );
+  add(
+    "Visitor berths",
+    paragraphWith(paragraphs, [
+      /\bvisitor\b/i,
+      /\btransient\b/i,
+      /\bguest\b/i,
+      /\bberths?\b/i,
+      /\bslips?\b/i,
+      /\bmoorings?\b/i,
+      /\baccommodat/i,
+      /\bvessels? up to\b/i,
+    ])
+  );
+  add(
+    "Marina facilities",
+    paragraphWith(paragraphs, [
+      /\bfacilities\b/i,
+      /\bfully equipped\b/i,
+      /\beach berth\b/i,
+      /\bshore power\b/i,
+      /\belectricity\b/i,
+      /\bfresh water\b/i,
+      /\bWi-?Fi\b/i,
+      /\bpump-?out\b/i,
+      /\bsecurity\b/i,
+      /\bshowers?\b/i,
+      /\blaundry\b/i,
+      /\bconcierge\b/i,
+    ])
+  );
+  add("Fuel availability", paragraphWith(paragraphs, [/\bfuel\b/i, /\bdiesel\b/i, /\bpetrol\b/i, /\bgasoline\b/i, /\bbunkering\b/i]));
+  add(
+    "Repair facilities",
+    paragraphWith(paragraphs, [
+      /\brepairs?\b/i,
+      /\bmaintenance\b/i,
+      /\bboatyard\b/i,
+      /\bshipyard\b/i,
+      /\btravelift\b/i,
+      /\bhoist\b/i,
+      /\bcrane\b/i,
+      /\btechnical services\b/i,
+      /\brefits?\b/i,
+    ])
+  );
+  add(
+    "Chandlery and provisioning",
+    paragraphWith(paragraphs, [
+      /\bchandlery\b/i,
+      /\bprovision/i,
+      /\bmarine stores?\b/i,
+      /\bnautical shops?\b/i,
+      /\bmini market\b/i,
+      /\bsupermarket\b/i,
+    ])
+  );
+  add(
+    "Customs and immigration",
+    paragraphWith(paragraphs, [/\bcustoms\b/i, /\bimmigration\b/i, /\bport of entry\b/i, /\bbiosecurity\b/i, /\bclearance\b/i])
+  );
+  add(
+    "Local weather notes",
+    paragraphWith(paragraphs, [
+      /\bweather\b/i,
+      /\bclimate\b/i,
+      /\bseason\b/i,
+      /\bwinds?\b/i,
+      /\bbreeze\b/i,
+      /\btemperatures?\b/i,
+      /\bsailing conditions\b/i,
+    ])
+  );
+  add(
+    "Transport links",
+    paragraphWith(paragraphs, [/\bairport\b/i, /\btaxi\b/i, /\btram\b/i, /\bferry\b/i, /\bshuttle\b/i, /\btransport\b/i, /\bparking\b/i, /\bcar\b/i])
+  );
+  add(
+    "Nearby services",
+    paragraphWith(paragraphs, [
+      /\brestaurants?\b/i,
+      /\bdining\b/i,
+      /\bcaf/i,
+      /\bbars?\b/i,
+      /\bshopping\b/i,
+      /\bboutiques?\b/i,
+      /\bpharmacy\b/i,
+      /\btown centre\b/i,
+      /\bwaterfront\b/i,
+    ])
+  );
+
+  return sections;
+}
+
 export function getVenueDetails(story: EditableStory): VenueDetails | null {
-  if (story.category !== "Ports" && story.category !== "Clubs") {
+  const isPort = categoryMatchesLabel(story.category, "Ports");
+  const isClub = categoryMatchesLabel(story.category, "Clubs");
+  if (!isPort && !isClub) {
     return null;
   }
 
+  const clubProfile = getClubProfileForStory(story);
   const override = venueOverrides[story.slug] ?? {};
   const articleText = compactWhitespace([story.title, ...story.body].join(" "));
-  const kind = story.category === "Ports" ? "Port / Marina" : "Club";
+  const kind = isPort ? "Port / Marina" : "Club";
+  const portLocation = isPort ? getPortMapLocation(story.slug) : null;
+  const country = isPort ? getPortCountry(story.slug) : clubProfile?.country;
 
   return {
     name: story.title,
     kind,
-    website: override.website,
-    email: override.email,
-    telephone: override.telephone,
+    country,
+    coordinates: portLocation ? `${portLocation.lat.toFixed(4)}, ${portLocation.lng.toFixed(4)}` : undefined,
+    website: override.website || clubProfile?.website,
+    address: override.address || clubProfile?.address,
+    email: override.email || clubProfile?.email,
+    telephone: override.telephone || clubProfile?.telephone,
     vhf: override.vhf || extractVhf(articleText),
-    mapQuery: override.mapQuery || `${story.title} ${kind}`,
+    mapQuery: override.mapQuery || clubProfile?.mapQuery || `${story.title} ${kind}`,
+    practicalSections: isPort ? buildPortPracticalSections(story) : [],
   };
 }
 

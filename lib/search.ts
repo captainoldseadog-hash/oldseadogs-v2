@@ -1,4 +1,6 @@
 import { formatDate } from "../content/stories";
+import { getClubProfileExcerpt } from "../content/club-profiles";
+import { displayCategoryLabel } from "../content/sections";
 import { getPublishedStories, hasStoryPhoto, type EditableStory } from "./site-content";
 import { normalizeSearchText } from "./text-search";
 
@@ -21,7 +23,7 @@ export { normalizeSearchText } from "./text-search";
 function searchBlob(story: EditableStory) {
   return {
     title: normalizeSearchText(story.title),
-    category: normalizeSearchText(story.category),
+    category: normalizeSearchText(displayCategoryLabel(story.category)),
     author: normalizeSearchText(story.author),
     summary: normalizeSearchText(story.summary),
     tags: normalizeSearchText(story.tags.join(" ")),
@@ -88,10 +90,10 @@ function toSearchResult(story: EditableStory, score: number): SearchResult {
   return {
     slug: story.slug,
     title: story.title,
-    category: story.category,
+    category: displayCategoryLabel(story.category),
     date: story.date,
     displayDate: formatDate(story.date),
-    summary: story.summary,
+    summary: getClubProfileExcerpt(story),
     imageUrl: hasStoryPhoto(story) ? story.imageUrl : "",
     imageAlt: story.imageAlt,
     imageCredit: story.imageCredit,

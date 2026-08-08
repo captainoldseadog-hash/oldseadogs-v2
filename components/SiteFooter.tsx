@@ -1,4 +1,10 @@
 import Link from "next/link";
+import { PrivacyChoicesButton } from "./PrivacyChoicesButton";
+import { SocialIconLinks } from "./SocialIconLinks";
+import {
+  oldSeaDogsSocialPlatforms,
+  type OldSeaDogsSocialPlatform,
+} from "../content/social-links";
 import { defaultSettings, getSiteSettings, type SiteSettings } from "../lib/site-content";
 
 type FooterLink = {
@@ -12,39 +18,43 @@ type SiteFooterProps = {
   extraLinks?: FooterLink[];
 };
 
-type SocialPlatform = {
-  key: keyof Pick<
-    SiteSettings,
-    "socialFacebook" | "socialInstagram" | "socialX" | "socialYouTube" | "socialLinkedIn"
-  >;
-  label: string;
-  baseUrl: string;
-};
-
-const socialPlatforms: SocialPlatform[] = [
-  { key: "socialFacebook", label: "Facebook", baseUrl: "https://www.facebook.com/" },
-  { key: "socialInstagram", label: "Instagram", baseUrl: "https://www.instagram.com/" },
-  { key: "socialX", label: "X", baseUrl: "https://x.com/" },
-  { key: "socialYouTube", label: "YouTube", baseUrl: "https://www.youtube.com/" },
-  { key: "socialLinkedIn", label: "LinkedIn", baseUrl: "https://www.linkedin.com/company/" },
-];
-
 const policyLinks: FooterLink[] = [
   { href: "/search", label: "Search" },
+  { href: "/guides", label: "Guides" },
+  { href: "/social", label: "Social" },
   { href: "/about", label: "About Us" },
   { href: "/authors/michael-hodges", label: "Author Profile" },
+  { href: "/editorial-standards", label: "Editorial Standards" },
   { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/cookie-policy", label: "Cookie Policy" },
   { href: "/terms", label: "Terms of Use" },
 ];
 
-function socialHref(value: string, baseUrl: string) {
+const socialSettingKeys: Record<OldSeaDogsSocialPlatform["key"], keyof SiteSettings> = {
+  tiktok: "socialTikTok",
+  instagram: "socialInstagram",
+  facebook: "socialFacebook",
+  x: "socialX",
+  youtube: "socialYouTube",
+  threads: "socialThreads",
+  linkedin: "socialLinkedIn",
+};
+
+function socialHref(value: string, fallbackUrl: string) {
   const trimmed = value.trim();
-  if (!trimmed) return "";
+  if (!trimmed) return fallbackUrl;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  const handle = trimmed.replace(/^@/, "").replace(/^\/+/, "");
-  return `${baseUrl}${handle}`;
+  return fallbackUrl;
+}
+
+function linksFromSettings(settings: SiteSettings) {
+  return oldSeaDogsSocialPlatforms
+    .map((platform) => ({
+      ...platform,
+      href: socialHref(settings[socialSettingKeys[platform.key]], platform.href),
+    }))
+    .filter((platform) => platform.href);
 }
 
 export async function SiteFooter({
@@ -61,12 +71,7 @@ export async function SiteFooter({
     seen.add(link.href);
     return true;
   });
-  const socialLinks = socialPlatforms
-    .map((platform) => ({
-      label: platform.label,
-      href: socialHref(settings[platform.key], platform.baseUrl),
-    }))
-    .filter((link) => link.href);
+  const socialLinks = linksFromSettings(settings);
 
   return (
     <footer className="site-footer">
@@ -77,13 +82,7 @@ export async function SiteFooter({
         </p>
         <p>{footerCopy}</p>
         {socialLinks.length > 0 ? (
-          <div className="social-links" aria-label="Old Sea Dogs social media">
-            {socialLinks.map((link) => (
-              <a href={link.href} key={link.label} rel="me noopener noreferrer" target="_blank">
-                {link.label}
-              </a>
-            ))}
-          </div>
+          <SocialIconLinks compact links={socialLinks} />
         ) : null}
       </div>
       <div className="footer-links">
@@ -98,6 +97,7 @@ export async function SiteFooter({
             </Link>
           )
         )}
+        <PrivacyChoicesButton />
       </div>
     </footer>
   );

@@ -35,7 +35,7 @@ export default function CookiePolicyPage() {
           How Old Sea Dogs may use cookies and similar technologies for site
           function, measurement, maps, and advertising.
         </p>
-        <span>Last updated: 10 June 2026</span>
+        <span>Last updated: 3 August 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Cookie policy">
@@ -54,6 +54,13 @@ export default function CookiePolicyPage() {
             site operation. We may also use analytics or performance tools to
             understand how readers use the site.
           </p>
+          <p>
+            Google Analytics only loads after analytics consent. Google Consent
+            Mode defaults analytics storage to denied, and the saved choice is
+            applied before measurement begins. Analytics helps Old Sea Dogs
+            understand public page views, popular stories, and site performance
+            without exposing the private editor.
+          </p>
 
           <h2>Advertising Cookies</h2>
           <p>
@@ -71,6 +78,11 @@ export default function CookiePolicyPage() {
             </a>
             .
           </p>
+          <p>
+            If advertising cookies are rejected, Old Sea Dogs should not load
+            Google AdSense scripts for personalised advertising. Where supported,
+            adverts may be limited to contextual or non-personalised advertising.
+          </p>
 
           <h2>Embedded Maps</h2>
           <p>
@@ -81,9 +93,14 @@ export default function CookiePolicyPage() {
 
           <h2>Your Choices</h2>
           <p>
-            You can control cookies through your browser settings. If a consent
-            banner is added for advertising or analytics, you can use it to set
-            your choices for non-essential cookies.
+            You can control cookies through your browser settings. The Old Sea
+            Dogs cookie banner lets you Accept all, Reject non-essential, or
+            Manage preferences for analytics and advertising cookies.
+          </p>
+          <p>
+            You can reopen Privacy choices from the footer at any time. If you
+            withdraw analytics consent, future analytics events are stopped and
+            accessible Google Analytics cookies are removed from this site.
           </p>
 
           <h2>Questions</h2>

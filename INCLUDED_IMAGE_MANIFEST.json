@@ -1,0 +1,121 @@
+{
+  "purpose": "Controlled local artwork referenced by existing Phase One and new Phase Two Solent Guides.",
+  "images": [
+    {
+      "path": "public/images/guides/guides-beaulieu-river-hero.png",
+      "sha256": "5b99da4f8b7153b52d054181328c340918522b0347c846474a3ea57a5f7b4436"
+    },
+    {
+      "path": "public/images/guides/guides-cowes-castle-v1.png",
+      "sha256": "1afe3c5d51880cee684986a08f1d5f5b7f101b68ad0d666e129a831210800964"
+    },
+    {
+      "path": "public/images/guides/guides-cowes-racing-start-cannons-v1.png",
+      "sha256": "a0878e518ff2a90d97c7ab46e5aeb599a90d9b49f48f83772479a687cbd9c6d2"
+    },
+    {
+      "path": "public/images/guides/guides-cowes-royal-yacht-squadron-hero-v1.png",
+      "sha256": "c37c810846a4a1418526b00dd3b6b99e7eb32c3b0b0cfd95c4f9caf57286c85f"
+    },
+    {
+      "path": "public/images/guides/guides-harbour-cowes-hero-v1.png",
+      "sha256": "e17ed8ca0301a1592169f3a03be136334a43b12df8c46d2f1f4ac4169374da66"
+    },
+    {
+      "path": "public/images/guides/guides-homepage-hero-the-solent.png",
+      "sha256": "2450f2c8778760a6098fc5bb5b2ae5cd036dc8b930ff63a48132a442d407846e"
+    },
+    {
+      "path": "public/images/guides/guides-marina-berthon-lymington-marina-editorial-v1.png",
+      "sha256": "cb42a2bfef619107cb9b1bea955dc6c7851bc39d78aa4afc50ad1192074ae835"
+    },
+    {
+      "path": "public/images/guides/guides-marina-deacons-marina-editorial-v1.png",
+      "sha256": "d5b0a93dcc8a303c12a47c7aa09eb72eab021c90164e13e87c1f126d3ed677fa"
+    },
+    {
+      "path": "public/images/guides/guides-marina-east-cowes-marina-editorial-v1.png",
+      "sha256": "cc8f7cfbd533e4f0f2e9e15335293d73b2d603a1fdedd5d48a50f50aa7bf51c4"
+    },
+    {
+      "path": "public/images/guides/guides-marina-gosport-marina-editorial-v1.png",
+      "sha256": "b65b93c5ddb1beb36cb602e07cfe9cfc5a680065e089d3e241fee8c5c307e8cf"
+    },
+    {
+      "path": "public/images/guides/guides-marina-hamble-point-hero-v1.png",
+      "sha256": "a0142e7ff34d4e0f3530670ba55fbd6422aca56a040e6278acfc4819ae8ad56d"
+    },
+    {
+      "path": "public/images/guides/guides-marina-haslar-marina-editorial-v1.png",
+      "sha256": "12271965aad1152b628af3901e8ee209eed48208d3de35028ebd31cdf5800590"
+    },
+    {
+      "path": "public/images/guides/guides-marina-hythe-marina-village-editorial-v1.png",
+      "sha256": "8a92f7e015f78d5977a0f0a6161a05a41c73087d29c370580435c97f568e2090"
+    },
+    {
+      "path": "public/images/guides/guides-marina-island-harbour-hero-v1.png",
+      "sha256": "779430f5b1e2e9220677c8417bae946415f703a421a3d193a56522f12bc1fff8"
+    },
+    {
+      "path": "public/images/guides/guides-marina-island-harbour-spice-bus-v1.png",
+      "sha256": "b448626228f1682d352fd9f26dbe17bded9d64aeb40b0976504490108e7edfc8"
+    },
+    {
+      "path": "public/images/guides/guides-marina-lymington-yacht-haven-editorial-v1.png",
+      "sha256": "9ccd5ea5483f3ed5b9cef01df7b6255f50de1356965148e5db124783a6452252"
+    },
+    {
+      "path": "public/images/guides/guides-marina-mercury-yacht-harbour-hero-v1.png",
+      "sha256": "8a4bc44c79b4f7fbdc1c0d145fa70589be6d739d14788f2df4fe681512f9e248"
+    },
+    {
+      "path": "public/images/guides/guides-marina-ocean-village-marina-editorial-v1.png",
+      "sha256": "4d7d8a3e03e66848d57b906deec35ec2fe678e420009f442ebf04acf09450eb7"
+    },
+    {
+      "path": "public/images/guides/guides-marina-port-hamble-marina-editorial-v1.png",
+      "sha256": "eab289f740dff078e71afc3f608e022160ba1df6de1401f9deb7a2bb9a5f3b9d"
+    },
+    {
+      "path": "public/images/guides/guides-marina-port-solent-marina-editorial-v1.png",
+      "sha256": "0500f36a0ccc6991f9454051e8e58e71bfa3d57fbea353cddd6f7d8c2e83c248"
+    },
+    {
+      "path": "public/images/guides/guides-marina-swanwick-marina-editorial-v1.png",
+      "sha256": "6ae7fc5daaed31abc4bd1128ce75f7ddf72044278f2597f762889c1750cbf9a4"
+    },
+    {
+      "path": "public/images/guides/guides-marina-universal-marina-concept-v1.png",
+      "sha256": "5aa06ce475ed381700559d48bb66387aee93ac87dcc56d774a5cd1f294202612"
+    },
+    {
+      "path": "public/images/guides/guides-newtown-creek-hero-v1.png",
+      "sha256": "95e6377d8a8d9982b9ea1f2c663a631fb7968499d326420c60854486a143b482"
+    },
+    {
+      "path": "public/images/guides/guides-portsmouth-harbour-hero-v1.png",
+      "sha256": "126b24050efeb6ed142d02dbbe47cf9df9cef1a7f1a8a5ae9777a03d4e683e18"
+    },
+    {
+      "path": "public/images/guides/guides-river-hamble-hero-v1.png",
+      "sha256": "ba1438807800da06746b2ffb0ce0a2b8b2662c4daddc2ea92cff286c88c85966"
+    },
+    {
+      "path": "public/images/guides/guides-river-hamble-jolly-sailor-v1.png",
+      "sha256": "5336967994d2a4603e5cb34f3699e87ffa4be87d1675f0d9fe92afebd86ef232"
+    },
+    {
+      "path": "public/images/guides/guides-solent-needles-hero-v1.png",
+      "sha256": "9ff24697aeb77e365c7fa19f3069271c2e89da5c011befbb38a1e0e5bdd7425c"
+    },
+    {
+      "path": "public/images/guides/guides-southampton-water-hero.png",
+      "sha256": "f815e62ae3521e55dffc33245b9dbe944928735ac7d750fae6dad76fd6add395"
+    },
+    {
+      "path": "public/images/guides/guides-yarmouth-marina-entrance-v1.png",
+      "sha256": "60525b24c785563cf5f428a222b738d1fb81fd24364158e930aaed52eecc40ae"
+    }
+  ]
+}

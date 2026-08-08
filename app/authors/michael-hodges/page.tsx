@@ -12,6 +12,12 @@ export const metadata: Metadata = createPageMetadata({
     "Author profile for Michael Hodges, editor and founder of Old Sea Dogs, covering boating, yachting, ports, clubs, and practical sea stories.",
   path: "/authors/michael-hodges",
   type: "profile",
+  image: {
+    url: "/images/authors/oldseadogs-michael-hodges.webp",
+    width: 1448,
+    height: 1086,
+    alt: "Michael Hodges and Old Sea Dogs maritime artwork",
+  },
 });
 
 export default function MichaelHodgesAuthorPage() {
@@ -48,10 +54,10 @@ export default function MichaelHodgesAuthorPage() {
           <span
             className="about-photo"
             role="img"
-            aria-label="Michael Hodges, editor and founder of Old Sea Dogs"
+            aria-label="Michael Hodges writing for OldSeaDogs.com"
             style={{
               backgroundImage:
-                "linear-gradient(180deg, rgba(10, 22, 27, 0), rgba(10, 22, 27, 0.18)), url('/legacy-photos/6bc0d66f63c5-flybridge-yacht-michael-hodges.webp')",
+                "linear-gradient(180deg, rgba(10, 22, 27, 0), rgba(10, 22, 27, 0.14)), url('/images/authors/michael-hodges-2.jpg'), url('/images/authors/michael-hodges-1.jpg')",
             }}
           />
           <figcaption>Michael Hodges, editor and founder of Old Sea Dogs.</figcaption>

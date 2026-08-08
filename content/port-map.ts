@@ -1,6 +1,10 @@
 export type PortMapMarker = {
   slug: string;
   title: string;
+  summary: string;
+  imageUrl: string;
+  imageAlt: string;
+  country: string;
   lat: number;
   lng: number;
   left: number;
@@ -12,9 +16,12 @@ export type PortMapMarker = {
 type PortStory = {
   slug: string;
   title: string;
+  summary?: string;
+  imageUrl?: string;
+  imageAlt?: string;
 };
 
-type PortLocation = {
+export type PortLocation = {
   lat: number;
   lng: number;
   offsetX?: number;
@@ -61,6 +68,46 @@ const portLocations: Record<string, PortLocation> = {
   "ports-viaduct-harbour": { lat: -36.84, lng: 174.76 },
 };
 
+const portCountries: Record<string, string> = {
+  "ports-cowes-yacht-heaven": "United Kingdom",
+  "ports-port-hercules": "Monaco",
+  "ports-albany-marina": "The Bahamas",
+  "ports-alimos-marina": "Greece",
+  "ports-atlantis-marina": "The Bahamas",
+  "ports-brighton-marina": "United Kingdom",
+  "ports-coal-harbour-marina": "Canada",
+  "ports-coral-sea-marina-airlie-beach": "Australia",
+  "ports-eden-island-marina": "Seychelles",
+  "ports-gouvia-marina": "Greece",
+  "ports-gustavia-harbour": "Saint Barthélemy",
+  "ports-hamilton-island-marina": "Australia",
+  "ports-ibiza-marina": "Spain",
+  "ports-largs-yacht-haven": "United Kingdom",
+  "ports-lymington-marina": "United Kingdom",
+  "ports-marina-coppola": "Italy",
+  "ports-marina-de-vilamoura": "Portugal",
+  "ports-marina-del-rey-california": "United States",
+  "ports-marina-grande-capri": "Italy",
+  "ports-montauk-yacht-club": "United States",
+  "ports-nanny-cay-marina": "British Virgin Islands",
+  "ports-port-adriano": "Spain",
+  "ports-port-de-saint-tropez": "France",
+  "ports-port-denarau-marina": "Fiji",
+  "ports-port-royal": "Jamaica",
+  "ports-port-st-charles-marina-barbados": "Barbados",
+  "ports-port-vauban": "France",
+  "ports-porto-cervo-sardinia": "Italy",
+  "ports-puerto-del-rey-marina": "Puerto Rico",
+  "ports-puerto-portals-mallorca": "Spain",
+  "ports-safe-harbor-newport-shipyard": "United States",
+  "ports-santa-pola": "Spain",
+  "ports-scrub-island-marina": "British Virgin Islands",
+  "ports-setur-marina": "Turkey",
+  "ports-southport-yacht-club-marina": "Australia",
+  "ports-va-waterfront-marina": "South Africa",
+  "ports-viaduct-harbour": "New Zealand",
+};
+
 function projectPortPoint(lat: number, lng: number) {
   return {
     left: ((lng + 180) / 360) * 100,
@@ -68,22 +115,37 @@ function projectPortPoint(lat: number, lng: number) {
   };
 }
 
+export function getPortMapLocation(slug: string) {
+  return portLocations[slug] ?? null;
+}
+
+export function getPortCountry(slug: string) {
+  return portCountries[slug] ?? "";
+}
+
 export function getPortMapMarkers(stories: PortStory[]): PortMapMarker[] {
-  return stories
-    .map((story) => {
-      const location = portLocations[story.slug];
-      if (!location) return null;
-      const point = projectPortPoint(location.lat, location.lng);
-      return {
-        slug: story.slug,
-        title: story.title,
-        lat: location.lat,
-        lng: location.lng,
-        left: point.left,
-        top: point.top,
-        offsetX: location.offsetX,
-        offsetY: location.offsetY,
-      };
-    })
-    .filter((marker): marker is PortMapMarker => marker !== null);
+  const markers: PortMapMarker[] = [];
+
+  for (const story of stories) {
+    const location = portLocations[story.slug];
+    if (!location) continue;
+    const point = projectPortPoint(location.lat, location.lng);
+    const marker: PortMapMarker = {
+      slug: story.slug,
+      title: story.title,
+      summary: story.summary ?? "",
+      imageUrl: story.imageUrl ?? "",
+      imageAlt: story.imageAlt ?? story.title,
+      country: getPortCountry(story.slug),
+      lat: location.lat,
+      lng: location.lng,
+      left: point.left,
+      top: point.top,
+    };
+    if (location.offsetX !== undefined) marker.offsetX = location.offsetX;
+    if (location.offsetY !== undefined) marker.offsetY = location.offsetY;
+    markers.push(marker);
+  }
+
+  return markers;
 }

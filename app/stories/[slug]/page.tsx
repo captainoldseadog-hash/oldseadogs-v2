@@ -1,20 +1,49 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArticlePreviewContent } from "../../../components/ArticlePreviewContent";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SocialShare } from "../../../components/SocialShare";
-import { formatDate } from "../../../content/stories";
+import { displayCategoryLabel, sectionPathForCategory } from "../../../content/sections";
+import {
+  getClubProfileArticleBody,
+  getClubProfileForStory,
+  type ClubProfile,
+} from "../../../content/club-profiles";
 import {
   getVenueDetails,
   googleMapEmbedUrl,
   googleMapLinkUrl,
   type VenueDetails,
 } from "../../../content/venue-details";
+import { isLogoLikeStoryImage } from "../../../content/story-images";
 import { JsonLd } from "../../../components/JsonLd";
-import { getInternalLinkGroups, type InternalLinkGroup } from "../../../lib/internal-links";
-import { getPublishedStories, getStoryBySlug, hasStoryPhoto } from "../../../lib/site-content";
-import { absoluteUrl, createPageMetadata } from "../../../lib/seo";
-import { articleJsonLd, breadcrumbJsonLd } from "../../../lib/structured-data";
+import {
+  findRelatedStories,
+  getInternalLinkGroups,
+  type InternalLinkGroup,
+} from "../../../lib/internal-links";
+import {
+  getActiveAds,
+  getPublishedStories,
+  getStoryBySlug,
+  getSiteSettings,
+  hasStoryPhoto,
+  isStorySearchIndexable,
+} from "../../../lib/site-content";
+import {
+  adsenseClientId,
+  adsenseEnabled,
+  adsenseSlots,
+  absoluteUrl,
+  createPageMetadata,
+  isProduction,
+} from "../../../lib/seo";
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  michaelHodgesPersonJsonLd,
+} from "../../../lib/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +53,15 @@ type StoryPageProps = {
   }>;
 };
 
-function sectionPathForCategory(category: string) {
-  if (category === "Boat Reviews" || category === "Reviews") return "/reviews";
-  if (category === "Racing" || category === "Races" || category === "Regatta") {
-    return "/races";
-  }
-  if (category === "Maintenance") return "/masterclass";
-  if (category === "Cruising") return "/destinations";
-  return `/${category.toLowerCase()}`;
-}
-
 function VenuePracticalPanel({ details }: { details: VenueDetails }) {
   const hasContact =
-    details.website || details.email || details.telephone || details.vhf;
+    details.website ||
+    details.address ||
+    details.email ||
+    details.telephone ||
+    details.vhf ||
+    details.country ||
+    details.coordinates;
 
   return (
     <section className="venue-panel" aria-label={`${details.name} practical information`}>
@@ -50,6 +75,18 @@ function VenuePracticalPanel({ details }: { details: VenueDetails }) {
           <aside className="venue-contact-card">
             <h3>Contact Details</h3>
             <dl>
+              {details.country ? (
+                <div>
+                  <dt>Country</dt>
+                  <dd>{details.country}</dd>
+                </div>
+              ) : null}
+              {details.coordinates ? (
+                <div>
+                  <dt>Latitude / Longitude</dt>
+                  <dd>{details.coordinates}</dd>
+                </div>
+              ) : null}
               {details.website ? (
                 <div>
                   <dt>Website</dt>
@@ -59,6 +96,12 @@ function VenuePracticalPanel({ details }: { details: VenueDetails }) {
                     </a>
                     {details.website.host ? <span>{details.website.host}</span> : null}
                   </dd>
+                </div>
+              ) : null}
+              {details.address ? (
+                <div>
+                  <dt>Address</dt>
+                  <dd>{details.address}</dd>
                 </div>
               ) : null}
               {details.email ? (
@@ -126,6 +169,45 @@ function VenuePracticalPanel({ details }: { details: VenueDetails }) {
             title={`Google satellite view for ${details.name}`}
           />
         </div>
+
+        {details.practicalSections.length > 0 ? (
+          <div className="venue-practical-sections" aria-label={`${details.name} restored practical details`}>
+            {details.practicalSections.map((section) => (
+              <article className="venue-practical-card" key={section.label}>
+                <h3>{section.label}</h3>
+                <p>{section.value}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function ClubProfilePanel({ profile }: { profile: ClubProfile }) {
+  const facts = [
+    { label: "Location", value: `${profile.location}, ${profile.country}` },
+    { label: "Founded", value: profile.founded },
+    { label: "Known for", value: profile.knownFor },
+    { label: "Sailing", value: profile.sailing },
+    { label: "Facilities", value: profile.facilities },
+    { label: "Visitors", value: profile.visitors },
+  ].filter((item): item is { label: string; value: string } => Boolean(item.value));
+
+  return (
+    <section className="club-profile-panel" aria-label={`${profile.title} club profile`}>
+      <div className="venue-panel-heading">
+        <p className="eyebrow">Club Profile</p>
+        <h2>{profile.title}</h2>
+      </div>
+      <div className="club-facts-grid">
+        {facts.map((fact) => (
+          <article className="club-fact-card" key={fact.label}>
+            <span>{fact.label}</span>
+            <p>{fact.value}</p>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -150,7 +232,7 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
             <div className="internal-link-list">
               {group.items.map((item) => (
                 <Link href={`/stories/${item.slug}`} key={item.slug}>
-                  <span>{item.category}</span>
+                  <span>{displayCategoryLabel(item.category)}</span>
                   <strong>{item.title}</strong>
                   <small>{item.reason}</small>
                 </Link>
@@ -163,11 +245,53 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
   );
 }
 
+function RelatedArticlesPanel({
+  stories,
+}: {
+  stories: Awaited<ReturnType<typeof getPublishedStories>>;
+}) {
+  if (stories.length === 0) return null;
+
+  return (
+    <section className="related-band" aria-labelledby="related-articles-title">
+      <div className="feature-copy">
+        <p className="eyebrow">Related reading</p>
+        <h2 id="related-articles-title">More from the same waters</h2>
+        <p>
+          A few more Old Sea Dogs pieces from nearby sections, similar subjects,
+          or recent dockside conversations.
+        </p>
+      </div>
+      <div className="related-grid">
+        {stories.map((item) => (
+          <article className="compact-card" key={item.slug}>
+            {hasStoryPhoto(item) ? (
+              <Link
+                aria-label={item.title}
+                className="compact-image"
+                href={`/stories/${item.slug}`}
+                style={{ backgroundImage: `url(${item.imageUrl})` }}
+              />
+            ) : null}
+            <div>
+              <span>{displayCategoryLabel(item.category)}</span>
+              <h3>
+                <Link href={`/stories/${item.slug}`}>{item.title}</Link>
+              </h3>
+              <p>{item.summary}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: StoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const story = await getStoryBySlug(slug);
+  const [story, settings] = await Promise.all([getStoryBySlug(slug), getSiteSettings()]);
 
   if (!story) {
     return {
@@ -179,12 +303,13 @@ export async function generateMetadata({
     title: story.title,
     description: story.summary,
     path: `/stories/${story.slug}`,
+    noIndex: !isStorySearchIndexable(story),
     image: hasStoryPhoto(story)
       ? {
           url: story.imageUrl,
           alt: story.imageAlt || story.title,
         }
-      : undefined,
+      : { url: settings.defaultSocialImageUrl, alt: "Old Sea Dogs" },
     type: "article",
   });
 }
@@ -197,9 +322,13 @@ export default async function StoryPage({ params }: StoryPageProps) {
     notFound();
   }
 
-  const allStories = await getPublishedStories();
+  const [allStories, ads] = await Promise.all([getPublishedStories(), getActiveAds()]);
   const internalLinkGroups = getInternalLinkGroups(story, allStories);
+  const relatedStories = findRelatedStories(story, allStories, 6);
   const storyHasPhoto = hasStoryPhoto(story);
+  const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+  const clubProfile = getClubProfileForStory(story);
+  const articleBody = clubProfile ? getClubProfileArticleBody(clubProfile) : story.body;
   const venueDetails = getVenueDetails(story);
   const storyUrl = absoluteUrl(`/stories/${story.slug}`);
 
@@ -208,9 +337,10 @@ export default async function StoryPage({ params }: StoryPageProps) {
       <JsonLd
         data={[
           articleJsonLd(story, storyHasPhoto),
+          michaelHodgesPersonJsonLd,
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
-            { name: story.category, path: sectionPathForCategory(story.category) },
+            { name: displayCategoryLabel(story.category), path: sectionPathForCategory(story.category) },
             { name: story.title, path: `/stories/${story.slug}` },
           ]),
         ]}
@@ -223,43 +353,32 @@ export default async function StoryPage({ params }: StoryPageProps) {
         <Link href="/#latest">Latest dispatches</Link>
       </nav>
 
-      <article className="article-layout">
-        <header className="article-header">
-          <p className="eyebrow">{story.category}</p>
-          <h1>{story.title}</h1>
-          <p className="article-summary">{story.summary}</p>
-          <div className="article-meta">
-            <span>{formatDate(story.date)}</span>
-            <span>{story.author}</span>
-            <span>{story.readMinutes} min read</span>
-          </div>
-          <SocialShare title={story.title} summary={story.summary} url={storyUrl} />
-        </header>
+      <ArticlePreviewContent
+        ads={ads}
+        adsenseConfig={{
+          bottomSlotId: adsenseSlots.articleBottom,
+          clientId: adsenseClientId,
+          enabled: adsenseEnabled,
+          inlineSlotId: adsenseSlots.articleInline,
+          showPlaceholder: !isProduction,
+        }}
+        beforeBody={
+          <>
+            {clubProfile ? <ClubProfilePanel profile={clubProfile} /> : null}
+            {venueDetails ? <VenuePracticalPanel details={venueDetails} /> : null}
+          </>
+        }
+        imageLooksLikeLogo={storyImageLooksLikeLogo}
+        showAdditionalAds
+        socialShare={<SocialShare title={story.title} summary={story.summary} url={storyUrl} />}
+        story={{
+          ...story,
+          body: articleBody,
+          imageUrl: storyHasPhoto ? story.imageUrl : "",
+        }}
+      />
 
-        {storyHasPhoto ? (
-          <figure className="article-figure">
-            <div className="article-image" role="img" aria-label={story.imageAlt} style={{ backgroundImage: `url(${story.imageUrl})` }} />
-            <figcaption>
-              {story.imageCaption ? <span>{story.imageCaption}</span> : null}
-              {story.imageCredit ? <span className="photo-credit">{story.imageCredit}</span> : null}
-            </figcaption>
-          </figure>
-        ) : null}
-
-        {venueDetails ? <VenuePracticalPanel details={venueDetails} /> : null}
-
-        <div className="article-body">
-          {story.body.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-
-        <footer className="article-tags">
-          {story.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </footer>
-      </article>
+      <RelatedArticlesPanel stories={relatedStories} />
 
       <InternalLinksPanel groups={internalLinkGroups} />
 

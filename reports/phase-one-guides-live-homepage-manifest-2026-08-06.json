@@ -1,0 +1,47 @@
+{
+  "purpose": "Read-only Phase One Guides release validation. Never a production content source or release baseline.",
+  "sourceUrl": "https://oldseadogs.com/",
+  "capturedAt": "2026-08-06T08:53:15.151Z",
+  "featuredStory": {
+    "slug": "cowes-week-2026-folkboats-j70-rs21-squibs-tp52-racing",
+    "title": "Cowes Week 2026: One Regatta, Forty Classes and a Different Solent Battle Every Day",
+    "date": "5 August 2026",
+    "imageUrl": "https://oldseadogs.com/api/media/media_2b7cebb2458048089bca45addb99507d",
+    "link": "https://oldseadogs.com/stories/cowes-week-2026-folkboats-j70-rs21-squibs-tp52-racing"
+  },
+  "latestStories": [
+    {
+      "slug": "exploring-duo-worlds-toughest-row-atlantic-2026",
+      "title": "Exploring Duo: Lottie and Ethan Prepare to Take on the World's Toughest Row Across the Atlantic",
+      "date": "03 Aug 2026",
+      "imageUrl": "https://oldseadogs.com/api/media/media_f76e598eef034a5f9395deac46afac84",
+      "link": "https://oldseadogs.com/stories/exploring-duo-worlds-toughest-row-atlantic-2026"
+    },
+    {
+      "slug": "princess-anne-cowes-week-2026",
+      "title": "Princess Anne Looks to the Future as Cowes Week Celebrates Britain's Next Generation of Maritime Talent",
+      "date": "03 Aug 2026",
+      "imageUrl": "https://oldseadogs.com/api/media/media_92f1eb94a7994cbd8cb97b24977aa974",
+      "link": "https://oldseadogs.com/stories/princess-anne-cowes-week-2026"
+    },
+    {
+      "slug": "cowes-week-2026-bicentenary-solent-sailing",
+      "title": "The Solent Prepares to Celebrate 200 Years of Cowes Week with Seven Days of Tactical Racing",
+      "date": "31 Jul 2026",
+      "imageUrl": "https://oldseadogs.com/api/media/media_6b1c2f0c418048e49e1bbb61c76e4bb9",
+      "link": "https://oldseadogs.com/stories/cowes-week-2026-bicentenary-solent-sailing"
+    },
+    {
+      "slug": "the-2026-rorc-round-britain-and-ireland-race",
+      "title": "Two Against the Ocean: The Corinthian Crews Facing the 2026 Round Britain and Ireland Race",
+      "date": "29 Jul 2026",
+      "imageUrl": "https://oldseadogs.com/api/media/media_0adbb7f1ade94ea7ac2dceff873585e3",
+      "link": "https://oldseadogs.com/stories/the-2026-rorc-round-britain-and-ireland-race"
+    }
+  ],
+  "comparison": {
+    "developmentFixtureCapturedAt": "2026-07-30",
+    "developmentFixtureIsCurrent": false,
+    "releaseExpectation": "Production continues to resolve featured and latest stories from persistent production editor data and settings. None of the story metadata in this manifest is copied into application runtime source."
+  }
+}

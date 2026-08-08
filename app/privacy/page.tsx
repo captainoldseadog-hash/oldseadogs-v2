@@ -35,7 +35,7 @@ export default function PrivacyPage() {
           How Old Sea Dogs handles contact details, cookies, advertising,
           submitted material, and photo credits.
         </p>
-        <span>Last updated: 10 June 2026</span>
+        <span>Last updated: 3 August 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Privacy policy">
@@ -73,12 +73,28 @@ export default function PrivacyPage() {
             site, understand what readers use, and support advertising.
           </p>
 
-          <h2>Cookies And Advertising</h2>
+          <h2>Cookies, Analytics And Advertising</h2>
           <p>
             Old Sea Dogs may use cookies and similar technologies to help the
-            site work, understand readership, and show advertising. Third-party
-            vendors, including Google, use cookies to serve ads based on a
-            user&apos;s prior visits to this website or other websites.
+            site work, understand readership, and show advertising. We may use
+            Google Analytics to understand which public pages are useful, and
+            Google AdSense or similar advertising partners to show sponsored
+            adverts when advertising is enabled.
+          </p>
+          <p>
+            Non-essential analytics and advertising services only load after
+            the visitor&apos;s consent choice allows them. Analytics storage is
+            denied by default through Google Consent Mode. Visitors can accept
+            all optional cookies, reject non-essential cookies, manage
+            preferences, or later withdraw consent using Privacy choices in the
+            footer.
+          </p>
+          <p>
+            Third-party vendors, including Google, may use cookies to serve ads
+            based on a user&apos;s prior visits to this website or other websites
+            where personalised advertising is allowed. Google and its partners
+            may also serve non-personalised ads based on contextual information
+            such as the page being viewed and approximate location.
           </p>
           <p>
             Google&apos;s use of advertising cookies enables Google and its
@@ -97,8 +113,10 @@ export default function PrivacyPage() {
           </p>
           <p>
             If additional advertising networks are used, they may also use
-            cookies or similar technologies. Where required, visitors may be
-            asked to make cookie choices before non-essential cookies are used.
+            cookies or similar technologies. These third-party advertising
+            partners may receive technical information needed to serve, measure,
+            limit, or protect adverts. Old Sea Dogs does not sell personal
+            information.
           </p>
           <p>
             Some Ports and Clubs pages may also include embedded Google Maps or

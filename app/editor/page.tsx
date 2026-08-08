@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import EditorDashboard from "./EditorDashboard";
+import BridgeCms from "./BridgeCms";
+import { EditorGate } from "./EditorGate";
 import { createPageMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -9,6 +10,16 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default function EditorPage() {
-  return <EditorDashboard />;
+export default async function EditorPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ editorLogin?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
+
+  return (
+    <EditorGate failed={params.editorLogin === "failed"}>
+      <BridgeCms section="dashboard" />
+    </EditorGate>
+  );
 }
