@@ -1,0 +1,15 @@
+{
+  "purpose": "Confirm Phase Two uses the existing Guide architecture and excludes the rejected separate marina application and runtime uploads.",
+  "result": "passed",
+  "excludedApplicationAreas": [
+    "app/marina-guide/",
+    "app/api/editor/marinas/",
+    "app/editor/MarinaEditor.tsx",
+    "app/editor/preview/marina/",
+    "lib/marinas/",
+    "drizzle/0010_flashy_beast.sql",
+    "drizzle/0011_clean_peter_quill.sql",
+    "public/uploads/",
+    "dist/client/uploads/"
+  ]
+}

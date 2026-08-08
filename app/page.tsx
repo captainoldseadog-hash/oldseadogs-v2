@@ -1,16 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdBlock, pickAdvertForPlacement } from "../components/AdBlock";
 import { SiteFooter } from "../components/SiteFooter";
-import { oldSeaDogsSections, storyMatchesSection } from "../content/sections";
+import { SocialFollowBlock } from "../components/SocialFollowBlock";
+import { getClubProfileExcerpt } from "../content/club-profiles";
+import {
+  categoryMatchesLabel,
+  displayCategoryLabel,
+  oldSeaDogsSections,
+} from "../content/sections";
 import { formatDate } from "../content/stories";
+import { isLogoLikeStoryImage } from "../content/story-images";
+import { HomepageContentProvider } from "../lib/homepage-content-provider";
+import { guidePublicPath } from "../lib/guides";
 import {
   getActiveAds,
+  getHomepageGuides,
   getPublishedStories,
   getSiteSettings,
   hasStoryPhoto,
-  type Advert,
 } from "../lib/site-content";
-import { createPageMetadata } from "../lib/seo";
+import {
+  createPageMetadata,
+} from "../lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -20,78 +32,146 @@ export async function generateMetadata(): Promise<Metadata> {
     title: settings.brandName,
     description: settings.siteDescription,
     path: "/",
+    image: { url: settings.homepageSocialImageUrl || settings.defaultSocialImageUrl, alt: settings.brandName },
   });
 }
 
-const sections = [
-  ...oldSeaDogsSections.map((section) => ({
-    label: section.label,
-    href: `/${section.slug}`,
-  })),
-];
+// Keep the magazine homepage navigation aligned with the live site. Guides
+// enter through the single editorial promotion below rather than expanding
+// this already dense masthead.
+const sections = oldSeaDogsSections.map((section) => ({
+  href: `/${section.slug}`,
+  label: section.label,
+}));
 
-function getSectionPreviewPhoto(
-  stories: Awaited<ReturnType<typeof getPublishedStories>>,
-  section: (typeof oldSeaDogsSections)[number]
-) {
-  const photos = stories
-    .filter((story) => storyMatchesSection(story, section))
-    .filter((story) => hasStoryPhoto(story));
-
-  if (photos.length === 0) return null;
-  return photos[Math.floor(Math.random() * Math.min(photos.length, 24))];
-}
-
-function AdCard({ ad }: { ad: Advert }) {
-  if (ad.kind === "network" && ad.code) {
-    return (
-      <aside
-        className="ad-card network-ad"
-        aria-label={ad.label}
-        dangerouslySetInnerHTML={{ __html: ad.code }}
-      />
-    );
-  }
+function GuidePromoBand({
+  guides,
+}: {
+  guides: Awaited<ReturnType<typeof getHomepageGuides>>;
+}) {
+  const featuredSlugs = ["the-solent", "river-hamble", "hamble-point-marina"];
+  const featuredGuides = featuredSlugs.flatMap((slug) => {
+    const guide = guides.find((item) => item.slug === slug);
+    return guide ? [guide] : [];
+  });
+  if (featuredGuides.length === 0) return null;
 
   return (
-    <aside className="ad-card" aria-label={ad.label}>
-      {ad.imageUrl ? (
-        <span
-          className="ad-image"
-          role="img"
-          aria-label={ad.title || ad.label}
-          style={{ backgroundImage: `url(${ad.imageUrl})` }}
-        />
-      ) : null}
-      <div>
-        <p>{ad.label}</p>
-        {ad.title ? <h3>{ad.title}</h3> : null}
-        {ad.body ? <span>{ad.body}</span> : null}
-        {ad.linkUrl ? <a href={ad.linkUrl}>Visit advertiser</a> : null}
+    <section className="homepage-guides-promo" aria-labelledby="homepage-guides-title">
+      <div className="homepage-guides-intro">
+        <p className="eyebrow">The reference library</p>
+        <h2 id="homepage-guides-title">Discover Old Sea Dogs Guides</h2>
+        <p>
+          Practical cruising knowledge, maritime history and the stories that
+          give Britain&apos;s sailing waters their character.
+        </p>
+        <Link className="button-primary" href="/guides">
+          Explore All Guides
+        </Link>
       </div>
-    </aside>
+      <div className="homepage-guides-list" aria-label="Featured Old Sea Dogs Guides">
+        {featuredGuides.map((guide, index) => (
+          <Link href={guidePublicPath(guide)} key={guide.slug}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{guide.title}</strong>
+            <small>{guide.guideType} Guide</small>
+            <span aria-hidden="true">→</span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EditorCredibilityBand() {
+  return (
+    <section className="editor-credibility-band" aria-labelledby="editor-credibility-title">
+      <div>
+        <p className="eyebrow">Edited by Michael Hodges</p>
+        <h2 id="editor-credibility-title">A practical Solent eye on boating stories</h2>
+        <p>
+          Old Sea Dogs is being tightened around attributed sources, corrections,
+          image credits, practical notes and Michael&apos;s own boating judgement:
+          RYA Day Skipper, Powerboat Level 2, years around Cowes and the Hamble,
+          and a taste for details that survive contact with the tide.
+        </p>
+      </div>
+      <div className="editor-credibility-links">
+        <Link href="/about">About Michael</Link>
+        <Link href="/authors/michael-hodges">Author profile</Link>
+        <Link href="/editorial-standards">Editorial standards</Link>
+      </div>
+    </section>
+  );
+}
+
+function EditorsPicksBand({
+  stories,
+}: {
+  stories: Awaited<ReturnType<typeof getPublishedStories>>;
+}) {
+  if (stories.length === 0) return null;
+
+  return (
+    <section className="feature-band editors-picks-band" id="editors-picks">
+      <div className="feature-copy">
+        <p className="eyebrow">Editor&apos;s Choice</p>
+        <h2>Hand-picked stories worth a proper look</h2>
+        <p>
+          Chosen for useful detail, clean attribution and a reason to read
+          beyond the headline.
+        </p>
+      </div>
+      <div className="feature-cards">
+        {stories.slice(0, 4).map((story) => {
+          const storyHasPhoto = hasStoryPhoto(story);
+          return (
+            <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
+              {storyHasPhoto ? (
+                <Link
+                  className="compact-image"
+                  href={`/stories/${story.slug}`}
+                  style={{ backgroundImage: `url(${story.imageUrl})` }}
+                />
+              ) : null}
+              <div>
+                <span>{displayCategoryLabel(story.category)}</span>
+                <h3>
+                  <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                </h3>
+                <p>{story.summary}</p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
 export default async function Home() {
-  const [stories, settings, ads] = await Promise.all([
+  const [stories, settings, ads, homepageGuides] = await Promise.all([
     getPublishedStories(),
     getSiteSettings(),
     getActiveAds(),
+    getHomepageGuides(),
   ]);
-  const featuredStory = stories.find((story) => story.isFeatured) ?? stories[0];
-  const latestStories = stories
-    .filter((story) => story.slug !== featuredStory.slug)
-    .slice(0, 4);
-  const reviewStories = stories.filter((story) => story.category === "Boat Reviews");
-  const practicalStories = stories.filter((story) => story.category === "Maintenance");
-  const bannerAd = ads.find((ad) => ad.placement === "banner");
-  const sidebarAds = ads.filter((ad) => ad.placement === "sidebar").slice(0, 2);
+  const {
+    featuredStory,
+    latestReviewedOrFallback,
+    editorPicks,
+    reviewStories,
+    practicalStories,
+    featuredPortClub,
+    sectionCards,
+  } = new HomepageContentProvider(stories, settings).getContent();
+  const bannerAd = pickAdvertForPlacement(ads, "banner");
+  const featuredClubAd = pickAdvertForPlacement(ads, "homepage-featured-club");
+  const sidebarAds = ads
+    .filter((ad) => ad.placement === "homepage-sidebar" || ad.placement === "sidebar")
+    .slice(0, 2);
+  const homepageBottomAd = pickAdvertForPlacement(ads, "homepage-bottom");
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
-  const sectionCards = oldSeaDogsSections.map((section) => ({
-    ...section,
-    photo: getSectionPreviewPhoto(stories, section),
-  }));
 
   return (
     <main className="site-shell">
@@ -148,25 +228,91 @@ export default async function Home() {
 
       {bannerAd ? (
         <section className="ad-band" aria-label="Advertisement">
-          <AdCard ad={bannerAd} />
+          <AdBlock ad={bannerAd} />
         </section>
       ) : null}
+
+      <GuidePromoBand guides={homepageGuides} />
+
+      <EditorCredibilityBand />
+
+      <section
+        className="featured-port-club-band featured-port-club-band--compact"
+        aria-labelledby="featured-port-club-title"
+        data-compact-version="featured-club-ad-compact-v2"
+      >
+        <div className="featured-port-club-layout" data-featured-club-row="compact">
+          {featuredPortClub ? (
+            <article className="featured-port-club-card">
+              <Link
+                href={featuredPortClub.href}
+                className={`featured-port-club-media ${
+                  isLogoLikeStoryImage(featuredPortClub.story) ? "club-logo-media" : ""
+                }`}
+              >
+                <span
+                  role="img"
+                  aria-label={featuredPortClub.imageAlt}
+                  style={{ backgroundImage: `url(${featuredPortClub.imageUrl})` }}
+                />
+                {featuredPortClub.story.imageCredit ? (
+                  <small className="image-credit-chip">
+                    {featuredPortClub.story.imageCredit}
+                  </small>
+                ) : null}
+              </Link>
+              <div className="featured-port-club-copy">
+                <p className="eyebrow">{featuredPortClub.label}</p>
+                <h2 id="featured-port-club-title">
+                  <Link href={featuredPortClub.href}>{featuredPortClub.story.title}</Link>
+                </h2>
+                <p>{featuredPortClub.excerpt}</p>
+                <Link href={featuredPortClub.href} className="button-secondary">
+                  Open {categoryMatchesLabel(featuredPortClub.story.category, "Ports") ? "port" : "club"} page
+                </Link>
+              </div>
+            </article>
+          ) : (
+            <div className="featured-port-club-card featured-port-club-empty">
+              <div className="featured-port-club-copy">
+                <p className="eyebrow">Ports and Clubs</p>
+                <h2 id="featured-port-club-title">Harbour notes for the next passage</h2>
+                <p>
+                  Browse marina stops, clubs and practical shore-side notes from
+                  the Old Sea Dogs archive.
+                </p>
+                <Link href="/ports" className="button-secondary">
+                  Explore ports and clubs
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <AdBlock
+            ad={featuredClubAd}
+            className="featured-port-club-ad"
+            placeholderTitle="Featured Club sponsor space"
+            reserveSpace
+          />
+        </div>
+      </section>
 
       <section className="section-grid lead-section" id="latest">
         <div>
           <div className="section-heading">
-            <p className="eyebrow">Latest</p>
-            <h2>Fresh from the waterline</h2>
+            <p className="eyebrow">Latest from the Watch</p>
+            <h2>Fresh sailing stories, race notes and waterfront news</h2>
           </div>
           <div className="story-grid">
-            {latestStories.map((story) => {
+            {latestReviewedOrFallback.map((story) => {
               const storyHasPhoto = hasStoryPhoto(story);
+              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
               return (
                 <article className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`} key={story.slug}>
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
                       <span
-                        className="story-image"
+                        className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
                         role="img"
                         aria-label={story.imageAlt}
                         style={{ backgroundImage: `url(${story.imageUrl})` }}
@@ -179,14 +325,14 @@ export default async function Home() {
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{story.category}</span>
+                      <span>{displayCategoryLabel(story.category)}</span>
                       <span>{formatDate(story.date)}</span>
                     </div>
                     <h3>
                       <Link href={`/stories/${story.slug}`}>{story.title}</Link>
                     </h3>
                     <Link href={`/stories/${story.slug}`} className="story-summary-link">
-                      {story.summary}
+                      {getClubProfileExcerpt(story)}
                     </Link>
                     <div className="source-row">
                       <span>{story.readMinutes} min read</span>
@@ -198,7 +344,7 @@ export default async function Home() {
           </div>
         </div>
 
-        <aside className="watch-panel" id="press-watch" aria-label="Press and source watch">
+        <aside className="watch-panel" id="site-sections" aria-label="Old Sea Dogs sections">
           <p className="eyebrow">Sections</p>
           <h2>Explore Old Sea Dogs</h2>
           <div className="watch-list section-list">
@@ -206,11 +352,15 @@ export default async function Home() {
               <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
                 {section.photo ? (
                   <span
-                    className="section-list-image"
+                    className={`section-list-image ${
+                      isLogoLikeStoryImage(section.photo) ? "club-logo-image" : ""
+                    }`}
                     aria-hidden="true"
                     style={{ backgroundImage: `url(${section.photo.imageUrl})` }}
                   />
-                ) : null}
+                ) : (
+                  <span className="section-list-image section-list-image--placeholder" aria-hidden="true" />
+                )}
                 <span className="section-list-copy">
                   <strong>{section.label}</strong>
                   <span>{section.description}</span>
@@ -219,10 +369,12 @@ export default async function Home() {
             ))}
           </div>
           {sidebarAds.map((ad) => (
-            <AdCard ad={ad} key={ad.id} />
+            <AdBlock ad={ad} key={ad.id} />
           ))}
         </aside>
       </section>
+
+      <EditorsPicksBand stories={editorPicks} />
 
       <section className="feature-band" id="reviews">
         <div className="feature-copy">
@@ -252,7 +404,7 @@ export default async function Home() {
                   </span>
                 ) : null}
                 <div>
-                  <span>{story.category}</span>
+                  <span>{displayCategoryLabel(story.category)}</span>
                   <h3>
                     <Link href={`/stories/${story.slug}`}>{story.title}</Link>
                   </h3>
@@ -268,13 +420,28 @@ export default async function Home() {
         </div>
       </section>
 
+      <SocialFollowBlock />
+
+      {homepageBottomAd ? (
+        <section className="ad-band footer-ad-band" aria-label="Footer advertisement">
+          <p className="ad-band-label">Advertisement</p>
+          <AdBlock
+            ad={homepageBottomAd}
+            className="homepage-bottom-ad"
+            ctaLabel="Visit www.aNewFN.com"
+            placeholderTitle="Homepage bottom sponsor space"
+            showSponsor
+          />
+        </section>
+      ) : null}
+
       <SiteFooter
         brandName={settings.brandName}
         footerText={settings.footerText}
         extraLinks={[
           { href: "#latest", label: "Latest" },
           { href: "#reviews", label: "Reviews" },
-          { href: "#press-watch", label: "Press Watch" },
+          { href: "#site-sections", label: "Sections" },
         ]}
       />
     </main>

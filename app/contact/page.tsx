@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd } from "../../components/JsonLd";
 import { SiteFooter } from "../../components/SiteFooter";
+import { SocialFollowBlock } from "../../components/SocialFollowBlock";
 import { oldSeaDogsSections } from "../../content/sections";
 import { contactEmail, createPageMetadata } from "../../lib/seo";
 import { contactPageJsonLd } from "../../lib/structured-data";
@@ -85,6 +86,11 @@ export default function ContactPage() {
           <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </aside>
       </section>
+
+      <SocialFollowBlock
+        compact
+        body="Follow Old Sea Dogs for story updates, short videos, photos, race notes and social posts."
+      />
 
       <SiteFooter extraLinks={[{ href: "/", label: "Home" }]} />
     </main>

@@ -5,7 +5,7 @@ import {
   getManufacturerBySlug,
   storyMatchesManufacturer,
 } from "../../../content/manufacturers";
-import { oldSeaDogsSections } from "../../../content/sections";
+import { displayCategoryLabel, oldSeaDogsSections } from "../../../content/sections";
 import { formatDate } from "../../../content/stories";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
@@ -114,7 +114,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                   <div className="story-card-body">
                     <div className="story-meta">
                       <span>{formatDate(story.date)}</span>
-                      <span>{story.category}</span>
+                      <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>
                       <Link href={`/stories/${story.slug}`}>{story.title}</Link>

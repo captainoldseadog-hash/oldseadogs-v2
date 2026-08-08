@@ -1,12 +1,64 @@
 import type { Metadata } from "next";
 
 export const siteName = "Old Sea Dogs";
-export const siteUrl = "https://www.oldseadogs.com";
 export const contactEmail = "captainoldseadog@gmail.com";
 export const defaultDescription =
   "Boating, yachting, boat reviews, ports, clubs, races, gear, destinations, and practical sea stories from Old Sea Dogs.";
 
-export const searchIndexingEnabled = false;
+const runtimeProcess = (globalThis as typeof globalThis & {
+  process?: { env?: Record<string, string | undefined> };
+}).process;
+
+export const oldSeaDogsEnv =
+  runtimeProcess?.env?.OLDSEADOGS_ENV === "production" ? "production" : "staging";
+export const isProduction = oldSeaDogsEnv === "production";
+export const isStaging = !isProduction;
+export const productionSiteUrl = "https://oldseadogs.com";
+
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/+$/g, "");
+}
+
+export const siteUrl = isProduction
+  ? productionSiteUrl
+  : trimTrailingSlash(
+      runtimeProcess?.env?.OLDSEADOGS_SITE_URL ||
+        runtimeProcess?.env?.NEXT_PUBLIC_SITE_URL ||
+        "http://161.35.168.184"
+    );
+
+export const searchIndexingEnabled = isProduction;
+
+export const defaultGa4MeasurementId = "G-88HT8MHR7T";
+const configuredGa4MeasurementId =
+  runtimeProcess?.env?.OLDSEADOGS_GA4_ID ??
+  runtimeProcess?.env?.NEXT_PUBLIC_GA4_ID ??
+  defaultGa4MeasurementId;
+export const ga4MeasurementId = /^G-[A-Z0-9]{4,20}$/i.test(configuredGa4MeasurementId.trim())
+  ? configuredGa4MeasurementId.trim().toUpperCase()
+  : "";
+export const adsenseClientId =
+  runtimeProcess?.env?.OLDSEADOGS_ADSENSE_CLIENT ||
+  runtimeProcess?.env?.NEXT_PUBLIC_ADSENSE_CLIENT_ID ||
+  "";
+const adsenseEnvironmentEnabled =
+  isProduction &&
+  (runtimeProcess?.env?.OLDSEADOGS_ENABLE_ADSENSE ||
+    runtimeProcess?.env?.NEXT_PUBLIC_ENABLE_ADSENSE) === "true" &&
+  Boolean(adsenseClientId);
+export const adsenseEnabled = false;
+export const adsenseRecoveryMode =
+  adsenseEnvironmentEnabled
+    ? "Visible AdSense units are temporarily disabled during the low-value-content recovery pass."
+    : "";
+
+export const adsenseSlots = {
+  homeTop: runtimeProcess?.env?.OLDSEADOGS_ADSENSE_SLOT_HOME_TOP || "",
+  homeMid: runtimeProcess?.env?.OLDSEADOGS_ADSENSE_SLOT_HOME_MID || "",
+  articleInline: runtimeProcess?.env?.OLDSEADOGS_ADSENSE_SLOT_ARTICLE_INLINE || "",
+  articleBottom: runtimeProcess?.env?.OLDSEADOGS_ADSENSE_SLOT_ARTICLE_BOTTOM || "",
+  sectionList: runtimeProcess?.env?.OLDSEADOGS_ADSENSE_SLOT_SECTION_LIST || "",
+};
 
 type OgImage = {
   url: string;
@@ -16,9 +68,9 @@ type OgImage = {
 };
 
 export const defaultOpenGraphImage: OgImage = {
-  url: "/images/marina-hero.png",
-  width: 1774,
-  height: 887,
+  url: "/images/old-sea-dogs-logo.png",
+  width: 1200,
+  height: 630,
   alt: "Old Sea Dogs boating and yachting stories",
 };
 

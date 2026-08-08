@@ -1,5 +1,15 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, searchIndexingEnabled, siteUrl } from "../lib/seo";
+import { absoluteUrl, productionSiteUrl, searchIndexingEnabled, siteUrl } from "../lib/seo";
+
+const privateRoutes = [
+  "/editor",
+  "/editor/",
+  "/editor/preview/",
+  "/api/editor",
+  "/api/editor/",
+  "/api/search",
+  "/api/search/",
+];
 
 export default function robots(): MetadataRoute.Robots {
   if (!searchIndexingEnabled) {
@@ -18,10 +28,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/editor"],
+        disallow: privateRoutes,
       },
     ],
-    sitemap: absoluteUrl("/sitemap.xml"),
+    sitemap: searchIndexingEnabled
+      ? `${productionSiteUrl}/sitemap.xml`
+      : absoluteUrl("/sitemap.xml"),
     host: siteUrl,
   };
 }

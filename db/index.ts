@@ -1,15 +1,38 @@
-import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 
+export type D1Statement = {
+  run(): Promise<unknown>;
+};
+
+export type D1Binding = {
+  prepare(query: string): D1Statement;
+};
+
+type RuntimeBindings = {
+  DB?: D1Binding;
+  MEDIA?: MediaBucket;
+};
+
+let runtimeBindings: RuntimeBindings = {};
+
+export function setRuntimeBindings(bindings: RuntimeBindings) {
+  runtimeBindings = bindings ?? {};
+}
+
+function getRuntimeBindings() {
+  return runtimeBindings;
+}
+
 export function getDb() {
-  if (!env.DB) {
+  const db = getRuntimeBindings().DB;
+  if (!db) {
     throw new Error(
-      "Cloudflare D1 binding `DB` is unavailable. Set the `d1` field in .openai/hosting.json to `DB` or let your control plane inject the real binding values before using the database."
+      "Database binding `DB` is unavailable. On Cloudflare/Sites, set the `d1` field in .openai/hosting.json to `DB`. On DigitalOcean, configure the PostgreSQL adapter before using persistent editor data."
     );
   }
 
-  return drizzle(env.DB, { schema });
+  return drizzle(db, { schema });
 }
 
 export function getDbOrNull() {
@@ -20,13 +43,17 @@ export function getDbOrNull() {
   }
 }
 
-type MediaObject = {
+export function getD1BindingOrNull() {
+  return getRuntimeBindings().DB ?? null;
+}
+
+export type MediaObject = {
   body: ReadableStream;
   httpMetadata?: { contentType?: string };
   writeHttpMetadata(headers: Headers): void;
 };
 
-type MediaBucket = {
+export type MediaBucket = {
   get(key: string): Promise<MediaObject | null>;
   put(
     key: string,
@@ -36,5 +63,5 @@ type MediaBucket = {
 };
 
 export function getMediaBucket() {
-  return (env as unknown as { MEDIA?: MediaBucket }).MEDIA ?? null;
+  return getRuntimeBindings().MEDIA ?? null;
 }

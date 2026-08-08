@@ -1,4 +1,9 @@
-import { oldSeaDogsSections, storyMatchesSection } from "../content/sections";
+import {
+  categoryMatchesLabel,
+  displayCategoryLabel,
+  oldSeaDogsSections,
+  storyMatchesSection,
+} from "../content/sections";
 import { detectManufacturer, storyMatchesManufacturer } from "../content/manufacturers";
 import { type EditableStory } from "./site-content";
 import { normalizeSearchText, searchTokens } from "./search";
@@ -64,7 +69,7 @@ function overlapScore(a: EditableStory, b: EditableStory) {
     if (bText.includes(token)) score += 1;
   }
 
-  if (a.category === b.category) score += 4;
+  if (categoryMatchesLabel(a.category, b.category)) score += 4;
   if (a.author === b.author) score += 1;
   return score;
 }
@@ -115,7 +120,7 @@ function bestByPhrase(
   const needle = normalizeSearchText(phrase);
   return stories
     .filter((story) => story.slug !== current.slug)
-    .filter((story) => allowedCategories.includes(story.category))
+    .filter((story) => allowedCategories.includes(displayCategoryLabel(story.category)))
     .filter((story) => storyText(story).includes(needle))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, limit);
@@ -141,14 +146,14 @@ export function getInternalLinkGroups(
     });
   }
 
-  if (current.category === "Clubs") {
+  if (categoryMatchesLabel(current.category, "Clubs")) {
+    const portStories = stories.filter((story) => categoryMatchesLabel(story.category, "Ports"));
     const marinaLinks = findRelatedStories(
       current,
-      stories.filter((story) => story.category === "Ports"),
+      portStories,
       4
     ).slice(0, 4);
-    const fallbackMarinas = stories
-      .filter((story) => story.category === "Ports")
+    const fallbackMarinas = portStories
       .filter((story) => !marinaLinks.some((item) => item.slug === story.slug))
       .slice(0, 4 - marinaLinks.length);
     const portLinks = [...marinaLinks, ...fallbackMarinas];
@@ -161,14 +166,14 @@ export function getInternalLinkGroups(
     }
   }
 
-  if (current.category === "Ports") {
+  if (categoryMatchesLabel(current.category, "Ports")) {
+    const clubStories = stories.filter((story) => categoryMatchesLabel(story.category, "Clubs"));
     const clubLinks = findRelatedStories(
       current,
-      stories.filter((story) => story.category === "Clubs"),
+      clubStories,
       4
     );
-    const fallbackClubs = stories
-      .filter((story) => story.category === "Clubs")
+    const fallbackClubs = clubStories
       .filter((story) => !clubLinks.some((item) => item.slug === story.slug))
       .slice(0, 4 - clubLinks.length);
     const linkedClubs = [...clubLinks, ...fallbackClubs];
@@ -181,14 +186,14 @@ export function getInternalLinkGroups(
     }
   }
 
-  if (current.category === "Boat Reviews") {
+  if (categoryMatchesLabel(current.category, "Reviews")) {
     const manufacturer = detectManufacturer(
       `${current.title} ${current.summary} ${current.tags.join(" ")} ${current.body.slice(0, 3).join(" ")}`
     );
     if (manufacturer) {
       const manufacturerLinks = stories
         .filter((story) => story.slug !== current.slug)
-        .filter((story) => ["Boat Reviews", "News", "Shows"].includes(story.category))
+        .filter((story) => ["Reviews", "News", "Shows"].includes(displayCategoryLabel(story.category)))
         .filter((story) => storyMatchesManufacturer(story, manufacturer))
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 4);
@@ -204,14 +209,14 @@ export function getInternalLinkGroups(
     }
   }
 
-  if (current.category === "Racing" || current.category === "Regatta" || current.category === "News") {
+  if (displayCategoryLabel(current.category) === "Races" || displayCategoryLabel(current.category) === "News") {
     const raceTopic = detectRaceTopic(current);
     if (raceTopic) {
       const raceLinks = bestByPhrase(
         current,
         stories,
         raceTopic,
-        ["Racing", "News", "Shows"],
+        ["Races", "News", "Shows"],
         4
       );
       if (raceLinks.length > 0) {

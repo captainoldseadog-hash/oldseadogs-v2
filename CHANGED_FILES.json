@@ -1,0 +1,169 @@
+{
+  "baseline": "oldseadogs-cookie-consent-accept-all-2026-08-06-r1",
+  "scope": "Source and controlled artwork changes; generated dist and validation reports are recorded separately.",
+  "entries": [
+    {
+      "path": "app/globals.css",
+      "status": "modified",
+      "baselineSha256": "70695f916506c3a66f4e42ba38272d5c6c5c2f8d475d4fc815ef32c8403b5fc9",
+      "releaseSha256": "83388a7a8dd3a1efb0062edc7b7c696e35d86fe0dfc368bde41acafdab718d7e"
+    },
+    {
+      "path": "app/guides/[region]/page.tsx",
+      "status": "modified",
+      "baselineSha256": "114ad6a89acb6e827300f6e2b1ed6b1b688f29f05ec7394755c0e30fdb884668",
+      "releaseSha256": "63f14608dc68dadfb1cbfc0044e7c632a69f08b3c159d5bdbec05a849acc1f85"
+    },
+    {
+      "path": "components/GuidePublicContent.tsx",
+      "status": "modified",
+      "baselineSha256": "3174c2a3830dce7069e3499df61dea9f779cbe9edcd0f8dbc2b1154db0c730a6",
+      "releaseSha256": "14fc2be8bcdb283caf4100435ef0a0fee6a3866bb4531b25cc7690dd407b7758"
+    },
+    {
+      "path": "content/guide-image-placements.ts",
+      "status": "modified",
+      "baselineSha256": "0bfbd5955b4b3c1dc1c072dd6f50b070f262ea6f80d2df50c043412fc7f13b59",
+      "releaseSha256": "25c542c06ebfcbd933a84cc31c49ace62e522e1a1b0f9ed7719f8825f175b3e8"
+    },
+    {
+      "path": "content/solent-marina-guides.ts",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "f5d31e5e8811e4f4ace791df9285fe618fbe61acf98a3a3b8beaba422297276b"
+    },
+    {
+      "path": "lib/generated-build-info.ts",
+      "status": "modified",
+      "baselineSha256": "8b69d9494643e4413ebc0c112f1e6df02cebcd2c0de62cf459068bf5a0275d6d",
+      "releaseSha256": "2d4084f05c8112e87cc41036ec705b4cf4f8b61a62566d182ca06d51528450d0"
+    },
+    {
+      "path": "lib/site-content.ts",
+      "status": "modified",
+      "baselineSha256": "a804b990a940aef95ec70f81c4adbf112183d0e2d64c946d4602a7682e4318de",
+      "releaseSha256": "d22a861ad0e818407f8f7eb5619cf389729538dcb83cfa192cd5c3a1077eacee"
+    },
+    {
+      "path": "public/images/guides/guides-marina-berthon-lymington-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "cb42a2bfef619107cb9b1bea955dc6c7851bc39d78aa4afc50ad1192074ae835"
+    },
+    {
+      "path": "public/images/guides/guides-marina-deacons-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "d5b0a93dcc8a303c12a47c7aa09eb72eab021c90164e13e87c1f126d3ed677fa"
+    },
+    {
+      "path": "public/images/guides/guides-marina-east-cowes-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "cc8f7cfbd533e4f0f2e9e15335293d73b2d603a1fdedd5d48a50f50aa7bf51c4"
+    },
+    {
+      "path": "public/images/guides/guides-marina-gosport-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "b65b93c5ddb1beb36cb602e07cfe9cfc5a680065e089d3e241fee8c5c307e8cf"
+    },
+    {
+      "path": "public/images/guides/guides-marina-haslar-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "12271965aad1152b628af3901e8ee209eed48208d3de35028ebd31cdf5800590"
+    },
+    {
+      "path": "public/images/guides/guides-marina-hythe-marina-village-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "8a92f7e015f78d5977a0f0a6161a05a41c73087d29c370580435c97f568e2090"
+    },
+    {
+      "path": "public/images/guides/guides-marina-island-harbour-hero-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "779430f5b1e2e9220677c8417bae946415f703a421a3d193a56522f12bc1fff8"
+    },
+    {
+      "path": "public/images/guides/guides-marina-island-harbour-spice-bus-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "b448626228f1682d352fd9f26dbe17bded9d64aeb40b0976504490108e7edfc8"
+    },
+    {
+      "path": "public/images/guides/guides-marina-lymington-yacht-haven-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "9ccd5ea5483f3ed5b9cef01df7b6255f50de1356965148e5db124783a6452252"
+    },
+    {
+      "path": "public/images/guides/guides-marina-mercury-yacht-harbour-hero-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "8a4bc44c79b4f7fbdc1c0d145fa70589be6d739d14788f2df4fe681512f9e248"
+    },
+    {
+      "path": "public/images/guides/guides-marina-ocean-village-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "4d7d8a3e03e66848d57b906deec35ec2fe678e420009f442ebf04acf09450eb7"
+    },
+    {
+      "path": "public/images/guides/guides-marina-port-hamble-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "eab289f740dff078e71afc3f608e022160ba1df6de1401f9deb7a2bb9a5f3b9d"
+    },
+    {
+      "path": "public/images/guides/guides-marina-port-solent-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "0500f36a0ccc6991f9454051e8e58e71bfa3d57fbea353cddd6f7d8c2e83c248"
+    },
+    {
+      "path": "public/images/guides/guides-marina-swanwick-marina-editorial-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "6ae7fc5daaed31abc4bd1128ce75f7ddf72044278f2597f762889c1750cbf9a4"
+    },
+    {
+      "path": "public/images/guides/guides-marina-universal-marina-concept-v1.png",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "5aa06ce475ed381700559d48bb66387aee93ac87dcc56d774a5cd1f294202612"
+    },
+    {
+      "path": "tests/google-analytics-consent.test.mjs",
+      "status": "modified",
+      "baselineSha256": "364354c76039d2a398d12feadffe416c9ac6b0320580147fd49b1914d431712e",
+      "releaseSha256": "1f7560f220d3aa131821f67c566aca862320b7e6081b4249dd9a477b44bd3fd3"
+    },
+    {
+      "path": "tests/guides-product.integration.test.mjs",
+      "status": "modified",
+      "baselineSha256": "86c5b541f11a49f448c8858a18872a7941b901d613ea076ea7e1d08559ab0342",
+      "releaseSha256": "05be95b972421a1d5440dafa00cbae9e9bbc0f8cadd0de9265db11fe777cd3a5"
+    },
+    {
+      "path": "tests/marina-guides-release-preservation.test.mjs",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "5d884c97766609b950a7df7ce99448b80ef5d715b75dae465d48b7903697e086"
+    },
+    {
+      "path": "tests/solent-marina-guides.test.mjs",
+      "status": "added",
+      "baselineSha256": null,
+      "releaseSha256": "878f6ca31d69df4f82ed15ed1b99f879c8b9fa5d5e2a0046a1d8c84552ac8ce4"
+    }
+  ],
+  "generatedChanges": [
+    "dist/",
+    "lib/generated-build-info.ts"
+  ],
+  "validationEvidence": [
+    "reports/cookie-consent-marina-rc-viewport-validation/"
+  ]
+}

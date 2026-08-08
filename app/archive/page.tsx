@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
+import { displayCategoryLabel } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
@@ -38,7 +39,8 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   const visibleStories = archiveStories.length > 0 ? archiveStories : stories;
   const categories = Array.from(
     visibleStories.reduce((map, story) => {
-      map.set(story.category, (map.get(story.category) ?? 0) + 1);
+      const category = displayCategoryLabel(story.category);
+      map.set(category, (map.get(category) ?? 0) + 1);
       return map;
     }, new Map<string, number>())
   ).sort((a, b) => b[1] - a[1]);
@@ -46,7 +48,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   const selectedCategory =
     params?.category && categoryNames.has(params.category) ? params.category : "";
   const filteredStories = selectedCategory
-    ? visibleStories.filter((story) => story.category === selectedCategory)
+    ? visibleStories.filter((story) => displayCategoryLabel(story.category) === selectedCategory)
     : visibleStories;
   const pageSize = 80;
   const pageCount = Math.max(1, Math.ceil(filteredStories.length / pageSize));
@@ -127,7 +129,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
               <article className="archive-row" key={story.id}>
                 <div className="story-meta">
                   <span>{formatDate(story.date)}</span>
-                  <span>{story.category}</span>
+                  <span>{displayCategoryLabel(story.category)}</span>
                   {story.imageCredit ? <span>{story.imageCredit}</span> : null}
                 </div>
                 <h3>

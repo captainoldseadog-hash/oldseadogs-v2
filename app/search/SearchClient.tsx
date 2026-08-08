@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { isLogoLikeStoryImage } from "../../content/story-images";
 import type { SearchResult } from "../../lib/search";
 
 const exampleSearches = [
@@ -95,7 +96,9 @@ export function SearchClient({
             {result.imageUrl ? (
               <Link href={`/stories/${result.slug}`} className="search-result-image-link">
                 <span
-                  className="search-result-image"
+                  className={`search-result-image ${
+                    isLogoLikeStoryImage(result) ? "club-logo-image" : ""
+                  }`}
                   role="img"
                   aria-label={result.imageAlt || result.title}
                   style={{ backgroundImage: `url(${result.imageUrl})` }}

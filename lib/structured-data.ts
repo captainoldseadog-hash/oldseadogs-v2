@@ -1,5 +1,6 @@
 import { oldSeaDogsSameAsLinks } from "../content/social-links";
 import { contactEmail, absoluteUrl, siteName, siteUrl } from "./seo";
+import { cleanStoryTags } from "./tags";
 
 type StructuredStory = {
   slug: string;
@@ -40,6 +41,7 @@ export const michaelHodgesPersonJsonLd = {
   "@type": "Person",
   name: "Michael Hodges",
   url: absoluteUrl("/authors/michael-hodges"),
+  image: absoluteUrl("/images/authors/oldseadogs-michael-hodges.webp"),
   email: contactEmail,
   jobTitle: "Editor and founder",
   sameAs: oldSeaDogsSameAsLinks,
@@ -70,7 +72,7 @@ export function articleJsonLd(story: StructuredStory, hasImage: boolean) {
     headline: story.title,
     description: story.summary,
     articleSection: story.category,
-    keywords: story.tags,
+    keywords: cleanStoryTags(story.tags),
     datePublished: story.date,
     dateModified: story.updatedAt,
     mainEntityOfPage: absoluteUrl(`/stories/${story.slug}`),

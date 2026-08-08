@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
+import { SocialFollowBlock } from "../../components/SocialFollowBlock";
 import { oldSeaDogsSections } from "../../content/sections";
 import { createPageMetadata } from "../../lib/seo";
 
@@ -9,6 +10,12 @@ export const metadata: Metadata = createPageMetadata({
   description:
     "Meet Michael Hodges, editor and founder of Old Sea Dogs, and contact the site.",
   path: "/about",
+  image: {
+    url: "/images/authors/oldseadogs-michael-hodges.webp",
+    width: 1448,
+    height: 1086,
+    alt: "Michael Hodges and Old Sea Dogs maritime artwork",
+  },
 });
 
 export default function AboutPage() {
@@ -36,10 +43,6 @@ export default function AboutPage() {
             Editor and founder of Old Sea Dogs, based on the Isle of Wight and
             happiest when a story has salt on it.
           </p>
-          <p>
-            For a concise search-friendly byline page, visit the{" "}
-            <Link href="/authors/michael-hodges">Michael Hodges author profile</Link>.
-          </p>
           <a className="button-primary about-email" href="mailto:captainoldseadog@gmail.com">
             captainoldseadog@gmail.com
           </a>
@@ -48,10 +51,10 @@ export default function AboutPage() {
           <span
             className="about-photo"
             role="img"
-            aria-label="Michael Hodges, editor and founder of Old Sea Dogs"
+            aria-label="Michael Hodges, Editor of Old Sea Dogs, beside Sea Cloud II"
             style={{
               backgroundImage:
-                "linear-gradient(180deg, rgba(10, 22, 27, 0), rgba(10, 22, 27, 0.18)), url('/legacy-photos/6bc0d66f63c5-flybridge-yacht-michael-hodges.webp')",
+                "linear-gradient(180deg, rgba(10, 22, 27, 0), rgba(10, 22, 27, 0.14)), url('/images/authors/michael-hodges-1.jpg'), url('/images/authors/michael-hodges-2.jpg')",
             }}
           />
           <figcaption>Michael Hodges, editor and founder of Old Sea Dogs.</figcaption>
@@ -99,6 +102,11 @@ export default function AboutPage() {
           <a href="mailto:captainoldseadog@gmail.com">captainoldseadog@gmail.com</a>
         </aside>
       </section>
+
+      <SocialFollowBlock
+        compact
+        body="Follow Michael and Old Sea Dogs for story links, short videos and updates from the boating world."
+      />
 
       <section className="about-note-band">
         <div>
