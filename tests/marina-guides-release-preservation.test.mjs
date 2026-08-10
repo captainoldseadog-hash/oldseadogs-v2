@@ -8,18 +8,21 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  "app/page.tsx": "1d8d0bf02c0362930df17f819a9a6db37a376a6224cdb1a42a06ae174f87e891",
+  // c9e5068: approved responsive/lazy story images and one canonical link per story card.
+  "app/page.tsx": "4f65e1c5f48d91b05bbc8914b94e9a4eb5c12ce2385ba4c082ba5d522e0b5342",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "489a9915d6dc8c33bd859b7e8a80af31fd5532be54a2a2f55bb02a78e2afd369",
   "app/api/editor/route.ts": "7e23efa26c359894b45a2cee5167110b32a4592e7e0c85e20eeb74f3ee174b9c",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
-  "app/stories/[slug]/page.tsx": "ba8adc6ef1badac04c81fb26ebc993a6c10107a4e4cfe026edce16dad76c99e5",
+  // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
+  "app/stories/[slug]/page.tsx": "e6cf24c7b778c1f9784493de016d7c92d2169fbf6909c6bf39e5276c47eaadec",
   "app/sitemap.ts": "af0ab8838cd658fea02ae8da4780dc738b2ae5392fe742b8d6fe6dd66735b557",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
-  "components/CookieConsent.tsx": "a578b40736f1767c4e9d4dc1f5d4a1ad1aa0ef8a70b6396779c9a39f4e8fceac",
+  // c9e5068: approved versioned local storage with secure first-party cookie fallback.
+  "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
   "package.json": "20996dd1befedd6511126c8f53469bf55a649eba8467096a44d4c86f2abce686",
 };
 
@@ -30,13 +33,14 @@ test("homepage, story, editor, scheduler, search and consent logic match product
   }
 });
 
-test("site-content differs only by registering the approved static Guide seeds", async () => {
+test("site-content preserves the approved Guide seeds and editor-store derived-data reuse", async () => {
   const source = await fs.readFile(path.join(projectDir, "lib/site-content.ts"), "utf8");
   assert.equal((source.match(/solentMarinaGuideSeeds/g) || []).length, 2);
   const reconstructedBaseline = source
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
-  assert.equal(hash(reconstructedBaseline), "a804b990a940aef95ec70f81c4adbf112183d0e2d64c946d4602a7682e4318de");
+  // c9e5068: approved reuse of normalized static stories and cached local published stories.
+  assert.equal(hash(reconstructedBaseline), "cfb5451a654e7375d82f7a51604c3d6e039021f9dffc8ddf32ff1233ad99ba95");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {
@@ -48,7 +52,7 @@ test("the release tree contains no production data or uploads and retains the ex
   assert.doesNotMatch(ecosystem, /staging-data|editor-store\.json/);
 });
 
-test("cookie logic is unchanged and the approved primary presentation is present", async () => {
+test("approved cookie persistence and primary presentation are preserved", async () => {
   const [component, css] = await Promise.all([
     fs.readFile(path.join(projectDir, "components/CookieConsent.tsx"), "utf8"),
     fs.readFile(path.join(projectDir, "app/globals.css"), "utf8"),
