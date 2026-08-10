@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  consentCookieAttributes,
+  consentLifetimeSeconds,
+  createConsentChoice,
+  parseConsentChoice,
+  type StoredConsentChoice,
+} from "../lib/cookie-consent";
 
 type CookieConsentProps = {
   ga4Id?: string;
@@ -10,13 +17,9 @@ type CookieConsentProps = {
   adsenseEnabled?: boolean;
 };
 
-type ConsentChoice = {
-  analytics: boolean;
-  ads: boolean;
-  decidedAt: string;
-};
+type ConsentChoice = StoredConsentChoice;
 
-const storageKey = "oldseadogs_cookie_consent_v1";
+const storageKey = "oldseadogs_cookie_consent_v2";
 const consentCookieName = "oldseadogs_cookie_consent";
 const openPrivacyChoicesEvent = "oldseadogs:open-privacy-choices";
 const consentUpdatedEvent = "oldseadogs:cookie-consent-updated";
@@ -31,28 +34,49 @@ declare global {
   }
 }
 
-function readStoredChoice(): ConsentChoice | null {
+function readCookieValue(name: string) {
+  const prefix = `${name}=`;
+  const value = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix))
+    ?.slice(prefix.length);
+  if (!value) return "";
   try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ConsentChoice>;
-    return {
-      analytics: Boolean(parsed.analytics),
-      ads: Boolean(parsed.ads),
-      decidedAt: typeof parsed.decidedAt === "string" ? parsed.decidedAt : new Date().toISOString(),
-    };
+    return decodeURIComponent(value);
   } catch {
-    return null;
+    return "";
   }
 }
 
-function saveChoice(choice: Omit<ConsentChoice, "decidedAt">) {
-  const nextChoice: ConsentChoice = {
-    ...choice,
-    decidedAt: new Date().toISOString(),
-  };
-  window.localStorage.setItem(storageKey, JSON.stringify(nextChoice));
-  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; Max-Age=31536000; Path=/; SameSite=Lax`;
+function readStoredChoice(): ConsentChoice | null {
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    const localChoice = parseConsentChoice(raw);
+    if (localChoice) return localChoice;
+    if (raw) window.localStorage.removeItem(storageKey);
+  } catch {
+    // A valid first-party cookie remains available when local storage is blocked.
+  }
+
+  const cookieChoice = parseConsentChoice(readCookieValue(consentCookieName));
+  if (!cookieChoice) return null;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(cookieChoice));
+  } catch {
+    // Cookie persistence is sufficient when local storage is unavailable.
+  }
+  return cookieChoice;
+}
+
+function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
+  const nextChoice = createConsentChoice(choice);
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(nextChoice));
+  } catch {
+    // The first-party cookie is the fallback when local storage is unavailable.
+  }
+  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentLifetimeSeconds)}`;
   window.dispatchEvent(new Event(consentUpdatedEvent));
   return nextChoice;
 }

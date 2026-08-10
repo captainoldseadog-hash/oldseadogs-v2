@@ -225,10 +225,12 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
   assert.equal(solentMarinaGuideSeeds.find((guide) => guide.slug === "universal-marina").quickFacts.some((fact) => fact.label === "Berths"), false);
 });
 
-test("the Phase Two change preserves homepage, cookie and story-publication code byte for byte", async () => {
+test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
-    "app/page.tsx": "1d8d0bf02c0362930df17f819a9a6db37a376a6224cdb1a42a06ae174f87e891",
-    "components/CookieConsent.tsx": "a578b40736f1767c4e9d4dc1f5d4a1ad1aa0ef8a70b6396779c9a39f4e8fceac",
+    // c9e5068: approved responsive/lazy story images and one canonical link per story card.
+    "app/page.tsx": "4f65e1c5f48d91b05bbc8914b94e9a4eb5c12ce2385ba4c082ba5d522e0b5342",
+    // c9e5068: approved versioned local storage with secure first-party cookie fallback.
+    "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
     "content/homepage-production-snapshot.ts": "464346a0a9c6be2b34b168aae6a53b8d28b53016ad41d6c17a85c41a18ca1066",
     "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdBlock, pickAdvertForPlacement } from "../components/AdBlock";
+import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
 import { getClubProfileExcerpt } from "../content/club-profiles";
@@ -127,20 +128,21 @@ function EditorsPicksBand({
           const storyHasPhoto = hasStoryPhoto(story);
           return (
             <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
-              {storyHasPhoto ? (
-                <Link
-                  className="compact-image"
-                  href={`/stories/${story.slug}`}
-                  style={{ backgroundImage: `url(${story.imageUrl})` }}
-                />
-              ) : null}
-              <div>
-                <span>{displayCategoryLabel(story.category)}</span>
-                <h3>
-                  <Link href={`/stories/${story.slug}`}>{story.title}</Link>
-                </h3>
-                <p>{story.summary}</p>
-              </div>
+              <Link className="compact-card-link" href={`/stories/${story.slug}`}>
+                {storyHasPhoto ? (
+                  <ResponsiveStoryImage
+                    alt={story.imageAlt || story.title}
+                    className="compact-image"
+                    sizes="(max-width: 640px) calc(100vw - 40px), 290px"
+                    src={story.imageUrl}
+                  />
+                ) : null}
+                <div>
+                  <span>{displayCategoryLabel(story.category)}</span>
+                  <h3>{story.title}</h3>
+                  <p>{story.summary}</p>
+                </div>
+              </Link>
             </article>
           );
         })}
@@ -177,10 +179,12 @@ export default async function Home() {
     <main className="site-shell">
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
         {featuredHasPhoto ? (
-          <div
+          <ResponsiveStoryImage
+            alt={featuredStory.imageAlt || featuredStory.title}
             className="hero-image"
-            aria-hidden="true"
-            style={{ backgroundImage: `url(${featuredStory.imageUrl})` }}
+            eager
+            sizes="100vw"
+            src={featuredStory.imageUrl}
           />
         ) : null}
         {featuredHasPhoto && featuredStory.imageCredit ? (
@@ -250,10 +254,11 @@ export default async function Home() {
                   isLogoLikeStoryImage(featuredPortClub.story) ? "club-logo-media" : ""
                 }`}
               >
-                <span
-                  role="img"
-                  aria-label={featuredPortClub.imageAlt}
-                  style={{ backgroundImage: `url(${featuredPortClub.imageUrl})` }}
+                <ResponsiveStoryImage
+                  alt={featuredPortClub.imageAlt}
+                  className="featured-port-club-media-image"
+                  sizes="(max-width: 640px) calc(100vw - 30px), 480px"
+                  src={featuredPortClub.imageUrl}
                 />
                 {featuredPortClub.story.imageCredit ? (
                   <small className="image-credit-chip">
@@ -309,35 +314,33 @@ export default async function Home() {
               const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
               return (
                 <article className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`} key={story.slug}>
-                  {storyHasPhoto ? (
-                    <Link href={`/stories/${story.slug}`} className="image-link">
-                      <span
+                  <Link className="story-card-link" href={`/stories/${story.slug}`}>
+                    {storyHasPhoto ? (
+                      <ResponsiveStoryImage
+                        alt={story.imageAlt || story.title}
                         className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
-                        role="img"
-                        aria-label={story.imageAlt}
-                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                        sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        src={story.imageUrl}
                       >
                         {story.imageCredit ? (
                           <small className="image-credit-chip">{story.imageCredit}</small>
                         ) : null}
+                      </ResponsiveStoryImage>
+                    ) : null}
+                    <div className="story-card-body">
+                      <div className="story-meta">
+                        <span>{displayCategoryLabel(story.category)}</span>
+                        <span>{formatDate(story.date)}</span>
+                      </div>
+                      <h3>{story.title}</h3>
+                      <span className="story-summary-link">
+                        {getClubProfileExcerpt(story)}
                       </span>
-                    </Link>
-                  ) : null}
-                  <div className="story-card-body">
-                    <div className="story-meta">
-                      <span>{displayCategoryLabel(story.category)}</span>
-                      <span>{formatDate(story.date)}</span>
+                      <div className="source-row">
+                        <span>{story.readMinutes} min read</span>
+                      </div>
                     </div>
-                    <h3>
-                      <Link href={`/stories/${story.slug}`}>{story.title}</Link>
-                    </h3>
-                    <Link href={`/stories/${story.slug}`} className="story-summary-link">
-                      {getClubProfileExcerpt(story)}
-                    </Link>
-                    <div className="source-row">
-                      <span>{story.readMinutes} min read</span>
-                    </div>
-                  </div>
+                  </Link>
                 </article>
               );
             })}
@@ -351,12 +354,13 @@ export default async function Home() {
             {sectionCards.map((section) => (
               <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
                 {section.photo ? (
-                  <span
+                  <ResponsiveStoryImage
+                    alt=""
                     className={`section-list-image ${
                       isLogoLikeStoryImage(section.photo) ? "club-logo-image" : ""
                     }`}
-                    aria-hidden="true"
-                    style={{ backgroundImage: `url(${section.photo.imageUrl})` }}
+                    sizes="66px"
+                    src={section.photo.imageUrl}
                   />
                 ) : (
                   <span className="section-list-image section-list-image--placeholder" aria-hidden="true" />
@@ -391,29 +395,29 @@ export default async function Home() {
             const storyHasPhoto = hasStoryPhoto(story);
             return (
               <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
-                {storyHasPhoto ? (
-                  <span
-                    className="compact-image"
-                    role="img"
-                    aria-label={story.imageAlt}
-                    style={{ backgroundImage: `url(${story.imageUrl})` }}
-                  >
-                    {story.imageCredit ? (
-                      <small className="image-credit-chip">{story.imageCredit}</small>
-                    ) : null}
-                  </span>
-                ) : null}
-                <div>
-                  <span>{displayCategoryLabel(story.category)}</span>
-                  <h3>
-                    <Link href={`/stories/${story.slug}`}>{story.title}</Link>
-                  </h3>
-                  {!storyHasPhoto ? (
-                    <Link href={`/stories/${story.slug}`} className="story-summary-link compact-summary-link">
-                      {story.summary}
-                    </Link>
+                <Link className="compact-card-link" href={`/stories/${story.slug}`}>
+                  {storyHasPhoto ? (
+                    <ResponsiveStoryImage
+                      alt={story.imageAlt || story.title}
+                      className="compact-image"
+                      sizes="(max-width: 640px) calc(100vw - 40px), 290px"
+                      src={story.imageUrl}
+                    >
+                      {story.imageCredit ? (
+                        <small className="image-credit-chip">{story.imageCredit}</small>
+                      ) : null}
+                    </ResponsiveStoryImage>
                   ) : null}
-                </div>
+                  <div>
+                    <span>{displayCategoryLabel(story.category)}</span>
+                    <h3>{story.title}</h3>
+                    {!storyHasPhoto ? (
+                      <span className="story-summary-link compact-summary-link">
+                        {story.summary}
+                      </span>
+                    ) : null}
+                  </div>
+                </Link>
               </article>
             );
           })}

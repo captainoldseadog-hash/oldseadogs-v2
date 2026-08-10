@@ -213,6 +213,27 @@ test("public requests are read-only and do not publish a due scheduled story", a
   assert.equal(due.statusHistory.length, 0);
 });
 
+test("the public store cache invalidates immediately after editor-store.json changes", async () => {
+  const before = await workerRequest(workers[0], {
+    url: "https://oldseadogs.com/stories/public-story",
+  });
+  assert.equal(before.status, 200);
+  assert.match(before.body, /Public story/);
+
+  const store = await readStore();
+  const publicStory = store.stories.find((item) => item.id === "public-story");
+  publicStory.title = "Public story changed immediately";
+  publicStory.updatedAt = "2026-08-10T12:00:00.000Z";
+  store.updatedAt = publicStory.updatedAt;
+  await fs.writeFile(storePath, `${JSON.stringify(store, null, 2)}\n`, "utf8");
+
+  const after = await workerRequest(workers[0], {
+    url: "https://oldseadogs.com/stories/public-story",
+  });
+  assert.equal(after.status, 200);
+  assert.match(after.body, /Public story changed immediately/);
+});
+
 test("concurrent editor processes retain every independent story write", async () => {
   const writes = Array.from({ length: 24 }, (_, index) => {
     const id = `concurrent-draft-${index}`;
