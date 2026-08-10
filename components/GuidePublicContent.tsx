@@ -410,6 +410,10 @@ export function GuidePublicContent({
           <img
             src={guide.imageUrl}
             alt={guide.imageAlt}
+            decoding="async"
+            fetchPriority="high"
+            loading="eager"
+            sizes="100vw"
             style={{ objectPosition: guide.imageFocalPoint }}
           />
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (

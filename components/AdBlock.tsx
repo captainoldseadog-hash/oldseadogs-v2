@@ -1,4 +1,5 @@
 import type { Advert } from "../lib/site-content";
+import { ResponsiveStoryImage } from "./ResponsiveStoryImage";
 
 type AdBlockProps = {
   ad?: Advert | null;
@@ -73,11 +74,11 @@ export function AdBlock({
   const body = (
     <>
       {ad.imageUrl ? (
-        <span
+        <ResponsiveStoryImage
+          alt={ad.title || ad.label}
           className="ad-image"
-          role="img"
-          aria-label={ad.title || ad.label}
-          style={{ backgroundImage: `url(${ad.imageUrl})` }}
+          sizes="(max-width: 640px) calc(100vw - 40px), 580px"
+          src={ad.imageUrl}
         />
       ) : null}
       <div>

@@ -153,7 +153,13 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
           {featuredGuides.map((guide) => (
             <article className="guide-card" key={guide.slug}>
               <Link className="guide-card-image" href={guidePublicPath(guide)}>
-                <img loading="lazy" src={guide.imageUrl} alt={guide.imageAlt} />
+                <img
+                  alt={guide.imageAlt}
+                  decoding="async"
+                  loading="lazy"
+                  sizes="(max-width: 640px) calc(100vw - 40px), 560px"
+                  src={guide.imageUrl}
+                />
               </Link>
               <div>
                 <p className="eyebrow">{guide.guideType}</p>

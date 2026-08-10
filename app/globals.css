@@ -3657,9 +3657,24 @@ a {
 }
 
 .hero-image {
-  background-position: center;
-  background-size: cover;
+  overflow: hidden;
   z-index: -2;
+}
+
+.hero-image > img,
+.story-image > img,
+.compact-image > img,
+.section-list-image > img,
+.featured-port-club-media-image > img,
+.ad-image > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-image > img {
+  object-position: center;
 }
 
 .hero-credit {
@@ -3940,10 +3955,11 @@ a {
 .featured-port-club-media span:not(.image-credit-chip) {
   position: absolute;
   inset: 0;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
   transition: transform 220ms ease;
+}
+
+.featured-port-club-media-image > img {
+  object-fit: contain;
 }
 
 .featured-port-club-media.club-logo-media span:not(.image-credit-chip) {
@@ -4090,6 +4106,20 @@ a {
   flex-direction: column;
 }
 
+.story-card-link,
+.compact-card-link {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.story-card-link:focus-visible,
+.compact-card-link:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: -3px;
+}
+
 .story-image {
   display: block;
   width: 100%;
@@ -4108,6 +4138,11 @@ a {
   background-size: contain;
   background-origin: content-box;
   box-shadow: inset 0 0 0 1px rgba(18, 57, 68, 0.06);
+}
+
+.club-logo-image > img {
+  padding: 8px;
+  object-fit: contain;
 }
 
 .image-credit-chip {
@@ -4171,12 +4206,13 @@ a {
   line-height: 1.55;
 }
 
-.story-summary-link:hover {
+.story-card-link:hover .story-summary-link,
+.compact-card-link:hover .story-summary-link {
   color: var(--signal);
 }
 
 .story-card.text-only-story .story-card-body,
-.compact-card.text-only-story > div {
+.compact-card.text-only-story .compact-card-link > div {
   padding-top: 22px;
 }
 
@@ -4322,7 +4358,7 @@ a {
   flex-direction: column;
 }
 
-.compact-card > div {
+.compact-card-link > div {
   flex: 1;
 }
 
@@ -4335,6 +4371,12 @@ a {
   background-repeat: no-repeat;
   background-size: cover;
   background-color: #d7e3e0;
+}
+
+.compact-image > img,
+.story-image > img,
+.section-list-image > img {
+  object-position: center;
 }
 
 .compact-card div {
@@ -6439,8 +6481,7 @@ a {
   display: block;
   min-height: 150px;
   background-color: #d7e3e0;
-  background-position: center;
-  background-size: cover;
+  overflow: hidden;
 }
 
 .network-ad {

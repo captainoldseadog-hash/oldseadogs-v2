@@ -127,7 +127,15 @@ export default async function RegionPage({ params }: RegionPageProps) {
 
       <header className="guide-region-hero">
         <figure>
-          <img src={lead.imageUrl} alt="" style={{ objectPosition: lead.imageFocalPoint }} />
+          <img
+            src={lead.imageUrl}
+            alt=""
+            decoding="async"
+            fetchPriority="high"
+            loading="eager"
+            sizes="100vw"
+            style={{ objectPosition: lead.imageFocalPoint }}
+          />
         </figure>
         <div>
           <p className="eyebrow">Old Sea Dogs Guides</p>

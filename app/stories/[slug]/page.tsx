@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArticlePreviewContent } from "../../../components/ArticlePreviewContent";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SocialShare } from "../../../components/SocialShare";
+import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
 import { displayCategoryLabel, sectionPathForCategory } from "../../../content/sections";
 import {
   getClubProfileArticleBody,
@@ -265,21 +266,21 @@ function RelatedArticlesPanel({
       <div className="related-grid">
         {stories.map((item) => (
           <article className="compact-card" key={item.slug}>
-            {hasStoryPhoto(item) ? (
-              <Link
-                aria-label={item.title}
-                className="compact-image"
-                href={`/stories/${item.slug}`}
-                style={{ backgroundImage: `url(${item.imageUrl})` }}
-              />
-            ) : null}
-            <div>
-              <span>{displayCategoryLabel(item.category)}</span>
-              <h3>
-                <Link href={`/stories/${item.slug}`}>{item.title}</Link>
-              </h3>
-              <p>{item.summary}</p>
-            </div>
+            <Link className="compact-card-link" href={`/stories/${item.slug}`}>
+              {hasStoryPhoto(item) ? (
+                <ResponsiveStoryImage
+                  alt={item.imageAlt || item.title}
+                  className="compact-image"
+                  sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                  src={item.imageUrl}
+                />
+              ) : null}
+              <div>
+                <span>{displayCategoryLabel(item.category)}</span>
+                <h3>{item.title}</h3>
+                <p>{item.summary}</p>
+              </div>
+            </Link>
           </article>
         ))}
       </div>

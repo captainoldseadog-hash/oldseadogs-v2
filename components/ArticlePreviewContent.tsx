@@ -341,7 +341,14 @@ export function ArticlePreviewContent({
             <div
               className={`article-image ${imageLooksLikeLogo ? "club-logo-image" : ""}`}
             >
-              <img src={story.imageUrl} alt={story.imageAlt || story.title} />
+              <img
+                src={story.imageUrl}
+                alt={story.imageAlt || story.title}
+                decoding="async"
+                fetchPriority="high"
+                loading="eager"
+                sizes="(max-width: 760px) calc(100vw - 40px), 860px"
+              />
             </div>
             {story.imageCaption || story.imageCredit ? (
               <figcaption>
@@ -365,7 +372,9 @@ export function ArticlePreviewContent({
                   <img
                     src={inlineImage.url}
                     alt={inlineImageAlt(inlineImage, story.title)}
+                    decoding="async"
                     loading="lazy"
+                    sizes="(max-width: 760px) calc(100vw - 40px), 860px"
                   />
                   {inlineImage.caption || inlineImage.credit ? (
                     <figcaption>

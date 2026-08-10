@@ -2496,12 +2496,16 @@ function seedStaticStories() {
   );
 }
 
+let baseStaticStoriesCache: EditableStory[] | null = null;
+
 function staticStories(developmentFixtureStories: EditableStory[] = []) {
-  const legacy = legacyStaticStories();
-  return [
-    ...developmentFixtureStories,
-    ...(legacy.length > 0 ? legacy : seedStaticStories()),
-  ];
+  if (!baseStaticStoriesCache) {
+    const legacy = legacyStaticStories();
+    baseStaticStoriesCache = legacy.length > 0 ? legacy : seedStaticStories();
+  }
+  return developmentFixtureStories.length > 0
+    ? [...developmentFixtureStories, ...baseStaticStoriesCache]
+    : baseStaticStoriesCache;
 }
 
 function mergeLocalStoriesWithStatic(
@@ -2546,6 +2550,20 @@ function sortStories(stories: EditableStory[]) {
     if (dateCompare !== 0) return dateCompare;
     return a.sortOrder - b.sortOrder;
   });
+}
+
+const localPublishedStoriesCache = new WeakMap<LocalEditorStore, EditableStory[]>();
+
+async function getLocalPublishedStories(store: LocalEditorStore) {
+  const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
+  if (fixture.policy.active) {
+    return mergeLocalStoriesWithStatic(store.stories, false, fixture.stories);
+  }
+  const cached = localPublishedStoriesCache.get(store);
+  if (cached) return cached;
+  const stories = mergeLocalStoriesWithStatic(store.stories);
+  localPublishedStoriesCache.set(store, stories);
+  return stories;
 }
 
 function dateToTime(value: string) {
@@ -2751,8 +2769,7 @@ export async function getPublishedStories() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
-    return mergeLocalStoriesWithStatic(store.stories, false, fixture.stories);
+    return getLocalPublishedStories(store);
   }
 
   try {
@@ -2779,9 +2796,7 @@ export async function getStoryBySlug(slug: string) {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
-    return mergeLocalStoriesWithStatic(store.stories, false, fixture.stories)
-      .find((story) => story.slug === slug) ?? null;
+    return (await getLocalPublishedStories(store)).find((story) => story.slug === slug) ?? null;
   }
 
   try {

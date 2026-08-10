@@ -1,0 +1,29 @@
+{
+  "candidate": "isolated local production build",
+  "desktopReference": "1440x900",
+  "results": [
+    { "viewport": "390x844", "storyHref": "/stories/bridge-safety-fixture", "storyOpened": true, "backReturnedHome": true },
+    { "viewport": "375x667", "storyHref": "/stories/bridge-safety-fixture", "storyOpened": true, "backReturnedHome": true },
+    { "viewport": "768x1024", "storyHref": "/stories/bridge-safety-fixture", "storyOpened": true, "backReturnedHome": true },
+    { "viewport": "1024x768", "storyHref": "/stories/bridge-safety-fixture", "storyOpened": true, "backReturnedHome": true },
+    { "viewport": "1440x900", "storyHref": "/stories/bridge-safety-fixture", "storyOpened": true, "backReturnedHome": true }
+  ],
+  "additionalNavigation": {
+    "distinctHomepageStoriesTested": 4,
+    "directStoryUrl": true,
+    "nativeKeyboardFocusableAnchor": true,
+    "tabIndex": 0
+  },
+  "consent": {
+    "acceptAllSurvivedReload": true,
+    "acceptAllSurvivedNewTab": true,
+    "rejectNonEssentialSurvivedReload": true,
+    "savedMixedPreferencesSurvivedReload": true
+  },
+  "contentSafety": {
+    "fixtureStoreUnchanged": true,
+    "cmsOpenedAndReadStore": true,
+    "publishedGuideLinks": 24,
+    "guideLinkInstances": 64
+  }
+}
