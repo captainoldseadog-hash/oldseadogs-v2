@@ -34,8 +34,9 @@ function makeSectionHref(slug: string, page = 1) {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: SectionPageProps): Promise<Metadata> {
-  const { section: sectionSlug } = await params;
+  const [{ section: sectionSlug }, query] = await Promise.all([params, searchParams]);
   const section = getOldSeaDogsSection(sectionSlug);
 
   if (!section) {
@@ -44,11 +45,14 @@ export async function generateMetadata({
     };
   }
 
+  const requestedPage = Number.parseInt(query?.page ?? "1", 10);
+  const canonicalPage = Number.isFinite(requestedPage) && requestedPage > 1 ? requestedPage : 1;
+
   return {
     ...createPageMetadata({
       title: section.label,
       description: section.description,
-      path: `/${section.slug}`,
+      path: makeSectionHref(section.slug, canonicalPage),
     }),
     description: section.description,
   };

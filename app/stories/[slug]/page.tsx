@@ -39,6 +39,7 @@ import {
   absoluteUrl,
   createPageMetadata,
   isProduction,
+  robotsMetadata,
 } from "../../../lib/seo";
 import {
   articleJsonLd,
@@ -297,6 +298,7 @@ export async function generateMetadata({
   if (!story) {
     return {
       title: "Story not found | Old Sea Dogs",
+      robots: robotsMetadata(true),
     };
   }
 
@@ -305,6 +307,7 @@ export async function generateMetadata({
     description: story.summary,
     path: `/stories/${story.slug}`,
     noIndex: !isStorySearchIndexable(story),
+    noIndexFollow: true,
     image: hasStoryPhoto(story)
       ? {
           url: story.imageUrl,

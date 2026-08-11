@@ -12,6 +12,7 @@ type StructuredStory = {
   imageAlt: string;
   summary: string;
   tags: string[];
+  publishedAt: string;
   updatedAt: string;
 };
 
@@ -66,6 +67,21 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
 }
 
 export function articleJsonLd(story: StructuredStory, hasImage: boolean) {
+  const authorName = story.author.trim() || "Michael Hodges";
+  const author = authorName.toLowerCase() === siteName.toLowerCase()
+    ? {
+        "@type": "Organization",
+        name: siteName,
+        url: siteUrl,
+      }
+    : {
+        "@type": "Person",
+        name: authorName,
+        ...(authorName.toLowerCase() === "michael hodges"
+          ? { url: absoluteUrl("/authors/michael-hodges") }
+          : {}),
+      };
+
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -73,15 +89,11 @@ export function articleJsonLd(story: StructuredStory, hasImage: boolean) {
     description: story.summary,
     articleSection: story.category,
     keywords: cleanStoryTags(story.tags),
-    datePublished: story.date,
-    dateModified: story.updatedAt,
+    datePublished: story.publishedAt || story.date,
+    dateModified: story.updatedAt || story.publishedAt || story.date,
     mainEntityOfPage: absoluteUrl(`/stories/${story.slug}`),
     image: hasImage ? [absoluteUrl(story.imageUrl)] : undefined,
-    author: {
-      "@type": "Person",
-      name: story.author || "Michael Hodges",
-      url: absoluteUrl("/authors/michael-hodges"),
-    },
+    author,
     publisher: {
       "@type": "Organization",
       name: siteName,

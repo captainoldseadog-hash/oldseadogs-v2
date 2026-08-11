@@ -9,6 +9,7 @@ const privateRoutes = [
   "/api/editor/",
   "/api/search",
   "/api/search/",
+  "/api/social/track",
 ];
 
 export default function robots(): MetadataRoute.Robots {

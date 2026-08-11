@@ -3285,7 +3285,7 @@ function WriteStoryEditor({
 
             <details className="bridge-editor-details">
               <summary>SEO and search preview</summary>
-              <p className="bridge-muted">The public site continues to use the existing headline, excerpt and noindex fields. These controls edit those same canonical fields without introducing a second SEO record.</p>
+              <p className="bridge-muted">Published stories are included in Google by default. Use the exclusion only for an exceptional story that should remain public but must not appear in search.</p>
               <label>
                 <span>SEO title / headline</span>
                 <input value={story.title} onChange={(event) => updateStory({ title: event.target.value })} />
@@ -3296,7 +3296,7 @@ function WriteStoryEditor({
               </label>
               <label className="bridge-check-row">
                 <input checked={story.noindex} onChange={(event) => updateStory({ noindex: event.target.checked })} type="checkbox" />
-                Prevent search indexing
+                Exclude from Google
               </label>
             </details>
 
@@ -3326,7 +3326,7 @@ function WriteStoryEditor({
               </label>
               <label className="bridge-check-row">
                 <input checked={story.noindex} onChange={(event) => updateStory({ noindex: event.target.checked })} type="checkbox" />
-                Noindex
+                Exclude from Google
               </label>
               <div className="bridge-save-actions">
                 <button className="bridge-primary-action" disabled={saving} onClick={() => void saveStory(story.status)} type="button">Save Changes</button>

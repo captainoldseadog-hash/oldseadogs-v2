@@ -79,13 +79,28 @@ export function absoluteUrl(path = "/") {
   return new URL(path.startsWith("/") ? path : `/${path}`, siteUrl).toString();
 }
 
-export function robotsMetadata(forceNoIndex = false): Metadata["robots"] {
+export function robotsMetadata(
+  forceNoIndex = false,
+  followWhenNoIndex = false
+): Metadata["robots"] {
   if (searchIndexingEnabled && !forceNoIndex) {
     return {
       index: true,
       follow: true,
       googleBot: {
         index: true,
+        follow: true,
+        "max-image-preview": "large",
+      },
+    };
+  }
+
+  if (searchIndexingEnabled && followWhenNoIndex) {
+    return {
+      index: false,
+      follow: true,
+      googleBot: {
+        index: false,
         follow: true,
       },
     };
@@ -119,6 +134,7 @@ export function createPageMetadata({
   image = defaultOpenGraphImage,
   type = "website",
   noIndex = false,
+  noIndexFollow = false,
 }: {
   title: string;
   description: string;
@@ -126,6 +142,7 @@ export function createPageMetadata({
   image?: OgImage;
   type?: "website" | "article" | "profile";
   noIndex?: boolean;
+  noIndexFollow?: boolean;
 }): Metadata {
   const fullTitle = pageTitle(title);
   const imageUrl = absoluteUrl(image.url);
@@ -157,6 +174,6 @@ export function createPageMetadata({
       description,
       images: [imageUrl],
     },
-    robots: robotsMetadata(noIndex),
+    robots: robotsMetadata(noIndex, noIndexFollow),
   };
 }

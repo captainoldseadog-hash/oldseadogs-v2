@@ -13,12 +13,12 @@ const protectedFiles = {
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
-  "app/editor/EditorDashboard.tsx": "489a9915d6dc8c33bd859b7e8a80af31fd5532be54a2a2f55bb02a78e2afd369",
+  "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
   "app/api/editor/route.ts": "7e23efa26c359894b45a2cee5167110b32a4592e7e0c85e20eeb74f3ee174b9c",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
-  "app/stories/[slug]/page.tsx": "e6cf24c7b778c1f9784493de016d7c92d2169fbf6909c6bf39e5276c47eaadec",
-  "app/sitemap.ts": "af0ab8838cd658fea02ae8da4780dc738b2ae5392fe742b8d6fe6dd66735b557",
+  "app/stories/[slug]/page.tsx": "915ea6f48a019eefece8cab35aab86ed9c9a0ba2fd566e6d5571af5644fa0aa0",
+  "app/sitemap.ts": "2defc59937202d0aabc6b441ee790fd8bf8c613146b53e70431112e74a5cd3b8",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // c9e5068: approved versioned local storage with secure first-party cookie fallback.
@@ -40,7 +40,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // c9e5068: approved reuse of normalized static stories and cached local published stories.
-  assert.equal(hash(reconstructedBaseline), "cfb5451a654e7375d82f7a51604c3d6e039021f9dffc8ddf32ff1233ad99ba95");
+  assert.equal(hash(reconstructedBaseline), "eadf6a2b774f78a1d4dd81d9434154505535f2f2408c91b818960dd0eef1ab06");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

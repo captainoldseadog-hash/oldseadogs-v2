@@ -13,6 +13,8 @@ export const metadata: Metadata = createPageMetadata({
   description:
     "Search Old Sea Dogs articles by boat, marina, yacht club, race, regatta, builder, destination, or topic.",
   path: "/search",
+  noIndex: true,
+  noIndexFollow: true,
 });
 
 type SearchPageProps = {

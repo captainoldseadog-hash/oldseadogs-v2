@@ -2051,7 +2051,7 @@ function pressReleaseStoryInput(item: PressReleaseEmail, status: "draft" | "publ
     methodNotes: "Email text cleaned for boilerplate, duplicate wording and promotional claims, then edited for Old Sea Dogs readers before publication.",
     contentBasis: "Press release",
     editorialStatus: "Needs improvement",
-    noindex: true,
+    noindex: false,
     imageUrl: imageFields.imageUrl,
     imageAlt: imageFields.imageAlt,
     imageCredit: imageFields.imageCredit,
@@ -2323,25 +2323,12 @@ export function isWeakEditorialStory(story: Pick<
 
 export function isStorySearchIndexable(story: Pick<
   EditableStory,
-  | "title"
-  | "category"
-  | "sourceType"
-  | "sourceName"
-  | "sourceNotes"
-  | "imageUrl"
-  | "imageCredit"
-  | "oldSeaDogsView"
-  | "body"
-  | "editorialStatus"
   | "status"
   | "publishedAt"
   | "scheduledPublishAt"
   | "noindex"
 >) {
-  if (!isPublicStoryNow(story)) return false;
-  if (story.noindex) return false;
-  if (isEditoriallyApprovedStory(story)) return true;
-  return !isWeakEditorialStory(story);
+  return isPublicStoryNow(story) && !story.noindex;
 }
 
 export function isPromotedStory(story: Pick<EditableStory, "sortOrder">) {

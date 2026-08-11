@@ -8,7 +8,7 @@ import { absoluteUrl } from "../lib/seo";
 export const dynamic = "force-dynamic";
 const staticRoutes = [
   { path: "/", priority: 1 }, { path: "/about", priority: 0.7 }, { path: "/authors/michael-hodges", priority: 0.7 },
-  { path: "/contact", priority: 0.7 }, { path: "/editorial-standards", priority: 0.7 }, { path: "/search", priority: 0.65 },
+  { path: "/contact", priority: 0.7 }, { path: "/editorial-standards", priority: 0.7 },
   { path: "/privacy", priority: 0.35 }, { path: "/cookie-policy", priority: 0.35 }, { path: "/terms", priority: 0.35 },
 ];
 function lastModifiedDate(...values: Array<string | undefined>) {

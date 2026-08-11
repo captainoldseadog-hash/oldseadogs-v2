@@ -912,7 +912,7 @@ function storyInputFromPreview(source: SourceWatchSite, preview: SourcePreviewAr
     methodNotes: "Imported by the manual source-watch scraper, rewritten into an Old Sea Dogs review draft, and held for editor review. No automatic publishing.",
     contentBasis: "Scraped source review",
     editorialStatus: needsRewrite ? "Needs Rewrite" : "Needs Review",
-    noindex: true,
+    noindex: false,
     summary: preview.standfirst,
     body: preview.body,
     tags: generatedTags(preview.category),

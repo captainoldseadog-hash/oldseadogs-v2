@@ -29,11 +29,27 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/api/editor",
+        headers: privateNoStoreHeaders,
+      },
+      {
         source: "/api/editor/:path*",
         headers: privateNoStoreHeaders,
       },
       {
+        source: "/api/search",
+        headers: privateNoStoreHeaders,
+      },
+      {
         source: "/api/search/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/api/social/track",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/editor",
         headers: privateNoStoreHeaders,
       },
       {

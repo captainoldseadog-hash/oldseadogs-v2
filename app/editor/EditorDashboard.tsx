@@ -1241,7 +1241,7 @@ function storyFromPressRelease(item: PressReleaseEmail): EditorStory {
     methodNotes: "Email text cleaned for boilerplate, duplicate wording and promotional claims, then edited for Old Sea Dogs readers before publication.",
     contentBasis: "Press release",
     editorialStatus: "Needs improvement",
-    noindex: true,
+    noindex: false,
     summary: item.generatedExcerpt || item.preview,
     body,
     tags: [normalizeStoryCategory(item.category || "News")].filter(Boolean),
@@ -3152,7 +3152,6 @@ export default function EditorDashboard() {
     const nextStory = normalizeEditorStory({
       ...story,
       editorialStatus: status,
-      noindex: status === "Needs improvement" || shouldHide ? true : false,
       status: shouldHide ? "unpublished" : story.status,
       publishedAt: shouldHide ? "" : story.publishedAt,
       scheduledPublishAt: shouldHide ? "" : story.scheduledPublishAt,
@@ -5297,8 +5296,8 @@ function StoryForm({
         <label className={`check-row ${story.noindex ? "active" : ""}`}>
           <input type="checkbox" checked={story.noindex} onChange={(event) => setStory({ ...story, noindex: event.target.checked })} />
           <span>
-            <strong>Noindex until improved</strong>
-            <small>Keeps weak, imported or thin stories out of search while editorial work continues.</small>
+            <strong>Exclude from Google</strong>
+            <small>Exceptional override for a public story that must not appear in search.</small>
           </span>
         </label>
       </div>
