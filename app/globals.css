@@ -1555,9 +1555,26 @@
   margin-bottom: 18px;
 }
 
-.bridge-guide-create-actions button {
+.bridge-guide-create-actions button,
+.bridge-guide-create-actions .bridge-button-like {
+  display: inline-flex;
   min-height: 42px;
+  align-items: center;
+  border: 1px solid var(--bridge-line);
+  border-radius: 6px;
+  padding: 0 13px;
+  background: #ffffff;
+  color: var(--bridge-blue-dark);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
   text-align: left;
+}
+
+.bridge-guide-create-actions .bridge-button-like {
+  border-color: var(--bridge-blue);
+  background: var(--bridge-blue);
+  color: #ffffff;
 }
 
 .guide-back-link {

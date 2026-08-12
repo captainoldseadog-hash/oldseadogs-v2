@@ -345,6 +345,13 @@ type GuidesPayload = {
   };
 };
 
+type GuideDraftImportEnvelope = {
+  contract: "oldseadogs.guide-draft";
+  version: 1;
+  operation: "create-draft" | "update-draft";
+  guide: Partial<EditorGuide>;
+};
+
 type AuditPayload = {
   summary: {
     flaggedStories: number;
@@ -3529,6 +3536,59 @@ function blankEditorGuide(guideType: GuideType = "Destination"): EditorGuide {
   };
 }
 
+function importedGuideDraft(value: unknown): EditorGuide {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Choose an Old Sea Dogs Guide JSON file.");
+  }
+
+  const envelope = value as Partial<GuideDraftImportEnvelope>;
+  if (envelope.contract !== "oldseadogs.guide-draft" || envelope.version !== 1) {
+    throw new Error("This is not an oldseadogs.guide-draft version 1 file.");
+  }
+  if (envelope.operation !== "create-draft" && envelope.operation !== "update-draft") {
+    throw new Error("The Guide file must use create-draft or update-draft.");
+  }
+  if (!envelope.guide || typeof envelope.guide !== "object" || Array.isArray(envelope.guide)) {
+    throw new Error("The Guide file does not contain a guide record.");
+  }
+
+  const source = envelope.guide;
+  const guideType = GUIDE_TYPES.includes(source.guideType as GuideType)
+    ? source.guideType as GuideType
+    : "Marina";
+  const draft = { ...blankEditorGuide(guideType), ...source };
+  if (!String(draft.title || "").trim()) throw new Error("The Guide file needs a title.");
+
+  return {
+    ...draft,
+    internalId: envelope.operation === "create-draft" ? "" : String(draft.internalId || ""),
+    slug: String(draft.slug || "").trim(),
+    title: String(draft.title).trim(),
+    guideType,
+    status: "draft",
+    noindex: true,
+    showOnHomepage: false,
+    homepageOrder: 0,
+    imageUrl: "",
+    imageAlt: "",
+    imageCaption: "",
+    imageCredit: "",
+    artworkCredit: "",
+    featuredMediaId: "",
+    inlineImages: [],
+    contributorCredits: Array.isArray(draft.contributorCredits) ? draft.contributorCredits : [],
+    quickFacts: Array.isArray(draft.quickFacts) ? draft.quickFacts : [],
+    sections: Array.isArray(draft.sections) ? draft.sections : [],
+    checklist: Array.isArray(draft.checklist) ? draft.checklist : [],
+    sourceLinks: Array.isArray(draft.sourceLinks) ? draft.sourceLinks : [],
+    verifiedFacilities: Array.isArray(draft.verifiedFacilities) ? draft.verifiedFacilities : [],
+    relatedGuideSlugs: Array.isArray(draft.relatedGuideSlugs) ? draft.relatedGuideSlugs : [],
+    cruiseOnGuideSlugs: Array.isArray(draft.cruiseOnGuideSlugs) ? draft.cruiseOnGuideSlugs : [],
+    tags: Array.isArray(draft.tags) ? draft.tags : [],
+    location: draft.location && typeof draft.location === "object" ? draft.location : {},
+  };
+}
+
 function guideFactsToText(guide: EditorGuide) {
   return guide.quickFacts.map((fact) => `${fact.label}: ${fact.value}`).join("\n");
 }
@@ -3828,6 +3888,25 @@ function GuidesPage() {
   const [selectedSlug, setSelectedSlug] = useState("");
   const [creating, setCreating] = useState(false);
   const [creatingType, setCreatingType] = useState<GuideType>("Destination");
+  const [importedGuide, setImportedGuide] = useState<EditorGuide | null>(null);
+  const [importMessage, setImportMessage] = useState("");
+
+  const importGuideFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImportMessage("");
+    try {
+      const parsed = JSON.parse(await file.text()) as unknown;
+      const next = importedGuideDraft(parsed);
+      setImportedGuide(next);
+      setCreatingType(next.guideType);
+      setCreating(true);
+      setSelectedSlug("");
+      setImportMessage(`${next.title} loaded as an unpublished draft. Upload its featured image, then choose Save as Draft.`);
+    } catch (importError: unknown) {
+      setImportedGuide(null);
+      setImportMessage(importError instanceof Error ? importError.message : "The Guide file could not be imported.");
+    }
+  };
 
   if (loading) return <LoadingBlock label="Loading guides" />;
   if (error) return <ErrorBlock message={error} />;
@@ -3835,7 +3914,7 @@ function GuidesPage() {
 
   const activeSlug = selectedSlug || data.guides[0]?.slug || "";
   const selectedGuide = creating
-    ? blankEditorGuide(creatingType)
+    ? importedGuide ?? blankEditorGuide(creatingType)
     : data.guides.find((guide) => guide.slug === activeSlug) ?? data.guides[0] ?? null;
 
   return (
@@ -3854,17 +3933,31 @@ function GuidesPage() {
             <h2>Guides</h2>
           </div>
           <div className="bridge-guide-create-actions" aria-label="Create a Guide">
-            <button type="button" onClick={() => { setCreatingType("Marina"); setCreating(true); setSelectedSlug(""); }}>Create Marina Guide</button>
-            <button type="button" onClick={() => { setCreatingType("Harbour"); setCreating(true); setSelectedSlug(""); }}>Create Harbour Guide</button>
-            <button type="button" onClick={() => { setCreatingType("Cruising Area"); setCreating(true); setSelectedSlug(""); }}>Create Cruising Area Guide</button>
-            <button type="button" onClick={() => { setCreatingType("Destination"); setCreating(true); setSelectedSlug(""); }}>Create another Guide type</button>
+            <label className="bridge-button-like">
+              Import Guide File
+              <input
+                accept="application/json,.json"
+                hidden
+                type="file"
+                onChange={(event) => {
+                  void importGuideFile(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <button type="button" onClick={() => { setImportedGuide(null); setCreatingType("Marina"); setCreating(true); setSelectedSlug(""); }}>Create Marina Guide</button>
+            <button type="button" onClick={() => { setImportedGuide(null); setCreatingType("Harbour"); setCreating(true); setSelectedSlug(""); }}>Create Harbour Guide</button>
+            <button type="button" onClick={() => { setImportedGuide(null); setCreatingType("Cruising Area"); setCreating(true); setSelectedSlug(""); }}>Create Cruising Area Guide</button>
+            <button type="button" onClick={() => { setImportedGuide(null); setCreatingType("Destination"); setCreating(true); setSelectedSlug(""); }}>Create another Guide type</button>
           </div>
+          <p className="bridge-muted">Import an <code>oldseadogs.guide-draft</code> JSON file to populate every editorial field. Imported Guides always remain draft, noindex and off the homepage until explicitly published.</p>
+          {importMessage ? <p className="bridge-save-message" role="status">{importMessage}</p> : null}
           <div className="bridge-activity-list">
             {data.guides.map((guide) => (
               <button
                 className={guide.slug === activeSlug ? "active" : ""}
                 key={guide.slug}
-                onClick={() => { setCreating(false); setSelectedSlug(guide.slug); }}
+                onClick={() => { setImportedGuide(null); setCreating(false); setSelectedSlug(guide.slug); }}
                 type="button"
               >
                 <span>{guide.status}{guide.noindex ? " · noindex" : ""}{guide.showOnHomepage ? " · homepage" : ""}</span>
@@ -3878,9 +3971,9 @@ function GuidesPage() {
         <article className="bridge-panel">
           {selectedGuide ? <GuideEditor
             guide={selectedGuide}
-            key={`${creating ? `create-${creatingType}` : selectedGuide.slug}-${selectedGuide.updatedAt}-${selectedGuide.wordCount}`}
+            key={`${creating ? `create-${creatingType}-${importedGuide?.slug || "blank"}` : selectedGuide.slug}-${selectedGuide.updatedAt}-${selectedGuide.wordCount}`}
             reload={reload}
-            onSaved={(slug) => { setCreating(false); setSelectedSlug(slug); }}
+            onSaved={(slug) => { setImportedGuide(null); setCreating(false); setSelectedSlug(slug); }}
           /> : null}
         </article>
       </section>

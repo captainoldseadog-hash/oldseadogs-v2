@@ -557,6 +557,8 @@ test("The Helm visibly supports Guide creation, editing groups and publication c
     "Create Harbour Guide",
     "Create Cruising Area Guide",
     "Create another Guide type",
+    "Import Guide File",
+    "oldseadogs.guide-draft",
     "Guide identity and collection",
     "Guide type",
     "Editorial order",
@@ -574,4 +576,16 @@ test("The Helm visibly supports Guide creation, editing groups and publication c
   ]) {
     assert.ok(source.includes(label), `missing Guide editor control: ${label}`);
   }
+});
+
+test("Guide file imports are constrained to safe unpublished drafts", async () => {
+  const source = await fs.readFile(path.join(projectDir, "app/editor/BridgeCms.tsx"), "utf8");
+  assert.match(source, /envelope\.version !== 1/);
+  assert.match(source, /"create-draft" \| "update-draft"/);
+  assert.match(source, /status: "draft"/);
+  assert.match(source, /noindex: true/);
+  assert.match(source, /showOnHomepage: false/);
+  assert.match(source, /featuredMediaId: ""/);
+  assert.match(source, /inlineImages: \[\]/);
+  assert.match(source, /accept="application\/json,\.json"/);
 });
