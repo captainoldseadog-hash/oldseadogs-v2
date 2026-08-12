@@ -49,6 +49,14 @@
 .guide-publication-review li.bad { color: #a03227; }
 .guide-manager-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgb(7 23 31 / 62%); }
 .guide-manager-modal { width: min(34rem, 100%); background: var(--paper); }
+.guide-bulk-import { margin-bottom: 1rem; }
+.guide-bulk-import > summary { display: flex; justify-content: space-between; gap: 1rem; cursor: pointer; }
+.guide-bulk-import[open] > summary { margin-bottom: 1rem; }
+.guide-import-source { min-height: 14rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.guide-import-plan, .guide-import-results { display: grid; gap: .75rem; margin-top: 1rem; }
+.guide-import-results > article { padding: .8rem; border: 1px solid var(--line); border-radius: .65rem; }
+.guide-import-results > article.blocked { border-color: var(--signal); }
+.guide-import-warning { color: #795700; }
 
 @media (max-width: 1050px) {
   .guide-manager-layout { grid-template-columns: 1fr; }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GuideEditor } from "./GuideEditor";
+import { GuideBulkImport } from "./GuideBulkImport";
 import { GuideList } from "./GuideList";
 import type { EditorGuide, GuidesPayload, MediaAsset, MediaPayload } from "./guide-types";
 
@@ -74,6 +75,7 @@ export default function GuideManager() {
     <header className="bridge-page-header"><div><p className="eyebrow">Useful pages for real days afloat</p><h1>Guide Manager</h1><p>Create, verify and publish structured Old Sea Dogs Guides without changing their public presentation.</p></div></header>
     <section className="bridge-stat-grid compact" aria-label="Guide summary"><article className="bridge-stat"><span>Guides</span><strong>{payload.summary.total}</strong></article><article className="bridge-stat"><span>Published</span><strong>{payload.summary.published}</strong></article><article className="bridge-stat"><span>Indexed</span><strong>{payload.summary.indexed}</strong></article><article className="bridge-stat"><span>Thin</span><strong>{payload.summary.thin}</strong></article></section>
     {error ? <div className="bridge-error"><strong>Guide Manager needs attention</strong><span>{error}</span></div> : null}
+    <GuideBulkImport onImported={() => void load()} />
     <div className="guide-manager-layout">
       <GuideList guides={payload.guides} selectedId={selected ? identity(selected) : ""} onEdit={setSelected} onCreate={() => setSelected(blankGuide())} onDuplicate={startDuplicate} />
       <section className="bridge-panel guide-manager-workspace">{selected ? <GuideEditor key={`${identity(selected)}-${selected.updatedAt}`} guide={selected} guides={payload.guides} assets={assets} onSaved={(guide) => void load(identity(guide))} onReload={() => void load(selected ? identity(selected) : undefined)} onDuplicate={startDuplicate} onMediaAdded={(asset) => setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])} /> : <p className="bridge-muted">Create or choose a Guide to begin.</p>}</section>

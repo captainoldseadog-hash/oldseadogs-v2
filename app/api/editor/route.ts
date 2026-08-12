@@ -78,6 +78,7 @@ import {
   saveDraft as saveGuideDraft,
   unpublish as unpublishGuideRecord,
 } from "../../../lib/guide-management.ts";
+import { confirmGuideImport, validateGuideImport } from "../../../lib/guide-import.ts";
 
 type EditorData = Awaited<ReturnType<typeof getEditorData>>;
 type EditorStory = EditorData["stories"][number];
@@ -1112,6 +1113,11 @@ export async function POST(request: Request) {
       collection?: string;
       replacementCollection?: string;
       homepageSource?: string;
+      format?: "json" | "csv";
+      content?: string | unknown;
+      mode?: "create-draft" | "update-draft";
+      source?: "bulk-import" | "skill-import";
+      planToken?: string;
     };
     try {
       payload = (await request.json()) as typeof payload;
@@ -1327,6 +1333,25 @@ export async function POST(request: Request) {
           payload.expectedUpdatedAt,
         ),
       });
+    }
+
+    if (payload.action === "validateGuideImport") {
+      return privateJson({
+        ok: true,
+        plan: await validateGuideImport({
+          format: payload.format === "csv" ? "csv" : "json",
+          content: payload.content ?? "",
+          mode: payload.mode === "update-draft" ? "update-draft" : undefined,
+          source: payload.source === "skill-import" ? "skill-import" : "bulk-import",
+        }),
+      });
+    }
+
+    if (payload.action === "confirmGuideImport" && payload.planToken) {
+      return privateJson(await confirmGuideImport(
+        payload.planToken,
+        getRequestEmail(request) || "Bridge editor",
+      ));
     }
 
     if (payload.action === "saveStoryImage" && payload.id && payload.imageUrl) {

@@ -53,3 +53,14 @@ test("the Guide Manager uses only the explicit Phase 1 service actions", async (
   for (const action of ["saveGuideDraft", "duplicateGuide", "publishGuide", "unpublishGuide"]) assert.ok(combined.includes(action));
   assert.doesNotMatch(combined, /action:\s*"saveGuide"[,}]/);
 });
+
+test("the Guide Manager provides a two-stage Draft-only JSON and CSV bulk importer", async () => {
+  const manager = await read("app/editor/guides/GuideManager.tsx");
+  const importer = await read("app/editor/guides/GuideBulkImport.tsx");
+  assert.match(manager, /GuideBulkImport/);
+  for (const label of ["Bulk imports create Draft Guides only", "Upload JSON or CSV", "Paste JSON envelope", "Validate / Dry Run", "Confirm Import Drafts", "Download result report", "Nothing is published automatically"] ) assert.ok(importer.includes(label), `missing bulk-import UI: ${label}`);
+  assert.match(importer, /validateGuideImport/);
+  assert.match(importer, /confirmGuideImport/);
+  assert.match(importer, /planToken/);
+  assert.match(importer, /plan\.summary\.blocked > 0/);
+});

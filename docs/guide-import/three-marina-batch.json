@@ -1,0 +1,10 @@
+{
+  "contract": "oldseadogs.guide-draft",
+  "version": 1,
+  "mode": "create-draft",
+  "guides": [
+    { "externalId": "example-batch-001", "slug": "fictional-north-quay", "title": "Fictional North Quay Marina", "guideType": "Marina", "region": { "key": "example-coast", "name": "Example Coast", "area": "North Reach" }, "editorial": { "standfirst": "Fictional test record.", "introduction": "Research Draft only.", "sections": [{ "heading": "Overview", "body": ["Example content."] }] }, "verification": { "unresolved": [] } },
+    { "externalId": "example-batch-002", "slug": "fictional-east-basin", "title": "Fictional East Basin Marina", "guideType": "Marina", "region": { "key": "example-coast", "name": "Example Coast", "area": "East Basin" }, "editorial": { "standfirst": "Fictional test record.", "introduction": "Research Draft only.", "sections": [{ "heading": "Overview", "body": ["Example content."] }] }, "verification": { "unresolved": [] } },
+    { "externalId": "example-batch-003", "slug": "fictional-south-haven", "title": "Fictional South Haven Marina", "guideType": "Marina", "region": { "key": "example-coast", "name": "Example Coast", "area": "South Haven" }, "editorial": { "standfirst": "Fictional test record.", "introduction": "Research Draft only.", "sections": [{ "heading": "Overview", "body": ["Example content."] }] }, "verification": { "unresolved": [] } }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "contract": "oldseadogs.guide-draft",
+  "version": 1,
+  "mode": "create-draft",
+  "guides": [{
+    "externalId": "example-fictional-marina-001",
+    "slug": "fictional-west-pier-marina",
+    "title": "Fictional West Pier Marina",
+    "guideType": "Marina",
+    "region": { "key": "example-coast", "name": "Example Coast", "area": "Fictional Harbour" },
+    "editorial": {
+      "standfirst": "Non-production example content for testing the Guide Draft contract.",
+      "introduction": "This deliberately fictional record must be verified before publication.",
+      "sections": [{ "heading": "Overview", "body": ["Example editorial copy only."] }]
+    },
+    "verification": {
+      "sources": [{ "label": "Example authority", "url": "https://example.com/harbour", "accessedAt": "2026-08-12", "supports": ["editorial.introduction"] }],
+      "unresolved": [{ "field": "navigation.depths", "reason": "Awaiting authoritative confirmation", "severity": "safety" }]
+    }
+  }]
+}

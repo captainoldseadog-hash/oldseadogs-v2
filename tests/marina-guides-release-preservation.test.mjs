@@ -14,8 +14,8 @@ const protectedFiles = {
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
-  // Phase 1 Guide management adds only authenticated Guide actions to the approved editor route.
-  "app/api/editor/route.ts": "5c5a30668efb111446b3c50ce0d2cd49497b0267de720e7fde70646096236452",
+  // Phase 3 adds only authenticated Guide Draft import validation/confirmation to the approved editor route.
+  "app/api/editor/route.ts": "9ddae5f3be2432c410afc80a1ed3c528e796b0fd8a484a8ba70ab8ee34883cbc",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
   "app/stories/[slug]/page.tsx": "915ea6f48a019eefece8cab35aab86ed9c9a0ba2fd566e6d5571af5644fa0aa0",

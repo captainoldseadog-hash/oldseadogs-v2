@@ -24,6 +24,7 @@ export type GuideFacilityValue = {
 export type ManagedGuideFields = {
   schemaVersion?: 2;
   id?: string;
+  externalId?: string;
   area?: string;
   parentGuideId?: string;
   editorial?: {
@@ -113,10 +114,10 @@ export type ManagedGuideFields = {
 };
 
 export type GuideDraftContractRecord = ManagedGuideFields & {
-  externalId?: string;
   slug: string;
   title: string;
   guideType: string;
+  updatedAt?: string;
   region?: {
     key?: string;
     name?: string;
@@ -173,6 +174,7 @@ export function normalizeManagedGuideFields(value: Partial<ManagedGuideFields>):
   const managed: ManagedGuideFields = {
     schemaVersion: value.schemaVersion === 2 ? 2 : undefined,
     id: cleanString(value.id, 200) || undefined,
+    externalId: cleanString(value.externalId, 200) || undefined,
     area: cleanString(value.area, 500) || undefined,
     parentGuideId: cleanString(value.parentGuideId, 200) || undefined,
     editorial: editorial ? {
