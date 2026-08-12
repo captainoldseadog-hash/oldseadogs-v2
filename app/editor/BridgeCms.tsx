@@ -17,6 +17,8 @@ import {
   parseInlineImageBlock,
   splitStoryBlocks,
 } from "../../lib/story-media-composer.js";
+import GuideManager from "./guides/GuideManager";
+import type { EditorGuide, GuidesPayload } from "./guides/guide-types";
 
 export type BridgeCmsSection =
   | "dashboard"
@@ -276,73 +278,6 @@ type RightsDiagnostic = {
   metadataSavedBeforeValidation: boolean;
   validationRecordMatches: boolean;
   missingField: string;
-};
-
-type EditorGuide = {
-  internalId: string;
-  slug: string;
-  title: string;
-  eyebrow: string;
-  summary: string;
-  introduction: string;
-  guideType: GuideType;
-  regionKey: string;
-  regionName: string;
-  subregion: string;
-  parentGuideSlug: string;
-  editorialOrder: number;
-  author: string;
-  contributorCredits: string[];
-  updatedAt: string;
-  imageUrl: string;
-  imageAlt: string;
-  imageFocalPoint: string;
-  artworkCredit: string;
-  quickFacts: Array<{ label: string; value: string }>;
-  sections: Array<{ heading: string; body: string[]; anchor?: string; kind?: "prose" | "callout" | "quote"; listItems?: string[]; links?: Array<{ label: string; guideSlug: string }> }>;
-  checklist: string[];
-  sourceLinks: Array<{ label: string; href: string }>;
-  location: { latitude?: number; longitude?: number; mapZoom?: number; what3words?: string; osGridReference?: string };
-  relatedGuideSlugs: string[];
-  cruiseOnGuideSlugs: string[];
-  previousGuideSlug: string;
-  nextGuideSlug: string;
-  status: "draft" | "published" | "unpublished";
-  noindex: boolean;
-  showOnHomepage: boolean;
-  homepageOrder: number;
-  seoTitle: string;
-  seoDescription: string;
-  socialTitle: string;
-  socialDescription: string;
-  canonicalPath: string;
-  editorialNotes: string;
-  researchNotes: string;
-  reviewDue: string;
-  accuracyConcerns: string;
-  sourceNotes: string;
-  draftComments: string;
-  verifiedFacilities: Array<{ label: string; detail: string; sourceUrl: string; verifiedOn: string }>;
-  facilityVerificationNotes: string;
-  tags: string[];
-  wordCount: number;
-  minimumWords: number;
-  quality: string;
-  imageCaption: string;
-  imageCredit: string;
-  featuredMediaId: string;
-  inlineImages: Array<{ id: string; mediaId: string; url: string; alt: string; caption: string; credit: string; sectionIndex: number; paragraphIndex: number; order: number }>;
-};
-
-type GuidesPayload = {
-  guides: EditorGuide[];
-  summary: {
-    total: number;
-    published: number;
-    homepage: number;
-    indexed: number;
-    thin: number;
-  };
 };
 
 type AuditPayload = {
@@ -3823,6 +3758,8 @@ function GuideEditor({
   );
 }
 
+// Retained temporarily as a rollback-safe reference while the extracted Guide Manager settles.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GuidesPage() {
   const { data, loading, error, reload } = useBridgeView<GuidesPayload>("guides");
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -4968,7 +4905,7 @@ function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) 
   if (section === "dashboard") return <DashboardPage />;
   if (section === "stories") return <StoryListPage section="stories" title="All story summaries" />;
   if (section === "write") return <WriteStoryPage storyId={storyId} mediaId={mediaId} />;
-  if (section === "guides") return <GuidesPage />;
+  if (section === "guides") return <GuideManager />;
   if (section === "homepage") return <HomepagePage />;
   if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" />;
   if (section === "published") return <StoryListPage section="published" title="Published stories" status="published" />;

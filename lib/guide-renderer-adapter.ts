@@ -46,6 +46,28 @@ function structuredSections(input: ManagedGuideInput) {
   return sections.length ? sections : input.sections;
 }
 
+function rendererInlineImages(input: ManagedGuideInput) {
+  const existing = input.inlineImages || [];
+  const gallery = (input.media?.gallery || []).map((image, index) => ({
+    id: `guide-gallery-${index + 1}`,
+    mediaId: image.mediaId || "",
+    url: image.url,
+    alt: image.alt,
+    caption: image.caption || "",
+    credit: image.credit || "",
+    sectionIndex: 0,
+    paragraphIndex: 0,
+    order: image.order ?? existing.length + index,
+  }));
+  const seen = new Set<string>();
+  return [...existing, ...gallery].filter((image) => {
+    const key = image.mediaId || image.url;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map((image, order) => ({ ...image, order }));
+}
+
 export function adaptManagedGuideForRenderer(input: ManagedGuideInput): Partial<EditableGuide> {
   const navigationFacts = [
     input.navigation?.vhfChannel ? { label: "VHF channel", value: input.navigation.vhfChannel } : null,
@@ -105,19 +127,7 @@ export function adaptManagedGuideForRenderer(input: ManagedGuideInput): Partial<
     imageCredit: hero?.credit ?? input.imageCredit,
     imageFocalPoint: hero?.focalPoint ?? input.imageFocalPoint,
     featuredMediaId: hero?.mediaId ?? input.featuredMediaId,
-    inlineImages: input.media?.gallery?.length
-      ? input.media.gallery.map((image, index) => ({
-          id: `guide-gallery-${index + 1}`,
-          mediaId: image.mediaId || "",
-          url: image.url,
-          alt: image.alt,
-          caption: image.caption || "",
-          credit: image.credit || "",
-          sectionIndex: 0,
-          paragraphIndex: 0,
-          order: image.order ?? index,
-        }))
-      : input.inlineImages,
+    inlineImages: rendererInlineImages(input),
     seoTitle: input.seo?.seoTitle || input.seoTitle,
     seoDescription: input.seo?.metaDescription || input.seoDescription,
     canonicalPath,

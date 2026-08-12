@@ -26,6 +26,39 @@
   }
 }
 
+.guide-manager-layout { display: grid; grid-template-columns: minmax(19rem, .72fr) minmax(0, 1.6fr); gap: 1rem; align-items: start; }
+.guide-manager-list, .guide-manager-workspace { min-width: 0; }
+.guide-manager-list { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; }
+.guide-manager-filters, .guide-manager-media-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.guide-manager-results > article { display: grid; gap: .7rem; padding: .9rem; border: 1px solid var(--line); border-radius: .75rem; }
+.guide-manager-results > article.active { border-color: var(--signal); box-shadow: inset 3px 0 var(--signal); }
+.guide-manager-card-copy, .guide-manager-editor-heading { display: grid; gap: .35rem; }
+.guide-manager-badges { display: flex; flex-wrap: wrap; gap: .35rem; }
+.guide-manager-badges > span, .guide-manager-badges > button { padding: .25rem .45rem; border: 1px solid var(--line); border-radius: 999px; font-size: .75rem; }
+.guide-manager-editor-heading { grid-template-columns: 1fr auto; align-items: start; margin-bottom: 1rem; }
+.guide-manager-editor fieldset { min-width: 0; padding: 0; border: 0; }
+.guide-manager-sections, .guide-manager-facilities, .guide-manager-gallery, .guide-manager-sources { display: grid; gap: .75rem; }
+.guide-manager-facilities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.guide-manager-facilities > article, .guide-manager-gallery > article { padding: .75rem; border: 1px solid var(--line); border-radius: .65rem; }
+.guide-manager-gallery > article { display: grid; grid-template-columns: 8rem 1fr; gap: .75rem; }
+.guide-manager-gallery img, .guide-manager-selected-hero img { width: 100%; max-height: 18rem; object-fit: cover; }
+.guide-relationship-picker { position: relative; margin-bottom: .75rem; }
+.guide-relationship-results { display: grid; padding: .4rem; border: 1px solid var(--line); background: var(--paper); }
+.guide-relationship-results button { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem; text-align: left; }
+.guide-publication-review li.good { color: #17643b; }
+.guide-publication-review li.bad { color: #a03227; }
+.guide-manager-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgb(7 23 31 / 62%); }
+.guide-manager-modal { width: min(34rem, 100%); background: var(--paper); }
+
+@media (max-width: 1050px) {
+  .guide-manager-layout { grid-template-columns: 1fr; }
+  .guide-manager-list { position: static; max-height: none; }
+}
+
+@media (max-width: 680px) {
+  .guide-manager-filters, .guide-manager-media-actions, .guide-manager-facilities, .guide-manager-editor-heading { grid-template-columns: 1fr; }
+}
+
 /* Compact Guides presentation and practical-reference layout. */
 .flagship-guides-band {
   width: min(1180px, calc(100% - 40px));
