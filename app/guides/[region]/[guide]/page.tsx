@@ -5,7 +5,7 @@ import { GuidePublicContent } from "../../../../components/GuidePublicContent.ts
 import { JsonLd } from "../../../../components/JsonLd.tsx";
 import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 import { publicNavigationLinks } from "../../../../content/sections.ts";
-import { guideArticleJsonLd, guideProductRecords, guidePublicPath } from "../../../../lib/guides.ts";
+import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath } from "../../../../lib/guides.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../../lib/structured-data.ts";
@@ -23,6 +23,7 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
     description: record.seoDescription || record.introduction,
     path: guidePublicPath(record),
     noIndex: record.noindex,
+    noIndexFollow: record.noindex,
     image: { url: record.imageUrl, alt: record.imageAlt },
     type: "article",
   });
@@ -50,18 +51,19 @@ export default async function GuidePage({ params }: GuidePageProps) {
   if (!guide || guide.regionKey !== region) notFound();
   const publishedProductGuides = guideProductRecords(allPublished);
   const path = guidePublicPath(guide);
+  const placeJsonLd = guidePlaceJsonLd(guide);
+  const breadcrumbData = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Guides", path: "/guides" },
+    { name: guide.regionName, path: `/guides/${guide.regionKey}` },
+    { name: guide.title, path },
+  ]);
 
   return (
     <main className="article-shell guides-shell guide-product-shell">
-      <JsonLd data={[
-        guideArticleJsonLd(guide),
-        breadcrumbJsonLd([
-          { name: "Home", path: "/" },
-          { name: "Guides", path: "/guides" },
-          { name: guide.regionName, path: `/guides/${guide.regionKey}` },
-          { name: guide.title, path },
-        ]),
-      ]} />
+      <JsonLd data={placeJsonLd
+        ? [guideArticleJsonLd(guide), placeJsonLd, breadcrumbData]
+        : [guideArticleJsonLd(guide), breadcrumbData]} />
       <nav className="article-nav" aria-label="Primary navigation">
         <Link href="/" className="brand-lockup dark" aria-label="Old Sea Dogs home">
           <span className="brand-mark" aria-hidden="true" />

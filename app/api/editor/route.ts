@@ -71,6 +71,13 @@ import {
 } from "../../../lib/editorial-quality";
 import { type PressReleaseAttachment, type PressReleaseStatus } from "../../../lib/press-release-utils";
 import { getMediaPublicationProhibition, validateMediaRights } from "../../../lib/media-rights";
+import {
+  GuideManagementError,
+  duplicate as duplicateGuideDraft,
+  publish as publishGuideRecord,
+  saveDraft as saveGuideDraft,
+  unpublish as unpublishGuideRecord,
+} from "../../../lib/guide-management.ts";
 
 type EditorData = Awaited<ReturnType<typeof getEditorData>>;
 type EditorStory = EditorData["stories"][number];
@@ -1070,6 +1077,7 @@ export async function POST(request: Request) {
       action?: string;
       story?: Parameters<typeof saveStory>[0];
       guide?: Parameters<typeof saveGuide>[0];
+      expectedUpdatedAt?: string;
       settings?: Parameters<typeof saveSettings>[0];
       homepage?: Parameters<typeof saveHomepageSettings>[0];
       galleryCategory?: Parameters<typeof saveGalleryCategory>[0];
@@ -1275,6 +1283,50 @@ export async function POST(request: Request) {
 
     if (payload.action === "saveGuide") {
       return privateJson({ guide: await saveGuide(payload.guide ?? {}) });
+    }
+
+    if (payload.action === "saveGuideDraft") {
+      return privateJson({
+        ok: true,
+        guide: await saveGuideDraft(
+          payload.guide ?? {},
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
+    }
+
+    if (payload.action === "duplicateGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await duplicateGuideDraft(
+          payload.id,
+          payload.guide ?? {},
+          getRequestEmail(request) || "Bridge editor",
+        ),
+      });
+    }
+
+    if (payload.action === "publishGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await publishGuideRecord(
+          payload.id,
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
+    }
+
+    if (payload.action === "unpublishGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await unpublishGuideRecord(
+          payload.id,
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
     }
 
     if (payload.action === "saveStoryImage" && payload.id && payload.imageUrl) {
@@ -1601,6 +1653,9 @@ export async function POST(request: Request) {
 
     return privateJson({ error: "I could not recognise that editor action." }, { status: 400 });
   } catch (error) {
+    if (error instanceof GuideManagementError) {
+      return privateJson({ ok: false, error: error.message, validationErrors: error.issues }, { status: error.status });
+    }
     if (error instanceof PublicationOverrideRequiredError) {
       return privateJson({
         ok: false,

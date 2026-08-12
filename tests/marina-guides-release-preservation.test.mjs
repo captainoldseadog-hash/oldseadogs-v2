@@ -14,7 +14,8 @@ const protectedFiles = {
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
-  "app/api/editor/route.ts": "7e23efa26c359894b45a2cee5167110b32a4592e7e0c85e20eeb74f3ee174b9c",
+  // Phase 1 Guide management adds only authenticated Guide actions to the approved editor route.
+  "app/api/editor/route.ts": "5c5a30668efb111446b3c50ce0d2cd49497b0267de720e7fde70646096236452",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
   "app/stories/[slug]/page.tsx": "915ea6f48a019eefece8cab35aab86ed9c9a0ba2fd566e6d5571af5644fa0aa0",
@@ -39,8 +40,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   const reconstructedBaseline = source
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
-  // c9e5068: approved reuse of normalized static stories and cached local published stories.
-  assert.equal(hash(reconstructedBaseline), "eadf6a2b774f78a1d4dd81d9434154505535f2f2408c91b818960dd0eef1ab06");
+  // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
+  assert.equal(hash(reconstructedBaseline), "7c7aefd720460292f196895bfe6e7287988f06f16db5a0a0a84e1c63fe2c33ae");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

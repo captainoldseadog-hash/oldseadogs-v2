@@ -44,6 +44,7 @@ export function guideArticleJsonLd(guide: EditableGuide) {
     description: guide.seoDescription || guide.introduction,
     articleSection: guide.guideType,
     mainEntityOfPage: absoluteUrl(path),
+    datePublished: guide.publication?.publishedAt || undefined,
     dateModified: guide.updatedAt,
     author: {
       "@type": "Person",
@@ -67,6 +68,23 @@ export function guideArticleJsonLd(guide: EditableGuide) {
           }
         : undefined,
     } : undefined,
+  };
+}
+
+export function guidePlaceJsonLd(guide: EditableGuide) {
+  const latitude = guide.navigation?.latitude ?? guide.location.latitude;
+  const longitude = guide.navigation?.longitude ?? guide.location.longitude;
+  if (!guide.verification?.verifiedAt || !guide.regionName || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: guide.title,
+    url: absoluteUrl(guidePublicPath(guide)),
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude,
+      longitude,
+    },
   };
 }
 

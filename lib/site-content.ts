@@ -27,6 +27,7 @@ import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
 export { validateGuideInput } from "./guide-validation.ts";
+import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
 import {
   getSectionForCategory,
@@ -128,7 +129,7 @@ export type StoryRevision = {
 
 export type GuideStatus = "draft" | "published" | "unpublished";
 
-export type EditableGuide = FlagshipGuide & {
+export type EditableGuide = FlagshipGuide & ManagedGuideFields & {
   internalId: string;
   introduction: string;
   guideType: GuideType;
@@ -182,6 +183,16 @@ export type EditableGuide = FlagshipGuide & {
     id: string; mediaId: string; url: string; alt: string; caption: string; credit: string;
     sectionIndex: number; paragraphIndex: number; order: number;
   }>;
+};
+
+export type GuideRevision = {
+  id: string;
+  guideId: string;
+  snapshot: EditableGuide;
+  actor: string;
+  reason: string;
+  source: "cms" | "skill-import" | "bulk-import";
+  createdAt: string;
 };
 
 const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides];
@@ -413,7 +424,7 @@ type RuntimeNodeProcessLike = {
   };
 };
 
-type LocalEditorStore = {
+export type LocalEditorStore = {
   version: 1;
   stories: EditableStory[];
   guides: EditableGuide[];
@@ -428,6 +439,7 @@ type LocalEditorStore = {
   blockedSenders: PressReleaseBlockedSender[];
   publicationOverrides: PublicationOverrideLog[];
   storyRevisions: StoryRevision[];
+  guideRevisions: GuideRevision[];
   updatedAt: string;
 };
 
@@ -508,6 +520,7 @@ function emptyLocalEditorStore(): LocalEditorStore {
     blockedSenders: [],
     publicationOverrides: [],
     storyRevisions: [],
+    guideRevisions: [],
     updatedAt: nowIso(),
   };
 }
@@ -553,7 +566,7 @@ async function readLocalEditorStoreUncached(): Promise<LocalEditorStore> {
     return {
       version: 1,
       stories: Array.isArray(parsed.stories) ? parsed.stories.map(normalizeStoredStory) : [],
-      guides: Array.isArray(parsed.guides) ? mergeLocalGuidesWithStatic(parsed.guides.map(normalizeStoredGuide)) : [],
+      guides: Array.isArray(parsed.guides) ? parsed.guides.map(normalizeStoredGuide) : [],
       media: Array.isArray(parsed.media) ? parsed.media.map(normalizeMediaAsset) : [],
       galleryCategories: Array.isArray(parsed.galleryCategories) && parsed.galleryCategories.length > 0 ? parsed.galleryCategories : defaultGalleryCategories(),
       galleryItems: Array.isArray(parsed.galleryItems) ? parsed.galleryItems.map(normalizeGalleryItem) : [],
@@ -570,6 +583,9 @@ async function readLocalEditorStoreUncached(): Promise<LocalEditorStore> {
         : [],
       storyRevisions: Array.isArray(parsed.storyRevisions)
         ? parsed.storyRevisions.map(normalizeStoryRevision).filter((revision): revision is StoryRevision => Boolean(revision))
+        : [],
+      guideRevisions: Array.isArray(parsed.guideRevisions)
+        ? parsed.guideRevisions.map(normalizeGuideRevision).filter((revision): revision is GuideRevision => Boolean(revision))
         : [],
       updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : nowIso(),
     };
@@ -887,7 +903,7 @@ async function updateLocalEditorStoreUnlocked(
   return nextStore;
 }
 
-async function updateLocalEditorStore(
+export async function updateLocalEditorStore(
   mutator: (store: LocalEditorStore) => LocalEditorStore | Promise<LocalEditorStore>,
   lockAlreadyHeld = false
 ) {
@@ -1191,18 +1207,20 @@ function normalizeGuideLinks(value: unknown): EditableGuide["sourceLinks"] {
     .filter((source) => source.label && source.href);
 }
 
-function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): EditableGuide {
+export function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): EditableGuide {
   const matchedSeed = guideSeeds.find((item) => item.slug === guide.slug);
   const staticMatch = matchedSeed
     ?? (guide.internalId ? blankGuideSeed : guideSeeds[index] ?? guideSeeds[0]);
   const seedIndex = guideSeeds.findIndex((item) => item.slug === staticMatch.slug);
   const fallback = staticGuideDefaults(staticMatch, seedIndex >= 0 ? seedIndex : index);
+  const managed = normalizeManagedGuideFields(guide);
   const sections = normalizeGuideSections(guide.sections).length > 0 ? normalizeGuideSections(guide.sections) : fallback.sections;
   const checklist = Array.isArray(guide.checklist)
     ? guide.checklist.map((item) => cleanPressReleaseText(String(item || ""))).filter(Boolean)
     : fallback.checklist;
   const next: EditableGuide = {
     ...fallback,
+    ...managed,
     internalId: String(guide.internalId || fallback.internalId),
     slug: guide.slug || fallback.slug,
     title: cleanPressReleaseHeadline(guide.title || fallback.title),
@@ -1295,11 +1313,27 @@ function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): Editabl
   return next;
 }
 
+function normalizeGuideRevision(item: Partial<GuideRevision>): GuideRevision | null {
+  if (!item || typeof item !== "object" || !item.snapshot || typeof item.snapshot !== "object") return null;
+  const snapshot = normalizeStoredGuide(item.snapshot);
+  const guideId = String(item.guideId || snapshot.id || snapshot.internalId || "");
+  if (!guideId) return null;
+  return {
+    id: String(item.id || makeId("guide-revision")),
+    guideId,
+    snapshot,
+    actor: cleanPressReleaseHeadline(String(item.actor || "Bridge editor")),
+    reason: cleanPressReleaseText(String(item.reason || "Guide edit")),
+    source: item.source === "skill-import" || item.source === "bulk-import" ? item.source : "cms",
+    createdAt: String(item.createdAt || nowIso()),
+  };
+}
+
 function staticGuideRows() {
   return guideSeeds.map(staticGuideDefaults);
 }
 
-function mergeLocalGuidesWithStatic(localGuides: Partial<EditableGuide>[] = []) {
+export function mergeLocalGuidesWithStatic(localGuides: Partial<EditableGuide>[] = []) {
   const localBySlug = new Map(localGuides.map((guide, index) => [String(guide.slug || guideSeeds[index]?.slug || ""), normalizeStoredGuide(guide, index)]));
   const merged = staticGuideRows().map((guide, index) => {
     const local = localBySlug.get(guide.slug);

@@ -11,6 +11,7 @@ import { publicNavigationLinks } from "../../../content/sections.ts";
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
+  guidePlaceJsonLd,
   guideCollectionJsonLd,
   guideProductRecords,
   guidePublicPath,
@@ -43,6 +44,7 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
         description: legacyGuide.seoDescription || legacyGuide.summary,
         path: guidePublicPath(legacyGuide),
         noIndex: legacyGuide.noindex,
+        noIndexFollow: legacyGuide.noindex,
         image: { url: legacyGuide.imageUrl, alt: legacyGuide.imageAlt },
         type: "article",
       })
@@ -76,9 +78,10 @@ export default async function RegionPage({ params }: RegionPageProps) {
   if (!regional.length) {
     const legacyGuide = await getGuideBySlug(region);
     if (!legacyGuide) notFound();
+    const placeJsonLd = guidePlaceJsonLd(legacyGuide);
     return (
       <main className="article-shell guides-shell guide-product-shell">
-        <JsonLd data={guideArticleJsonLd(legacyGuide)} />
+        <JsonLd data={placeJsonLd ? [guideArticleJsonLd(legacyGuide), placeJsonLd] : guideArticleJsonLd(legacyGuide)} />
         <PrimaryNavigation />
         <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} />
         <SiteFooter extraLinks={[{ href: "/guides", label: "Guides" }]} />
