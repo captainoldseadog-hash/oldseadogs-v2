@@ -89,12 +89,34 @@ function EditorCredibilityBand() {
     <section className="editor-credibility-band" aria-labelledby="editor-credibility-title">
       <div>
         <p className="eyebrow">Edited by Michael Hodges</p>
-        <h2 id="editor-credibility-title">A practical Solent eye on boating stories</h2>
+        <h2 id="editor-credibility-title">
+          For people who love boats, sailing and life on the water
+        </h2>
         <p>
-          Old Sea Dogs is being tightened around attributed sources, corrections,
-          image credits, practical notes and Michael&apos;s own boating judgement:
-          RYA Day Skipper, Powerboat Level 2, years around Cowes and the Hamble,
-          and a taste for details that survive contact with the tide.
+          <strong>
+            Old Sea Dogs is an independent boating and sailing magazine for everyone
+            who enjoys being on, around or simply dreaming about the water.
+          </strong>
+        </p>
+        <p>
+          From yacht racing, offshore adventures and the latest sailing news to
+          motorboats, superyachts, boat reviews, marinas, destinations and practical
+          seamanship, Old Sea Dogs brings together stories from across the boating
+          world.
+        </p>
+        <p>
+          We follow the great international races and regattas, visit harbours and
+          marinas, explore remarkable yachts and new marine technology, and celebrate
+          the sailors, designers, boatbuilders, clubs and characters who make the
+          maritime world what it is.
+        </p>
+        <p>
+          Whether you race, cruise, own a boat, are learning to sail or simply enjoy
+          watching the tide come in,{" "}
+          <strong>
+            Old Sea Dogs is about one thing above all — a shared passion for boats and
+            the sea.
+          </strong>
         </p>
       </div>
       <div className="editor-credibility-links">

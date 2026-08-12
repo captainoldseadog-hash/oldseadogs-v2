@@ -68,8 +68,8 @@ before(async () => {
     version: 1,
     stories: [
       story(),
-      story({ id: "related-story-one", slug: "related-story-one", title: "Related story one", body: ["Related body one."], isFeatured: false, sortOrder: 1 }),
-      story({ id: "related-story-two", slug: "related-story-two", title: "Related story two", body: ["Related body two."], isFeatured: false, sortOrder: 2 }),
+      story({ id: "related-story-one", slug: "related-story-one", title: "Related story one", body: ["Related body one."], imageUrl: "/images/related-story-one.png", isFeatured: false, sortOrder: 1 }),
+      story({ id: "related-story-two", slug: "related-story-two", title: "Related story two", body: ["Related body two."], imageUrl: "/images/related-story-two.png", isFeatured: false, sortOrder: 2 }),
     ],
     guides: [],
     media: [],
@@ -122,11 +122,23 @@ test("full story rendering preserves all 29 source body blocks without truncatio
   }
 
   assert.match(html, /<h1>Full story body preservation<\/h1>/);
-  assert.match(html, /<img src="\/images\/racing-yachts\.png"[^>]+loading="eager"/);
+  const leadImage = html.match(/<div class="article-image[^"]*">\s*(<img[^>]+>)/)?.[1] || "";
+  assert.match(leadImage, /src="\/images\/racing-yachts\.png"/);
+  assert.doesNotMatch(leadImage, /loading="lazy"/);
+  assert.match(
+    html,
+    /<link(?=[^>]*rel="preload")(?=[^>]*href="\/images\/racing-yachts\.png")(?=[^>]*as="image")(?=[^>]*fetchPriority="high")[^>]*>/,
+  );
   assert.match(html, /A complete lead image caption/);
   assert.match(html, /Old Sea Dogs test credit/);
   assert.match(html, /href="\/stories\/related-story-one"/);
   assert.match(html, /href="\/stories\/related-story-two"/);
+  const relatedSectionStart = html.indexOf('<section class="related-band"');
+  const relatedSectionEnd = html.indexOf("</section>", relatedSectionStart);
+  assert.ok(relatedSectionStart >= 0 && relatedSectionEnd > relatedSectionStart);
+  const relatedSection = html.slice(relatedSectionStart, relatedSectionEnd);
+  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/images\/related-story-one\.png"/);
+  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/images\/related-story-two\.png"/);
   assert.match(html, /rel="canonical" href="https:\/\/oldseadogs\.com\/stories\/full-body-preservation-story"/);
   assert.doesNotMatch(html, /isolated validation record mirrors|production-representative-validation/i);
 

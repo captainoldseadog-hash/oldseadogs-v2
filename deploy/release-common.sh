@@ -73,10 +73,53 @@ atomic_switch_current() {
 
 start_or_reload_release() {
   local release_path
+  local pm2_state_file
+  local current_cwd
+  local state_status
   release_path="$(assert_release_path "$1")"
   load_runtime_environment
-  pm2 startOrReload "$release_path/ecosystem.config.cjs" --env production --update-env
-  pm2 describe "$PM2_APP_NAME" >/dev/null
+
+  pm2_state_file="$(mktemp /tmp/oldseadogs-pm2-state.XXXXXX)"
+  if ! pm2 jlist >"$pm2_state_file"; then
+    rm -f "$pm2_state_file"
+    log "Could not inspect PM2 before starting $PM2_APP_NAME"
+    return 1
+  fi
+
+  state_status=0
+  current_cwd="$(node -e '
+    const fs = require("node:fs");
+    const processes = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const appName = process.argv[2];
+    const matches = processes.filter((entry) => entry.name === appName);
+    if (matches.length === 0) process.exit(3);
+    if (matches.length !== 1) throw new Error(`Expected one PM2 process named ${appName}, found ${matches.length}`);
+    const cwd = matches[0].pm2_env?.pm_cwd;
+    if (typeof cwd !== "string" || cwd.length === 0) throw new Error(`PM2 process ${appName} has no pm_cwd`);
+    process.stdout.write(fs.realpathSync(cwd));
+  ' "$pm2_state_file" "$PM2_APP_NAME")" || state_status=$?
+  rm -f "$pm2_state_file"
+
+  case "$state_status" in
+    0)
+      if [[ "$current_cwd" == "$release_path" ]]; then
+        pm2 startOrReload "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      else
+        log "Recreating $PM2_APP_NAME to change cwd from $current_cwd to $release_path"
+        pm2 delete "$PM2_APP_NAME" || return 1
+        pm2 start "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      fi
+      ;;
+    3)
+      pm2 start "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      ;;
+    *)
+      log "Could not determine the current PM2 cwd for $PM2_APP_NAME"
+      return 1
+      ;;
+  esac
+
+  pm2 describe "$PM2_APP_NAME" >/dev/null || return 1
 }
 
 wait_for_http_200() {

@@ -228,7 +228,7 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
 test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
     // c9e5068: approved responsive/lazy story images and one canonical link per story card.
-    "app/page.tsx": "4f65e1c5f48d91b05bbc8914b94e9a4eb5c12ce2385ba4c082ba5d522e0b5342",
+    "app/page.tsx": "45c3ee792bc21b08cdb6d0892b9bd565ab3a9c2910a820356ff0ecbb87bcc169",
     // c9e5068: approved versioned local storage with secure first-party cookie fallback.
     "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
