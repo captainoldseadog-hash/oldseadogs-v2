@@ -8,6 +8,7 @@ import { startEditorStoreWorker } from "./helpers/worker-fetch-client.mjs";
 
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const fixturePath = path.join(projectDir, "tests/fixtures/guide-management-characterisation-editor-store.json");
+const bembridgeFixturePath = path.join(projectDir, "tests/fixtures/bembridge-guide-draft-v1.json");
 let controller;
 let dataDir;
 let storePath;
@@ -40,6 +41,59 @@ before(async () => {
   controller = await startEditorStoreWorker({ projectDir, dataDir, env: { NODE_ENV: "production", OLDSEADOGS_RUNTIME: "node" } });
 });
 after(async () => { await controller?.stop(); await fs.rm(dataDir, { recursive: true, force: true }); });
+
+test("representative Bembridge v1 envelope follows the UI/API path and remains a private Draft", async () => {
+  const envelopeText = await fs.readFile(bembridgeFixturePath, "utf8");
+  const bembridgeEnvelope = JSON.parse(envelopeText);
+  assert.deepEqual(
+    { contract: bembridgeEnvelope.contract, version: bembridgeEnvelope.version, mode: bembridgeEnvelope.mode },
+    { contract: "oldseadogs.guide-draft", version: 1, mode: "create-draft" },
+  );
+
+  const beforeText = await fs.readFile(storePath, "utf8");
+  const createPlan = (await post({
+    action: "validateGuideImport",
+    format: "json",
+    mode: "create-draft",
+    content: envelopeText,
+  })).plan;
+  assert.equal(createPlan.mode, "create-draft");
+  assert.equal(createPlan.summary.blocked, 0);
+  assert.equal(await fs.readFile(storePath, "utf8"), beforeText, "dry run must not write the editor store");
+
+  const confirmed = await post({ action: "confirmGuideImport", planToken: createPlan.planToken });
+  const draft = confirmed.imported[0];
+  assert.equal(draft.status, "draft");
+  assert.equal(draft.noindex, true);
+  assert.equal(draft.seo.noindex, true);
+  assert.equal(draft.showOnHomepage, false);
+  assert.equal(draft.homepageOrder, 0);
+  assert.equal(draft.publication.publishedAt, null);
+  assert.equal(draft.publication.scheduledAt, null);
+  assert.equal((await readStore()).guides.some((guide) => guide.slug === draft.slug && guide.status === "published"), false);
+
+  const updateEnvelope = structuredClone(bembridgeEnvelope);
+  updateEnvelope.mode = "update-draft";
+  updateEnvelope.guides[0].updatedAt = draft.updatedAt;
+  updateEnvelope.guides[0].editorial.standfirst = "A revised representative private Draft for Bembridge.";
+  const updatePlan = (await post({
+    action: "validateGuideImport",
+    format: "json",
+    mode: "create-draft",
+    content: JSON.stringify(updateEnvelope),
+  })).plan;
+  assert.equal(updatePlan.mode, "update-draft", "the valid file mode must survive the UI selector payload");
+  assert.equal(updatePlan.summary.updates, 1);
+
+  const invalidEnvelope = { ...bembridgeEnvelope, mode: "publish" };
+  const rejected = await post({
+    action: "validateGuideImport",
+    format: "json",
+    mode: "create-draft",
+    content: JSON.stringify(invalidEnvelope),
+  }, 400);
+  assert.match(rejected.error, /mode must be create-draft or update-draft/);
+});
 
 test("valid one and multi-Guide JSON dry runs plan creates and write nothing", async () => {
   const beforeText = await fs.readFile(storePath, "utf8");

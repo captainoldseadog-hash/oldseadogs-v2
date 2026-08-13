@@ -1,0 +1,89 @@
+{
+  "contract": "oldseadogs.guide-draft",
+  "version": 1,
+  "mode": "create-draft",
+  "guides": [
+    {
+      "externalId": "bembridge-harbour-import-regression-v1",
+      "slug": "bembridge-harbour-import-regression",
+      "title": "Bembridge Harbour",
+      "guideType": "Marina",
+      "region": {
+        "key": "solent",
+        "name": "The Solent",
+        "area": "Isle of Wight"
+      },
+      "editorial": {
+        "standfirst": "A representative private Draft envelope for the Bembridge Guide import workflow.",
+        "introduction": "Bembridge Harbour is approached from the eastern Isle of Wight and requires current local navigation information before a visit.",
+        "sections": [
+          {
+            "heading": "Before arrival",
+            "body": [
+              "Use current official harbour guidance, charts, notices and forecasts when planning an approach. This regression fixture deliberately leaves safety-critical details unresolved so that the record can be imported as a private Draft but cannot pass publication review automatically. The fixture represents the shape produced for a practical marina Guide, including structured region, editorial, navigation, facilities, contacts, search metadata and verification fields. Editors must check every operational detail against authoritative sources before publication."
+            ]
+          }
+        ],
+        "practicalNotes": [
+          "Confirm access and local conditions with the harbour before departure."
+        ],
+        "warnings": [
+          {
+            "text": "Approach information must be verified against current official sources.",
+            "severity": "safety",
+            "certainty": "uncertain"
+          }
+        ]
+      },
+      "navigation": {
+        "latitude": 50.686,
+        "longitude": -1.098,
+        "approach": [
+          "Consult current harbour directions and charted information."
+        ],
+        "hazards": [
+          "Do not rely on this Draft fixture for navigation."
+        ]
+      },
+      "marina": {
+        "visitorBerths": "Confirm with the harbour",
+        "water": "unknown",
+        "electricity": "unknown",
+        "showers": "unknown",
+        "toilets": "unknown"
+      },
+      "contacts": {
+        "officialWebsite": "https://www.bembridgeharbour.co.uk/"
+      },
+      "seo": {
+        "seoTitle": "Bembridge Harbour Guide",
+        "metaDescription": "A private Bembridge Harbour Guide Draft awaiting editorial and safety verification.",
+        "noindex": false
+      },
+      "publication": {
+        "publishedAt": "2026-08-13T08:00:00.000Z",
+        "scheduledAt": "2026-08-14T08:00:00.000Z"
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Bembridge Harbour official website",
+            "url": "https://www.bembridgeharbour.co.uk/",
+            "accessedAt": "2026-08-13",
+            "supports": [
+              "contacts.officialWebsite"
+            ]
+          }
+        ],
+        "notes": "Representative regression data only; navigation and facilities require editorial verification.",
+        "unresolved": [
+          {
+            "field": "navigation.approach",
+            "reason": "Current official approach details must be checked by an editor.",
+            "severity": "safety"
+          }
+        ]
+      }
+    }
+  ]
+}

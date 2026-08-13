@@ -63,4 +63,5 @@ test("the Guide Manager provides a two-stage Draft-only JSON and CSV bulk import
   assert.match(importer, /confirmGuideImport/);
   assert.match(importer, /planToken/);
   assert.match(importer, /plan\.summary\.blocked > 0/);
+  assert.doesNotMatch(importer, /The Guide file must use create-draft or update-draft\./);
 });
