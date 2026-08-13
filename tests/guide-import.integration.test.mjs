@@ -21,6 +21,11 @@ async function post(payload, expectedStatus = 200) {
   assert.equal(response.status, expectedStatus, await response.clone().text());
   return response.json();
 }
+async function get(url, expectedStatus = 200) {
+  const response = await controller.fetch(`http://localhost${url}`);
+  assert.equal(response.status, expectedStatus, await response.clone().text());
+  return response.json();
+}
 function record(overrides = {}) {
   return {
     externalId: "import-fixture-001", slug: "fictional-import-marina", title: "Fictional Import Marina", guideType: "Marina",
@@ -51,6 +56,8 @@ test("representative Bembridge v1 envelope follows the UI/API path and remains a
   );
 
   const beforeText = await fs.readFile(storePath, "utf8");
+  const managerBefore = await get("/api/editor?view=guides");
+  const publishedBefore = managerBefore.guides.filter((guide) => guide.status === "published");
   const createPlan = (await post({
     action: "validateGuideImport",
     format: "json",
@@ -59,6 +66,7 @@ test("representative Bembridge v1 envelope follows the UI/API path and remains a
   })).plan;
   assert.equal(createPlan.mode, "create-draft");
   assert.equal(createPlan.summary.blocked, 0);
+  assert.deepEqual(createPlan.items[0].unresolved, bembridgeEnvelope.guides[0].verification.unresolved);
   assert.equal(await fs.readFile(storePath, "utf8"), beforeText, "dry run must not write the editor store");
 
   const confirmed = await post({ action: "confirmGuideImport", planToken: createPlan.planToken });
@@ -71,10 +79,22 @@ test("representative Bembridge v1 envelope follows the UI/API path and remains a
   assert.equal(draft.publication.publishedAt, null);
   assert.equal(draft.publication.scheduledAt, null);
   assert.equal((await readStore()).guides.some((guide) => guide.slug === draft.slug && guide.status === "published"), false);
+  assert.deepEqual((await get("/api/editor?view=guides")).guides.filter((guide) => guide.status === "published"), publishedBefore, "published Guide API content must remain byte/content equivalent");
+
+  const manager = await get("/api/editor?view=guides");
+  const listed = manager.guides.find((guide) => guide.slug === draft.slug);
+  assert.equal(listed.title, "Bembridge Marina");
+  assert.equal(listed.status, "draft");
+  const edited = await post({ action: "saveGuideDraft", guide: { ...listed, draftComments: "Confirmed editable after bulk import." }, expectedUpdatedAt: listed.updatedAt });
+  assert.equal(edited.guide.draftComments, "Confirmed editable after bulk import.");
+  assert.equal(edited.guide.status, "draft");
+  assert.equal(edited.guide.noindex, true);
+  assert.equal(edited.guide.showOnHomepage, false);
+  assert.deepEqual((await get("/api/editor?view=guides")).guides.filter((guide) => guide.status === "published"), publishedBefore, "editing the imported Draft must not change published Guides");
 
   const updateEnvelope = structuredClone(bembridgeEnvelope);
   updateEnvelope.mode = "update-draft";
-  updateEnvelope.guides[0].updatedAt = draft.updatedAt;
+  updateEnvelope.guides[0].updatedAt = edited.guide.updatedAt;
   updateEnvelope.guides[0].editorial.standfirst = "A revised representative private Draft for Bembridge.";
   const updatePlan = (await post({
     action: "validateGuideImport",
@@ -184,10 +204,14 @@ test("media validation blocks invalid references while a missing hero is an expl
 });
 
 test("plan tokens cannot be forged and Guide/media changes make a plan stale without writes", async () => {
+  const beforeForged = await fs.readFile(storePath, "utf8");
   await post({ action: "confirmGuideImport", planToken: "forged-token" }, 409);
+  assert.equal(await fs.readFile(storePath, "utf8"), beforeForged, "a failed confirmation must write nothing");
   const plan = await dry(envelope([record({ externalId: "stale-plan", slug: "stale-plan" })]));
   const store = await readStore(); store.guides[0].updatedAt = new Date(Date.parse(store.guides[0].updatedAt) + 1000).toISOString(); await fs.writeFile(storePath, `${JSON.stringify(store, null, 2)}\n`);
+  const beforeStaleConfirmation = await fs.readFile(storePath, "utf8");
   await post({ action: "confirmGuideImport", planToken: plan.planToken }, 409);
+  assert.equal(await fs.readFile(storePath, "utf8"), beforeStaleConfirmation, "a stale confirmation must perform zero partial writes");
   assert.equal((await readStore()).guides.some((guide) => guide.slug === "stale-plan"), false);
 });
 

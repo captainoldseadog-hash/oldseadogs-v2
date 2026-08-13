@@ -57,6 +57,14 @@
 .guide-import-results > article { padding: .8rem; border: 1px solid var(--line); border-radius: .65rem; }
 .guide-import-results > article.blocked { border-color: var(--signal); }
 .guide-import-warning { color: #795700; }
+.guide-import-plan:focus { outline: 3px solid color-mix(in srgb, var(--signal) 45%, transparent); outline-offset: 4px; }
+.guide-import-results h3, .guide-import-results p { margin: 0; }
+.guide-import-results > article { display: grid; gap: .65rem; }
+.guide-import-safety-summary { border: 1px solid #8bb89d; border-radius: .65rem; padding: .9rem; background: #eef8f1; }
+.guide-import-safety-summary ul { margin-bottom: 0; }
+.guide-import-confirm, .guide-import-success { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border: 2px solid var(--signal); border-radius: .75rem; padding: 1rem; background: var(--panel); }
+.guide-import-confirm p, .guide-import-success p, .guide-import-success h2 { margin: 0; }
+.guide-import-success { margin-top: 1rem; border-color: #2c7a4b; background: #eef8f1; }
 
 @media (max-width: 1050px) {
   .guide-manager-layout { grid-template-columns: 1fr; }

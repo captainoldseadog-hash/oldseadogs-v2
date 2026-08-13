@@ -40,6 +40,7 @@ export type GuideImportItem = {
   valid: boolean;
   warnings: string[];
   errors: string[];
+  unresolved: Array<{ field: string; reason: string; severity: "editorial" | "safety" }>;
   existingMatch: { id: string; slug: string; status: string; updatedAt: string } | null;
   mediaStatus: "valid" | "missing-hero" | "invalid";
   verificationStatus: "verified" | "unresolved-editorial" | "unresolved-safety" | "unverified";
@@ -270,7 +271,7 @@ export async function validateGuideImport(input: { format: "json" | "csv"; conte
     if (verificationStatus(record) === "unresolved-safety") warnings.push("Safety-critical information remains unresolved and will block publication.");
     errors.push(...validateForDraft({ ...normalizeManagedGuideFields(record), slug: record.slug, title: record.title, guideType: record.guideType as GuideType }));
     if (errors.length) action = "blocked";
-    return { externalId: record.externalId || "", slug: record.slug, title: record.title, action, valid: errors.length === 0, warnings: [...new Set(warnings)], errors: [...new Set(errors)], existingMatch: existing ? { id: identity(existing), slug: existing.slug, status: existing.status, updatedAt: existing.updatedAt } : null, mediaStatus: mediaErrors.length ? "invalid" : record.media?.heroImage ? "valid" : "missing-hero", verificationStatus: verificationStatus(record) };
+    return { externalId: record.externalId || "", slug: record.slug, title: record.title, action, valid: errors.length === 0, warnings: [...new Set(warnings)], errors: [...new Set(errors)], unresolved: record.verification?.unresolved || [], existingMatch: existing ? { id: identity(existing), slug: existing.slug, status: existing.status, updatedAt: existing.updatedAt } : null, mediaStatus: mediaErrors.length ? "invalid" : record.media?.heroImage ? "valid" : "missing-hero", verificationStatus: verificationStatus(record) };
   });
   const token = crypto.randomUUID();
   const createdAt = nowIso();

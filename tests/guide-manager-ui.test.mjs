@@ -58,10 +58,19 @@ test("the Guide Manager provides a two-stage Draft-only JSON and CSV bulk import
   const manager = await read("app/editor/guides/GuideManager.tsx");
   const importer = await read("app/editor/guides/GuideBulkImport.tsx");
   assert.match(manager, /GuideBulkImport/);
-  for (const label of ["Bulk imports create Draft Guides only", "Upload JSON or CSV", "Paste JSON envelope", "Validate / Dry Run", "Confirm Import Drafts", "Download result report", "Nothing is published automatically"] ) assert.ok(importer.includes(label), `missing bulk-import UI: ${label}`);
+  for (const label of ["Bulk imports create Draft Guides only", "Upload JSON or CSV", "Paste JSON envelope", "Validate / Dry Run", "Step 2 — Review result", "Guide will remain Draft", "Guide will remain noindex", "Guide will not appear on the homepage", "Nothing has yet been written", "Confirm Import / Create Draft", "Draft Guide created successfully", "Open Guide in Editor", "Download result report", "Nothing is published automatically"] ) assert.ok(importer.includes(label), `missing bulk-import UI: ${label}`);
   assert.match(importer, /validateGuideImport/);
   assert.match(importer, /confirmGuideImport/);
   assert.match(importer, /planToken/);
   assert.match(importer, /plan\.summary\.blocked > 0/);
+  assert.match(importer, /planToken: plan\.planToken/);
+  assert.match(importer, /await onImported\(id\)/);
+  assert.match(importer, /item\.unresolved\.filter/);
   assert.doesNotMatch(importer, /The Guide file must use create-draft or update-draft\./);
+});
+
+test("a successful import selects the new Draft in the existing Guide Editor", async () => {
+  const manager = await read("app/editor/guides/GuideManager.tsx");
+  assert.match(manager, /onImported=\{\(preferredId\) => load\(preferredId\)\}/);
+  assert.match(manager, /id="guide-editor"/);
 });
