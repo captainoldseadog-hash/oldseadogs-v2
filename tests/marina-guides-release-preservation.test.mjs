@@ -8,8 +8,8 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // c9e5068: approved responsive/lazy story images and one canonical link per story card.
-  "app/page.tsx": "45c3ee792bc21b08cdb6d0892b9bd565ab3a9c2910a820356ff0ecbb87bcc169",
+  // Option C: approved mobile/tablet hero and Guide promotion over the canonical feed.
+  "app/page.tsx": "e88760bd3440568095f058003d3f56c047d4762752ebaffe47c21ef8c67b3a62",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -22,9 +22,9 @@ const protectedFiles = {
   "app/sitemap.ts": "2defc59937202d0aabc6b441ee790fd8bf8c613146b53e70431112e74a5cd3b8",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
-  // c9e5068: approved versioned local storage with secure first-party cookie fallback.
-  "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
-  "package.json": "20996dd1befedd6511126c8f53469bf55a649eba8467096a44d4c86f2abce686",
+  // Option C: approved persistent consent with local-storage and first-party-cookie recovery.
+  "components/CookieConsent.tsx": "5392cc363a550850bd826102b739157835abbee83c4612e7451e1be9c901b10f",
+  "package.json": "807aec43bfaf6df71bb8217b527b547aeafa31dc369244e7e7f5d8c5bb30a8ef",
 };
 
 test("homepage, story, editor, scheduler, search and consent logic match production", async () => {

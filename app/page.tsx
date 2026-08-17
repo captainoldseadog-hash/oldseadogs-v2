@@ -14,6 +14,7 @@ import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { HomepageContentProvider } from "../lib/homepage-content-provider";
 import { guidePublicPath } from "../lib/guides";
+import { publicMediaVariantUrl } from "../lib/public-media";
 import {
   getActiveAds,
   getHomepageGuides,
@@ -72,11 +73,30 @@ function GuidePromoBand({
       </div>
       <div className="homepage-guides-list" aria-label="Featured Old Sea Dogs Guides">
         {featuredGuides.map((guide, index) => (
-          <Link href={guidePublicPath(guide)} key={guide.slug}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <strong>{guide.title}</strong>
-            <small>{guide.guideType} Guide</small>
-            <span aria-hidden="true">→</span>
+          <Link className={index === 0 ? "mobile-guide-highlight" : undefined} href={guidePublicPath(guide)} key={guide.slug}>
+            <span className="homepage-guide-number">{String(index + 1).padStart(2, "0")}</span>
+            <strong className="homepage-guide-title">{guide.title}</strong>
+            <small className="homepage-guide-type">{guide.guideType} Guide</small>
+            <span className="homepage-guide-arrow" aria-hidden="true">→</span>
+            {index === 0 ? (
+              <span className="mobile-guide-card-content">
+                <span className="mobile-guide-image">
+                  <img
+                    alt={guide.imageAlt}
+                    decoding="async"
+                    loading="lazy"
+                    src={publicMediaVariantUrl(guide.imageUrl, "thumbnail")}
+                  />
+                </span>
+                <span className="mobile-guide-copy">
+                  <span className="eyebrow">Guide highlight</span>
+                  <strong>{guide.title}</strong>
+                  <span>{guide.regionName}</span>
+                  <span>{guide.summary}</span>
+                  <span className="mobile-text-link">View Guide</span>
+                </span>
+              </span>
+            ) : null}
           </Link>
         ))}
       </div>
@@ -201,6 +221,16 @@ export default async function Home() {
     <main className="site-shell">
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
         {featuredHasPhoto ? (
+          <img
+            alt=""
+            aria-hidden="true"
+            className="mobile-hero-image"
+            decoding="async"
+            fetchPriority="high"
+            src={publicMediaVariantUrl(featuredStory.imageUrl, "mobile")}
+          />
+        ) : null}
+        {featuredHasPhoto ? (
           <ResponsiveStoryImage
             alt={featuredStory.imageAlt || featuredStory.title}
             className="hero-image"
@@ -239,6 +269,18 @@ export default async function Home() {
             <a href="#latest" className="button-secondary">
               Latest dispatches
             </a>
+          </div>
+        </section>
+        <section className="mobile-hero-content" aria-labelledby="mobile-lead-title">
+          <p className="eyebrow">{displayCategoryLabel(featuredStory.category)}</p>
+          <h1 id="mobile-lead-title">
+            <Link href={`/stories/${featuredStory.slug}`}>{featuredStory.title}</Link>
+          </h1>
+          <p>{featuredStory.summary}</p>
+          <div className="mobile-story-meta">
+            <span>{formatDate(featuredStory.date)}</span>
+            <span>{featuredStory.readMinutes} min read</span>
+            <span>{featuredStory.author}</span>
           </div>
         </section>
       </header>

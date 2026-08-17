@@ -122,13 +122,13 @@ test("full story rendering preserves all 29 source body blocks without truncatio
   }
 
   assert.match(html, /<h1>Full story body preservation<\/h1>/);
-  const leadImage = html.match(/<div class="article-image[^"]*">\s*(<img[^>]+>)/)?.[1] || "";
+  const leadImage = html.match(/<img[^>]+src="\/images\/racing-yachts\.png"[^>]*>/)?.[0] || "";
   assert.match(leadImage, /src="\/images\/racing-yachts\.png"/);
   assert.doesNotMatch(leadImage, /loading="lazy"/);
-  assert.match(
-    html,
-    /<link(?=[^>]*rel="preload")(?=[^>]*href="\/images\/racing-yachts\.png")(?=[^>]*as="image")(?=[^>]*fetchPriority="high")[^>]*>/,
-  );
+  assert.match(leadImage, /loading="eager"/);
+  assert.match(leadImage, /fetchPriority="high"/);
+  assert.match(leadImage, /sizes="\(max-width: 760px\) calc\(100vw - 40px\), 860px"/);
+  assert.match(html, /<source[^>]+media="\(max-width: 1024px\)"[^>]+srcSet="\/images\/racing-yachts\.png"/);
   assert.match(html, /A complete lead image caption/);
   assert.match(html, /Old Sea Dogs test credit/);
   assert.match(html, /href="\/stories\/related-story-one"/);

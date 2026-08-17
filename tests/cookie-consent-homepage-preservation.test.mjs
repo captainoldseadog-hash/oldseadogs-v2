@@ -13,7 +13,7 @@ async function read(relative) {
 async function packagedFiles(current = projectDir) {
   const output = [];
   for (const entry of await fs.readdir(current, { withFileTypes: true })) {
-    if (["node_modules", ".git", ".next", ".wrangler"].includes(entry.name)) continue;
+    if (["node_modules", ".git", ".next", ".wrangler", "outputs", ".oldseadogs-data", "oldseadogs-data"].includes(entry.name)) continue;
     const full = path.join(current, entry.name);
     if (entry.isDirectory()) output.push(...await packagedFiles(full));
     else if (entry.isFile()) output.push(path.relative(projectDir, full).split(path.sep).join("/"));
@@ -56,16 +56,20 @@ test("normal production build and start cannot enable the development homepage f
 });
 
 test("runtime production data remains external and no bundled editor store is available", async () => {
-  const [releaseCommon, ecosystem, siteContent] = await Promise.all([
+  const [releaseCommon, ecosystem, siteContent, gitignore] = await Promise.all([
     read("deploy/release-common.sh"),
     read("ecosystem.config.cjs"),
     read("lib/site-content.ts"),
+    read(".gitignore"),
   ]);
   assert.match(releaseCommon, /DATA_DIR=.*\/var\/www\/oldseadogs-data/);
   assert.match(releaseCommon, /export OLDSEADOGS_DATA_DIR="\$DATA_DIR"/);
   assert.match(ecosystem, /OLDSEADOGS_DATA_DIR:[^\n]+\/var\/www\/oldseadogs-data/);
   assert.match(siteContent, /OLDSEADOGS_DATA_DIR/);
   assert.match(siteContent, /path\.join\(dataDir, "editor-store\.json"\)/);
+  assert.match(gitignore, /^\/\.oldseadogs-data\/$/m);
+  assert.match(gitignore, /^\/oldseadogs-data\/$/m);
+  assert.match(gitignore, /^\/editor-store\.json$/m);
 
   const files = await packagedFiles();
   assert.deepEqual(files.filter((file) => /(^|\/)editor-store\.json$/i.test(file)), []);

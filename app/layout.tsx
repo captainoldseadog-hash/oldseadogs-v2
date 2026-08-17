@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { CookieConsent } from "../components/CookieConsent";
 import { JsonLd } from "../components/JsonLd";
+import { MobileSiteHeader } from "../components/MobileSiteHeader";
 import {
   adsenseClientId,
   adsenseEnabled,
@@ -13,15 +14,12 @@ import {
   siteUrl,
 } from "../lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "../lib/structured-data";
+import { isPublicPagePath } from "../lib/route-boundaries";
 import "./globals.css";
 
 const adsensePublisherId = "ca-pub-7278382533036873";
 const requestPathHeader = "x-oldseadogs-request-path";
 const googleConsentDefaults = `window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments);};window.gtag("consent","default",{analytics_storage:"denied",ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",wait_for_update:500});window.__oldSeaDogsGoogleConsentDefaulted=true;`;
-
-function isPublicPagePath(pathname: string) {
-  return !pathname.startsWith("/editor") && !pathname.startsWith("/api/");
-}
 
 export const metadata: Metadata = {
   ...createPageMetadata({
@@ -77,6 +75,7 @@ export default async function RootLayout({
       ) : null}
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
+        {isPublicPage ? <MobileSiteHeader /> : null}
         {children}
         <CookieConsent
           adsenseClientId={adsenseClientId}

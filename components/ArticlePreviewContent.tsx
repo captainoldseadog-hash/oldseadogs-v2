@@ -6,6 +6,7 @@ import { SocialFollowBlock } from "./SocialFollowBlock";
 import { displayCategoryLabel, sectionPathForCategory } from "../content/sections";
 import type { Advert, EditableStory } from "../lib/site-content";
 import { cleanStoryTags } from "../lib/tags";
+import { publicMediaVariantUrl } from "../lib/public-media";
 
 type ArticlePreviewContentProps = {
   story: Pick<
@@ -333,7 +334,7 @@ export function ArticlePreviewContent({
             <span>{formatArticleDate(story.date)}</span>
             <span>{story.readMinutes || 3} min read</span>
           </div>
-          {socialShare}
+          <div className="article-share-desktop">{socialShare}</div>
         </header>
 
         {hasPhoto ? (
@@ -341,14 +342,20 @@ export function ArticlePreviewContent({
             <div
               className={`article-image ${imageLooksLikeLogo ? "club-logo-image" : ""}`}
             >
-              <img
-                src={story.imageUrl}
-                alt={story.imageAlt || story.title}
-                decoding="async"
-                fetchPriority="high"
-                loading="eager"
-                sizes="(max-width: 760px) calc(100vw - 40px), 860px"
-              />
+              <picture>
+                <source
+                  media="(max-width: 1024px)"
+                  srcSet={publicMediaVariantUrl(story.imageUrl, "mobile")}
+                />
+                <img
+                  src={publicMediaVariantUrl(story.imageUrl, "web")}
+                  alt={story.imageAlt || story.title}
+                  decoding="async"
+                  loading="eager"
+                  fetchPriority="high"
+                  sizes="(max-width: 760px) calc(100vw - 40px), 860px"
+                />
+              </picture>
             </div>
             {story.imageCaption || story.imageCredit ? (
               <figcaption>
@@ -358,6 +365,8 @@ export function ArticlePreviewContent({
             ) : null}
           </figure>
         ) : null}
+
+        <div className="article-share-mobile">{socialShare}</div>
 
         {beforeBody}
 

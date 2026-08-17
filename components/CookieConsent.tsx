@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  consentCookieAttributes,
-  consentLifetimeSeconds,
-  createConsentChoice,
+  consentCookieName,
+  consentMaxAgeSeconds,
+  consentStorageKey,
   parseConsentChoice,
-  type StoredConsentChoice,
-} from "../lib/cookie-consent";
+  type ConsentChoice,
+} from "../lib/cookie-consent.ts";
+import { isEditorPath } from "../lib/route-boundaries";
 
 type CookieConsentProps = {
   ga4Id?: string;
@@ -17,12 +18,9 @@ type CookieConsentProps = {
   adsenseEnabled?: boolean;
 };
 
-type ConsentChoice = StoredConsentChoice;
-
-const storageKey = "oldseadogs_cookie_consent_v2";
-const consentCookieName = "oldseadogs_cookie_consent";
 const openPrivacyChoicesEvent = "oldseadogs:open-privacy-choices";
 const consentUpdatedEvent = "oldseadogs:cookie-consent-updated";
+const storageKey = consentStorageKey;
 
 type GoogleTagCommand = [command: string, action: string | Date, parameters?: Record<string, unknown>];
 
@@ -34,49 +32,50 @@ declare global {
   }
 }
 
-function readCookieValue(name: string) {
-  const prefix = `${name}=`;
-  const value = document.cookie
+function readCookieChoice() {
+  const prefix = `${consentCookieName}=`;
+  const raw = document.cookie
     .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(prefix))
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(prefix))
     ?.slice(prefix.length);
-  if (!value) return "";
+  if (!raw) return null;
   try {
-    return decodeURIComponent(value);
+    return parseConsentChoice(decodeURIComponent(raw));
   } catch {
-    return "";
+    return null;
   }
 }
 
-function readStoredChoice(): ConsentChoice | null {
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    const localChoice = parseConsentChoice(raw);
-    if (localChoice) return localChoice;
-    if (raw) window.localStorage.removeItem(storageKey);
-  } catch {
-    // A valid first-party cookie remains available when local storage is blocked.
-  }
-
-  const cookieChoice = parseConsentChoice(readCookieValue(consentCookieName));
-  if (!cookieChoice) return null;
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(cookieChoice));
-  } catch {
-    // Cookie persistence is sufficient when local storage is unavailable.
-  }
-  return cookieChoice;
-}
-
-function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
-  const nextChoice = createConsentChoice(choice);
+function persistChoice(nextChoice: ConsentChoice) {
   try {
     window.localStorage.setItem(storageKey, JSON.stringify(nextChoice));
   } catch {
-    // The first-party cookie is the fallback when local storage is unavailable.
+    // A durable first-party cookie remains available when storage is restricted.
   }
-  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentLifetimeSeconds)}`;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; Max-Age=${consentMaxAgeSeconds}; Path=/; SameSite=Lax${secure}`;
+}
+
+function readStoredChoice(): ConsentChoice | null {
+  let localChoice: ConsentChoice | null = null;
+  try {
+    localChoice = parseConsentChoice(window.localStorage.getItem(consentStorageKey));
+  } catch {
+    localChoice = null;
+  }
+  const choice = localChoice || readCookieChoice();
+  if (choice) persistChoice(choice);
+  return choice;
+}
+
+function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
+  const nextChoice: ConsentChoice = {
+    ...choice,
+    decidedAt: new Date().toISOString(),
+    version: 1,
+  };
+  persistChoice(nextChoice);
   window.dispatchEvent(new Event(consentUpdatedEvent));
   return nextChoice;
 }
@@ -152,7 +151,7 @@ export function CookieConsent({
   adsenseEnabled = false,
 }: CookieConsentProps) {
   const pathname = usePathname();
-  const isEditorRoute = pathname?.startsWith("/editor") ?? false;
+  const isEditorRoute = pathname ? isEditorPath(pathname) : false;
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);

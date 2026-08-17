@@ -29,6 +29,7 @@
     "check:guides-release-safety": "node scripts/check-guides-release-safety.mjs",
     "check:guides-package": "node tests/guides-release-package.regression.mjs",
     "check:live-homepage": "node scripts/check-live-homepage-manifest.mjs",
+    "check:current-content": "node scripts/check-current-content-store.mjs",
     "check:phase1": "npm run build:do && node --test tests/editor-publication.test.mjs tests/backup-recovery.test.mjs tests/staging-migration.test.mjs tests/bridge-safety.integration.test.mjs tests/staging-rc1.integration.test.mjs && npm run check:storage && npm run check:data && npm run check:story-media && npm run check:bridge && npm run check:controlled-media && npm run check:launch",
     "check:staging-rc1": "node --test tests/staging-migration.test.mjs tests/staging-rc1.integration.test.mjs",
     "staging:fixture": "node scripts/create-staging-rc1-fixture.mjs",

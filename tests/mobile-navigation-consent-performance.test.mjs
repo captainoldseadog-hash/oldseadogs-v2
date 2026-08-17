@@ -45,7 +45,8 @@ test("privacy defaults stay denied until a valid current-schema choice exists", 
   }
   assert.match(consent, /const \[analytics, setAnalytics\] = useState\(false\)/);
   assert.match(consent, /const \[ads, setAds\] = useState\(false\)/);
-  assert.match(consent, /parseConsentChoice\(readCookieValue\(consentCookieName\)\)/);
+  assert.match(consent, /parseConsentChoice\(decodeURIComponent\(raw\)\)/);
+  assert.match(consent, /parseConsentChoice\(window\.localStorage\.getItem\(consentStorageKey\)\)/);
 });
 
 test("homepage story cards expose one canonical native link across image, title and summary", async () => {

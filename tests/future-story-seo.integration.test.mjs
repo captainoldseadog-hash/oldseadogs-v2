@@ -195,7 +195,11 @@ test("a normal future published story is automatically indexable, server rendere
   assert.match(metadataContent(html, "googlebot"), /\bfollow\b/i);
   assert.match(metadataContent(html, "googlebot"), /max-image-preview:large/i);
   assert.match(html, new RegExp(`rel=["']canonical["'] href=["']https://oldseadogs\\.com/stories/${futureSlug}["']`));
-  assert.match(html, new RegExp(`<img src="${leadImage.replaceAll("/", "\\/")}"[^>]+fetchpriority="high"[^>]+loading="eager"`, "i"));
+  const articleFigure = html.match(/<figure class="article-figure">[\s\S]*?<\/figure>/)?.[0] || "";
+  assert.match(articleFigure, new RegExp(`src="${leadImage.replaceAll("/", "\\/")}\\?variant=web"`, "i"));
+  assert.match(articleFigure, new RegExp(`srcSet="${leadImage.replaceAll("/", "\\/")}\\?variant=web"`, "i"));
+  assert.match(articleFigure, /fetchpriority="high"/i);
+  assert.match(articleFigure, /loading="eager"/i);
 
   const article = jsonLdObjects(html).find((item) => item["@type"] === "Article" || item["@type"] === "NewsArticle");
   assert.ok(article, "Article or NewsArticle JSON-LD must be present");

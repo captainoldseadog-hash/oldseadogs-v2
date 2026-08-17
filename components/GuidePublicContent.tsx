@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
+import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
   guidePublicPath,
@@ -407,15 +408,19 @@ export function GuidePublicContent({
 
       <header className="guide-product-hero">
         <figure>
-          <img
-            src={guide.imageUrl}
-            alt={guide.imageAlt}
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
-            sizes="100vw"
-            style={{ objectPosition: guide.imageFocalPoint }}
-          />
+          <picture>
+            <source
+              media="(max-width: 1024px)"
+              srcSet={publicMediaVariantUrl(guide.imageUrl, "mobile")}
+            />
+            <img
+              src={publicMediaVariantUrl(guide.imageUrl, "web")}
+              alt={guide.imageAlt}
+              decoding="async"
+              fetchPriority="high"
+              style={{ objectPosition: guide.imageFocalPoint }}
+            />
+          </picture>
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (
             <figcaption>
               {guide.imageCaption}
