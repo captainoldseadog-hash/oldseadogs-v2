@@ -11,6 +11,8 @@ import { publicNavigationLinks } from "../../../content/sections.ts";
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
+  guideAreaChildren,
+  guideCruisingArea,
   guidePlaceJsonLd,
   guideCollectionJsonLd,
   guideProductRecords,
@@ -30,11 +32,14 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
   const regional = guides.filter((guide) => guide.regionKey === region);
   if (regional.length) {
     const regionName = regional[0].regionName;
+    const areaGuide = guideCruisingArea(region, regional);
     return createPageMetadata({
-      title: `${regionName} Guides`,
-      description: `Explore Old Sea Dogs Guides to ${regionName}, including its harbours, rivers, anchorages and cruising character.`,
+      title: areaGuide?.seoTitle || `${regionName} Guides`,
+      description: areaGuide?.seoDescription || `Explore Old Sea Dogs Guides to ${regionName}, including its harbours, rivers, anchorages and cruising character.`,
       path: `/guides/${region}`,
-      image: { url: regional[0].imageUrl, alt: regional[0].imageAlt },
+      image: areaGuide?.imageUrl
+        ? { url: areaGuide.imageUrl, alt: areaGuide.imageAlt }
+        : { url: regional[0].imageUrl, alt: regional[0].imageAlt },
     });
   }
   const legacyGuide = await getGuideBySlug(region);
@@ -90,6 +95,43 @@ export default async function RegionPage({ params }: RegionPageProps) {
   }
 
   const regionName = regional[0].regionName;
+  const areaGuide = guideCruisingArea(region, regional);
+  const areaChildren = areaGuide ? guideAreaChildren(areaGuide, regional) : [];
+  if (areaGuide) {
+    const placeJsonLd = guidePlaceJsonLd(areaGuide);
+    const childItems = areaChildren.map((guide) => ({
+      slug: guide.slug,
+      title: guide.title,
+      summary: guide.summary,
+      guideType: guide.guideType,
+      regionName: guide.regionName,
+      path: guidePublicPath(guide),
+      imageUrl: guide.imageUrl,
+      imageAlt: guide.imageAlt,
+    }));
+    return (
+      <main className="article-shell guides-shell guide-product-shell">
+        <JsonLd data={[
+          guideArticleJsonLd(areaGuide),
+          ...(placeJsonLd ? [placeJsonLd] : []),
+          guideCollectionJsonLd(regionName, areaChildren),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Guides", path: "/guides" },
+            { name: regionName, path: `/guides/${region}` },
+          ]),
+        ]} />
+        <PrimaryNavigation />
+        <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} />
+        <GuideCollectionBrowser
+          guides={childItems}
+          searchPlaceholder={`Search ${regionName} Guides`}
+          title={`Explore ${regionName}`}
+        />
+        <SiteFooter extraLinks={[{ href: "/guides", label: "All Guides" }]} />
+      </main>
+    );
+  }
   const lead = regional.find((guide) => guide.slug === "the-solent") || regional[0];
   const browserItems = regional.map((guide) => ({
     slug: guide.slug,

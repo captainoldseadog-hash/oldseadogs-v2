@@ -407,7 +407,7 @@ export function GuidePublicContent({
       ]} />
 
       <header className="guide-product-hero">
-        <figure>
+        {guide.imageUrl ? <figure>
           <picture>
             <source
               media="(max-width: 1024px)"
@@ -429,7 +429,12 @@ export function GuidePublicContent({
                 : ""}
             </figcaption>
           ) : null}
-        </figure>
+        </figure> : preview ? (
+          <aside className="guide-image-pending" role="status">
+            <span>Hero image pending</span>
+            <strong>Select approved artwork from the Media Library before publication.</strong>
+          </aside>
+        ) : null}
         <div>
           <p className="eyebrow">Old Sea Dogs Guides</p>
           <h1>{guide.title}</h1>

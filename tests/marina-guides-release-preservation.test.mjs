@@ -19,7 +19,8 @@ const protectedFiles = {
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
   "app/stories/[slug]/page.tsx": "915ea6f48a019eefece8cab35aab86ed9c9a0ba2fd566e6d5571af5644fa0aa0",
-  "app/sitemap.ts": "2defc59937202d0aabc6b441ee790fd8bf8c613146b53e70431112e74a5cd3b8",
+  // Poole: area-root canonicals are emitted once through the regional sitemap entry.
+  "app/sitemap.ts": "6656a11ef5c0823de5f821a7bceeba2ca59e02679996515ea2ec27148f6411e7",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Option C: approved persistent consent with local-storage and first-party-cookie recovery.
@@ -41,7 +42,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
-  assert.equal(hash(reconstructedBaseline), "7c7aefd720460292f196895bfe6e7287988f06f16db5a0a0a84e1c63fe2c33ae");
+  // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
+  assert.equal(hash(reconstructedBaseline), "cbc7be51a47372aecdbb7b641c71d7b8cd40f5436a5f1a641a0ae455e5bbdf0b");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

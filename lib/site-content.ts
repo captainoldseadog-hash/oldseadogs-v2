@@ -1092,6 +1092,11 @@ function guideAnchor(value: string) {
   return makeSlug(value) || "guide-section";
 }
 
+function optionalGuideSlug(value: unknown) {
+  const candidate = String(value || "").trim();
+  return candidate ? makeSlug(candidate) : "";
+}
+
 function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide {
   const editable: EditableGuide = {
     ...guide,
@@ -1233,15 +1238,15 @@ export function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): 
     regionKey: makeSlug(guide.regionKey || fallback.regionKey),
     regionName: cleanPressReleaseHeadline(guide.regionName || fallback.regionName),
     subregion: cleanPressReleaseHeadline(guide.subregion || fallback.subregion),
-    parentGuideSlug: makeSlug(guide.parentGuideSlug || fallback.parentGuideSlug),
+    parentGuideSlug: optionalGuideSlug(guide.parentGuideSlug || fallback.parentGuideSlug),
     editorialOrder: Math.max(0, Number(guide.editorialOrder ?? fallback.editorialOrder)),
     author: cleanPressReleaseHeadline(guide.author || fallback.author),
     contributorCredits: Array.isArray(guide.contributorCredits)
       ? guide.contributorCredits.map((item) => cleanPressReleaseHeadline(String(item))).filter(Boolean)
       : fallback.contributorCredits,
     updatedAt: guide.updatedAt || fallback.updatedAt,
-    imageUrl: String(guide.imageUrl || fallback.imageUrl).trim(),
-    imageAlt: cleanPressReleaseHeadline(guide.imageAlt || fallback.imageAlt),
+    imageUrl: String(guide.imageUrl !== undefined ? guide.imageUrl : fallback.imageUrl).trim(),
+    imageAlt: cleanPressReleaseHeadline(guide.imageAlt !== undefined ? guide.imageAlt : fallback.imageAlt),
     imageFocalPoint: String(guide.imageFocalPoint || fallback.imageFocalPoint).trim(),
     artworkCredit: cleanPressReleaseHeadline(guide.artworkCredit || fallback.artworkCredit),
     quickFacts: normalizeGuideFacts(guide.quickFacts).length > 0 ? normalizeGuideFacts(guide.quickFacts) : fallback.quickFacts,

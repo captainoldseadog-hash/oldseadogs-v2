@@ -25,7 +25,7 @@ import {
 } from "./site-content.ts";
 
 export const guideImportCsvColumns = [
-  "externalId", "updatedAt", "slug", "title", "guideType", "regionKey", "regionName", "area", "parentGuideId",
+  "externalId", "updatedAt", "slug", "title", "guideType", "regionKey", "regionName", "area", "parentGuideId", "parentGuideSlug",
   "standfirst", "introduction", "latitude", "longitude", "vhfChannel", "depths", "tidalInformation",
   "officialWebsite", "telephone", "email", "seoTitle", "metaDescription", "heroMediaId", "heroUrl", "heroAlt",
   "sections", "oldSeaDogsView", "practicalNotes", "localKnowledge", "warnings", "approach", "hazards",
@@ -65,9 +65,9 @@ type StoredPlan = GuideImportPlan & {
 
 const plans = new Map<string, StoredPlan>();
 const planLifetimeMs = 15 * 60 * 1000;
-const topKeys = new Set(["externalId", "updatedAt", "slug", "title", "guideType", "region", "schemaVersion", "id", "area", "parentGuideId", "editorial", "navigation", "marina", "contacts", "media", "seo", "publication", "verification"]);
+const topKeys = new Set(["externalId", "updatedAt", "slug", "title", "guideType", "region", "schemaVersion", "id", "area", "parentGuideId", "parentGuideSlug", "editorial", "navigation", "marina", "contacts", "media", "seo", "publication", "verification"]);
 const nestedKeys: Record<string, Set<string>> = {
-  region: new Set(["key", "name", "area", "parentGuideId"]),
+  region: new Set(["key", "name", "area", "parentGuideId", "parentGuideSlug"]),
   editorial: new Set(["standfirst", "introduction", "sections", "oldSeaDogsView", "practicalNotes", "localKnowledge", "warnings"]),
   navigation: new Set(["latitude", "longitude", "vhfChannel", "approach", "depths", "tidalInformation", "hazards"]),
   marina: new Set(["berths", "visitorBerths", "fuel", "water", "electricity", "showers", "toilets", "laundry", "wifi", "repairs", "chandlery", "craneOrLift", "restaurants", "bars", "shops", "transport"]),
@@ -131,7 +131,7 @@ export function csvToGuideEnvelope(text: string, mode: "create-draft" | "update-
     const number = (name: string) => cells[name]?.trim() ? Number(cells[name]) : undefined;
     return {
       externalId: cells.externalId, updatedAt: cells.updatedAt || undefined, slug: cells.slug, title: cells.title, guideType: cells.guideType,
-      region: { key: cells.regionKey, name: cells.regionName, area: cells.area || undefined, parentGuideId: cells.parentGuideId || undefined },
+      region: { key: cells.regionKey, name: cells.regionName, area: cells.area || undefined, parentGuideId: cells.parentGuideId || undefined, parentGuideSlug: cells.parentGuideSlug || undefined },
       editorial: { standfirst: cells.standfirst, introduction: cells.introduction, sections: structured("sections"), oldSeaDogsView: structured("oldSeaDogsView"), practicalNotes: structured("practicalNotes"), localKnowledge: structured("localKnowledge"), warnings: structured("warnings") },
       navigation: { latitude: number("latitude"), longitude: number("longitude"), vhfChannel: cells.vhfChannel, depths: cells.depths, tidalInformation: cells.tidalInformation, approach: structured("approach"), hazards: structured("hazards") },
       marina: structured("marinaFacilities"), contacts: { officialWebsite: cells.officialWebsite, telephone: cells.telephone, email: cells.email },
@@ -280,12 +280,33 @@ export async function validateGuideImport(input: { format: "json" | "csv"; conte
   return { planToken: plan.planToken, contract: plan.contract, version: plan.version, mode: plan.mode, createdAt: plan.createdAt, expiresAt: plan.expiresAt, summary: plan.summary, items: plan.items };
 }
 
-function importedGuide(record: GuideDraftContractRecord, current: EditableGuide | null, guides: EditableGuide[]) {
+function cruisingAreaSlug(record: GuideDraftContractRecord, records: GuideDraftContractRecord[]) {
+  const explicit = record.region?.parentGuideSlug || record.parentGuideSlug;
+  if (explicit) return explicit;
+  if (record.guideType === "Cruising Area") return "";
+  const regionKey = record.region?.key || "";
+  return records.find((candidate) =>
+    candidate.guideType === "Cruising Area"
+    && candidate.region?.key === regionKey
+  )?.slug || "";
+}
+
+function importedGuide(
+  record: GuideDraftContractRecord,
+  current: EditableGuide | null,
+  guides: EditableGuide[],
+  records: GuideDraftContractRecord[],
+  recordIndex: number,
+) {
   const managed = normalizeManagedGuideFields(record);
   const regionKey = record.region?.key || "";
   const stamp = nextTimestamp(current?.updatedAt);
-  const adapted = adaptManagedGuideForRenderer({ ...(current || {}), ...managed, externalId: record.externalId, slug: record.slug, title: record.title, guideType: record.guideType as GuideType, regionKey, regionName: record.region?.name || "", subregion: record.region?.area || record.area || "", area: record.region?.area || record.area, parentGuideId: record.region?.parentGuideId || record.parentGuideId, canonicalPath: publicPath(record.slug, regionKey) });
-  return normalizeStoredGuide({ ...(current || {}), ...adapted, id: current?.id || makeId("guide"), internalId: current?.internalId || nextInternalId(guides), externalId: record.externalId, slug: record.slug, title: record.title, status: "draft", noindex: true, showOnHomepage: false, homepageOrder: 0, updatedAt: stamp, publication: { createdAt: current?.publication?.createdAt || stamp, updatedAt: stamp, publishedAt: null, scheduledAt: null }, seo: { ...adapted.seo, noindex: true } }, current ? guides.indexOf(current) : guides.length);
+  const parentGuideSlug = cruisingAreaSlug(record, records);
+  const canonicalPath = record.guideType === "Cruising Area" && record.slug === regionKey
+    ? `/guides/${regionKey}`
+    : publicPath(record.slug, regionKey);
+  const adapted = adaptManagedGuideForRenderer({ ...(current || {}), ...managed, externalId: record.externalId, slug: record.slug, title: record.title, guideType: record.guideType as GuideType, regionKey, regionName: record.region?.name || "", subregion: record.region?.area || record.area || "", area: record.region?.area || record.area, parentGuideId: record.region?.parentGuideId || record.parentGuideId, parentGuideSlug, editorialOrder: current?.editorialOrder ?? recordIndex, canonicalPath });
+  return normalizeStoredGuide({ ...(current || {}), ...adapted, id: current?.id || makeId("guide"), internalId: current?.internalId || nextInternalId(guides), externalId: record.externalId, slug: record.slug, title: record.title, status: "draft", noindex: true, showOnHomepage: false, homepageOrder: 0, canonicalPath, imageUrl: adapted.imageUrl || "", imageAlt: adapted.imageAlt || "", updatedAt: stamp, publication: { createdAt: current?.publication?.createdAt || stamp, updatedAt: stamp, publishedAt: null, scheduledAt: null }, seo: { ...adapted.seo, noindex: true } }, current ? guides.indexOf(current) : guides.length);
 }
 
 export async function confirmGuideImport(planToken: string, actor: string) {
@@ -304,7 +325,7 @@ export async function confirmGuideImport(planToken: string, actor: string) {
       const current = plan.mode === "update-draft" ? guides.find((guide) => guide.externalId === record.externalId) || null : null;
       if (plan.mode === "update-draft" && (!current || current.status !== "draft" || current.updatedAt !== record.updatedAt)) throw new GuideManagementError("An update target changed after validation. Nothing was imported.", 409);
       if (plan.mode === "create-draft" && guides.some((guide) => guide.externalId === record.externalId || guide.slug === record.slug)) throw new GuideManagementError("A create target now conflicts with an existing Guide. Nothing was imported.", 409);
-      const next = importedGuide(record, current, guides);
+      const next = importedGuide(record, current, guides, plan.records, index);
       revisions.push({ id: makeId("guide-revision"), guideId: identity(next), snapshot: current || next, actor: actor || "Bridge editor", reason: `Bulk Draft import ${current ? "update" : "create"} (${record.externalId}; plan ${plan.planToken})`, source: plan.source, createdAt: nowIso() });
       storedGuides = [next, ...storedGuides.filter((guide) => current ? identity(guide) !== identity(current) : guide.slug !== next.slug)];
       guides = [next, ...guides.filter((guide) => current ? identity(guide) !== identity(current) : guide.slug !== next.slug)];

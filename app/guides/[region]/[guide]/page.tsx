@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { GuidePublicContent } from "../../../../components/GuidePublicContent.tsx";
 import { JsonLd } from "../../../../components/JsonLd.tsx";
 import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 import { publicNavigationLinks } from "../../../../content/sections.ts";
-import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath } from "../../../../lib/guides.ts";
+import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../../lib/structured-data.ts";
@@ -49,6 +49,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
     getPublishedGuides(),
   ]);
   if (!guide || guide.regionKey !== region) notFound();
+  if (guidePublicPath(guide) === guideRegionPath(region)) redirect(guideRegionPath(region));
   const publishedProductGuides = guideProductRecords(allPublished);
   const path = guidePublicPath(guide);
   const placeJsonLd = guidePlaceJsonLd(guide);

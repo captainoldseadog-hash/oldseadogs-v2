@@ -27,6 +27,7 @@ export type ManagedGuideFields = {
   externalId?: string;
   area?: string;
   parentGuideId?: string;
+  parentGuideSlug?: string;
   editorial?: {
     standfirst?: string;
     introduction?: string;
@@ -123,6 +124,7 @@ export type GuideDraftContractRecord = ManagedGuideFields & {
     name?: string;
     area?: string;
     parentGuideId?: string;
+    parentGuideSlug?: string;
   };
 };
 
@@ -177,6 +179,7 @@ export function normalizeManagedGuideFields(value: Partial<ManagedGuideFields>):
     externalId: cleanString(value.externalId, 200) || undefined,
     area: cleanString(value.area, 500) || undefined,
     parentGuideId: cleanString(value.parentGuideId, 200) || undefined,
+    parentGuideSlug: cleanString(value.parentGuideSlug, 200) || undefined,
     editorial: editorial ? {
       standfirst: cleanString(editorial.standfirst) || undefined,
       introduction: cleanString(editorial.introduction) || undefined,

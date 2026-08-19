@@ -363,6 +363,28 @@
   background: #edf1ed;
 }
 
+.guide-image-pending {
+  align-items: center;
+  background: #f0ebe1;
+  border: 1px dashed rgba(18, 41, 49, 0.35);
+  color: #17323a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 24rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.guide-image-pending span {
+  color: #9c432e;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.65rem;
+  text-transform: uppercase;
+}
+
 .guide-product-hero img {
   display: block;
   width: 100%;

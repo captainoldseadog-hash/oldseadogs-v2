@@ -1,7 +1,10 @@
 import type { EditableGuide } from "./site-content.ts";
 import { absoluteUrl } from "./seo.ts";
 
-export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath">) {
+export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug">) {
+  if (guide.guideType === "Cruising Area" && guide.slug === guide.regionKey && !guide.parentGuideSlug) {
+    return guideRegionPath(guide.regionKey);
+  }
   if (guide.canonicalPath?.startsWith("/guides/")) return guide.canonicalPath;
   return guide.regionKey
     ? `/guides/${guide.regionKey}/${guide.slug}`
@@ -13,13 +16,35 @@ export function guideRegionPath(regionKey: string) {
 }
 
 export function guideProductRecords(guides: readonly EditableGuide[]) {
-  return guides
-    .filter((guide) => /^OSD-G\d+$/i.test(guide.internalId) && guide.regionKey)
+  const productGuides = guides.filter((guide) => /^OSD-G\d+$/i.test(guide.internalId) && guide.regionKey);
+  const regionOrder = new Map<string, number>();
+  for (const guide of productGuides) {
+    const sequence = Number(guide.internalId.match(/\d+/)?.[0] || Number.MAX_SAFE_INTEGER);
+    regionOrder.set(guide.regionKey, Math.min(regionOrder.get(guide.regionKey) ?? Number.MAX_SAFE_INTEGER, sequence));
+  }
+  return productGuides
     .sort((left, right) =>
-      left.regionName.localeCompare(right.regionName)
+      (regionOrder.get(left.regionKey) ?? Number.MAX_SAFE_INTEGER) - (regionOrder.get(right.regionKey) ?? Number.MAX_SAFE_INTEGER)
       || left.editorialOrder - right.editorialOrder
       || left.title.localeCompare(right.title)
     );
+}
+
+export function guideCruisingArea(regionKey: string, guides: readonly EditableGuide[]) {
+  return guides.find((guide) =>
+    guide.regionKey === regionKey
+    && guide.guideType === "Cruising Area"
+    && !guide.parentGuideSlug
+    && guide.slug === regionKey
+  ) || null;
+}
+
+export function guideAreaChildren(area: EditableGuide, guides: readonly EditableGuide[]) {
+  return guides.filter((guide) =>
+    guide.slug !== area.slug
+    && guide.regionKey === area.regionKey
+    && (guide.parentGuideSlug === area.slug || guide.parentGuideId === area.id || guide.parentGuideId === area.externalId)
+  );
 }
 
 export function relatedGuides(
