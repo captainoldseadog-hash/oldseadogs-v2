@@ -48,7 +48,7 @@ for (const target of [archivePath, checksumPath, packageDir]) {
 }
 
 const { stdout: statusOutput } = await execFileAsync("git", ["status", "--porcelain=v1", "--untracked-files=all"], { cwd: projectDir });
-const unexpectedChanges = statusOutput.trim().split("\n").filter(Boolean).filter((line) => line.slice(3) !== allowedWorkingTreeChange);
+const unexpectedChanges = statusOutput.trimEnd().split("\n").filter(Boolean).filter((line) => line.slice(3) !== allowedWorkingTreeChange);
 if (unexpectedChanges.length) {
   throw new Error(`Package only from the committed tree. Unexpected changes:\n${unexpectedChanges.join("\n")}`);
 }
