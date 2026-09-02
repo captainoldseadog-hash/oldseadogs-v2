@@ -10,6 +10,9 @@ import { startEditorStoreWorker } from "./helpers/worker-fetch-client.mjs";
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const storeFixturePath = path.join(projectDir, "tests/fixtures/guide-management-characterisation-editor-store.json");
 const pooleFixturePath = path.join(projectDir, "tests/fixtures/poole-harbour-oldseadogs-guide-batch-create-draft-v1.json");
+const releaseFixturePath = path.join(projectDir, "release/poole-harbour-guides/poole-harbour-oldseadogs-guide-batch-create-draft-v1.json");
+const mediaManifestPath = path.join(projectDir, "release/poole-harbour-guides/media-manifest.json");
+const mediaSourceDir = path.join(projectDir, "release/poole-harbour-guides/images");
 const expectedSlugs = [
   "poole-harbour",
   "poole-quay-boat-haven",
@@ -27,6 +30,7 @@ let dataDir;
 let storePath;
 let fixtureText;
 let fixture;
+let mediaManifest;
 let imported;
 
 async function readStore() { return JSON.parse(await fs.readFile(storePath, "utf8")); }
@@ -40,9 +44,16 @@ async function post(payload, expectedStatus = 200) {
   return response.json();
 }
 
+async function postForm(url, form, expectedStatus = 200) {
+  const response = await controller.fetch(`http://localhost${url}`, { method: "POST", body: form });
+  assert.equal(response.status, expectedStatus, await response.clone().text());
+  return response.json();
+}
+
 before(async () => {
   fixtureText = await fs.readFile(pooleFixturePath, "utf8");
   fixture = JSON.parse(fixtureText);
+  mediaManifest = JSON.parse(await fs.readFile(mediaManifestPath, "utf8"));
   dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "oldseadogs-poole-guides-"));
   storePath = path.join(dataDir, "editor-store.json");
   await fs.copyFile(storeFixturePath, storePath);
@@ -58,8 +69,9 @@ after(async () => {
   await fs.rm(dataDir, { recursive: true, force: true });
 });
 
-test("the byte-verified Poole batch is the approved nine-record Draft contract", () => {
+test("the byte-verified Poole batch and nine supplied images form the approved handoff", async () => {
   assert.equal(crypto.createHash("sha256").update(fixtureText).digest("hex"), "b10ac5e5d3122cf31da39a9aaa71e911a12b937d884a771584de9aaab4cad078");
+  assert.equal(await fs.readFile(releaseFixturePath, "utf8"), fixtureText, "the release handoff must retain the approved batch byte-for-byte");
   assert.deepEqual(
     { contract: fixture.contract, version: fixture.version, mode: fixture.mode },
     { contract: "oldseadogs.guide-draft", version: 1, mode: "create-draft" },
@@ -73,13 +85,81 @@ test("the byte-verified Poole batch is the approved nine-record Draft contract",
   assert.equal(unresolved.filter((issue) => issue.severity === "editorial" && issue.field === "media.heroImage").length, 9);
   assert.equal(fixture.guides.every((guide) => !guide.media?.heroImage), true);
   assert.equal(JSON.stringify(fixture).includes('"publish"'), false);
+  assert.equal(mediaManifest.schema, "oldseadogs.guide-media-handoff");
+  assert.equal(mediaManifest.images.length, 9);
+  assert.deepEqual(mediaManifest.images.map((image) => image.guideSlug), expectedSlugs);
+  assert.equal(new Set(mediaManifest.images.map((image) => image.filename)).size, 9);
+  assert.equal(mediaManifest.images.every((image) => image.credit === "" && image.alt.trim() && image.caption.trim()), true);
+  for (const image of mediaManifest.images) {
+    const bytes = await fs.readFile(path.join(mediaSourceDir, image.filename));
+    assert.equal(bytes.byteLength, image.bytes, `${image.filename} byte size`);
+    assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), image.sha256, `${image.filename} SHA-256`);
+  }
 });
 
-test("Poole dry run writes nothing and confirmation atomically creates nine private Drafts", async () => {
+test("real Media Library uploads resolve and confirmation atomically creates nine illustrated private Drafts", async () => {
+  const uploadedBySlug = new Map();
+  for (const image of mediaManifest.images) {
+    const bytes = await fs.readFile(path.join(mediaSourceDir, image.filename));
+    const form = new FormData();
+    form.append("action", "uploadMedia");
+    form.append("photo", new File([bytes], image.filename, { type: "image/png" }));
+    form.append("alt", image.alt);
+    const upload = await postForm("/api/editor/media/upload", form);
+    assert.match(upload.mediaId, /^media_/);
+    assert.equal(upload.mediaUrl, `/api/media/${upload.mediaId}`);
+    assert.equal(upload.media.width, image.width);
+    assert.equal(upload.media.height, image.height);
+    const updated = await post({
+      action: "updateMedia",
+      id: upload.mediaId,
+      media: {
+        displayName: image.guideTitle,
+        internalTitle: `${image.guideTitle} Guide hero`,
+        alt: image.alt,
+        description: image.alt,
+        caption: image.caption,
+        credit: image.credit,
+        creditLine: image.credit,
+        collectionsJson: JSON.stringify(["Poole Harbour Guides"]),
+      },
+    });
+    assert.equal(updated.media.caption, image.caption);
+    assert.equal(updated.media.credit, image.credit);
+    uploadedBySlug.set(image.guideSlug, updated.media);
+  }
+
+  const completedFixture = structuredClone(fixture);
+  for (const guide of completedFixture.guides) {
+    const image = mediaManifest.images.find((item) => item.guideSlug === guide.slug);
+    const media = uploadedBySlug.get(guide.slug);
+    assert.ok(image && media, `missing mapped Media Library upload for ${guide.slug}`);
+    guide.media = {
+      ...(guide.media || {}),
+      heroImage: {
+        mediaId: media.id,
+        url: media.url,
+        alt: image.alt,
+        caption: image.caption,
+        credit: image.credit,
+        focalPoint: image.focalPoint,
+      },
+    };
+    guide.verification.unresolved = guide.verification.unresolved.filter(
+      (issue) => !(issue.severity === "editorial" && issue.field === "media.heroImage"),
+    );
+  }
+  const completedFixtureText = JSON.stringify(completedFixture);
+  const completedUnresolved = completedFixture.guides.flatMap((guide) => guide.verification.unresolved);
+  assert.equal(completedUnresolved.filter((issue) => issue.severity === "safety").length, 16);
+  assert.equal(completedUnresolved.filter((issue) => issue.severity === "editorial" && issue.field === "media.heroImage").length, 0);
+
   const beforeText = await fs.readFile(storePath, "utf8");
   const before = JSON.parse(beforeText);
-  const dryRun = await post({ action: "validateGuideImport", format: "json", mode: "create-draft", content: fixtureText });
-  assert.deepEqual(dryRun.plan.summary, { total: 9, valid: 9, warnings: 9, blocked: 0, creates: 9, updates: 0, duplicates: 0 });
+  const dryRun = await post({ action: "validateGuideImport", format: "json", mode: "create-draft", content: completedFixtureText });
+  assert.deepEqual(dryRun.plan.summary, { total: 9, valid: 9, warnings: 8, blocked: 0, creates: 9, updates: 0, duplicates: 0 });
+  assert.equal(dryRun.plan.items.every((item) => item.mediaStatus === "valid"), true);
+  assert.equal(dryRun.plan.items.flatMap((item) => item.warnings).some((warning) => /No hero image is supplied/.test(warning)), false);
   assert.equal(await fs.readFile(storePath, "utf8"), beforeText, "Validate / Dry Run must perform zero writes");
 
   const confirmation = await post({ action: "confirmGuideImport", planToken: dryRun.plan.planToken });
@@ -89,7 +169,11 @@ test("Poole dry run writes nothing and confirmation atomically creates nine priv
   assert.equal(imported.every((guide) => guide.status === "draft" && guide.noindex && guide.seo.noindex), true);
   assert.equal(imported.every((guide) => !guide.showOnHomepage && guide.homepageOrder === 0), true);
   assert.equal(imported.every((guide) => guide.publication.publishedAt === null && guide.publication.scheduledAt === null), true);
-  assert.equal(imported.every((guide) => !guide.media?.heroImage && !guide.imageUrl), true);
+  assert.equal(imported.every((guide) => guide.media?.heroImage?.mediaId && guide.imageUrl === guide.media.heroImage.url), true);
+  assert.equal(imported.every((guide) => guide.imageAlt === guide.media.heroImage.alt && guide.imageCaption === guide.media.heroImage.caption), true);
+  assert.equal(imported.every((guide) => (guide.imageCredit || "") === "" && (guide.media.heroImage.credit || "") === ""), true);
+  assert.equal(imported.flatMap((guide) => guide.verification.unresolved).filter((issue) => issue.severity === "safety").length, 16);
+  assert.equal(imported.flatMap((guide) => guide.verification.unresolved).filter((issue) => issue.field === "media.heroImage").length, 0);
   assert.equal(imported[0].parentGuideSlug, "");
   assert.equal(imported.slice(1).every((guide) => guide.parentGuideSlug === "poole-harbour"), true);
   assert.equal(imported[0].canonicalPath, "/guides/poole-harbour");
@@ -100,6 +184,21 @@ test("Poole dry run writes nothing and confirmation atomically creates nine priv
   assert.deepEqual(storyState(stored.stories), storyState(before.stories), "Guide import must not change story records or workflows");
   assert.deepEqual(stored.settings, before.settings, "Guide import must not change Homepage Manager settings");
   assert.equal(stored.guides.filter((guide) => guide.regionKey === "poole-harbour").length, 9);
+  const uploadedIds = new Set([...uploadedBySlug.values()].map((media) => media.id));
+  assert.equal(stored.media.filter((media) => uploadedIds.has(media.id)).length, 9);
+  assert.equal(stored.media.filter((media) => media.collectionsJson === '["Poole Harbour Guides"]').length, 9);
+  for (const guide of imported) {
+    const response = await controller.fetch(`http://localhost${guide.imageUrl}`);
+    assert.equal(response.status, 200, `${guide.title} media reference must resolve`);
+    assert.equal(response.headers.get("content-type"), "image/webp");
+  }
+
+  const safetyBlockedGuide = imported.find((guide) => guide.verification.unresolved.some((issue) => issue.severity === "safety"));
+  assert.ok(safetyBlockedGuide, "at least one imported Guide must retain a safety publication blocker");
+  const blockedPublish = await post({ action: "publishGuide", id: safetyBlockedGuide.id, expectedUpdatedAt: safetyBlockedGuide.updatedAt }, 400);
+  assert.match(blockedPublish.error, /Resolve all safety-critical navigation uncertainties/);
+  assert.equal((await readStore()).guides.find((guide) => guide.id === safetyBlockedGuide.id).status, "draft");
+  assert.equal((await readStore()).guides.filter((guide) => guide.regionKey === "poole-harbour").every((guide) => guide.status === "draft"), true);
 });
 
 test("relationship helpers support Poole and a future third area without a new route", () => {
