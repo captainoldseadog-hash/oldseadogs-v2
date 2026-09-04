@@ -517,11 +517,10 @@ test("public routes expose search, section navigation, onward routes, privacy ma
   assert.match(landing, /Practical marina, harbour and cruising information/);
   assert.doesNotMatch(landing, /guide-library-hero-image|Featured Guide · The opening chapter/);
   assert.match(collections, /Marina Guides/);
-  assert.match(landing, /href="\/guides\?type=Marina#guide-library"/);
-  assert.match(landing, /Marina &amp; Harbour Guides/);
-  assert.match(landing, /Browse by region/);
-  assert.match(landing, /Browse rivers and anchorages/);
-  assert.match(landing, /hamble-point-marina/);
+  assert.match(landing, /Where do you want to sail/);
+  assert.match(landing, /guideDiscoveryAreas/);
+  assert.match(landing, /Start with the water/);
+  assert.match(landing, /Find a particular harbour, marina or destination/);
   assert.doesNotMatch(landing, /Useful sailing pages|rewritten noise/);
   assert.match(landing, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(region, /Browse by type/);

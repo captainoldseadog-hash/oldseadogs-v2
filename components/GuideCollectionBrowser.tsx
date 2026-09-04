@@ -8,6 +8,7 @@ export type GuideBrowserItem = {
   title: string;
   summary: string;
   guideType: string;
+  regionKey: string;
   regionName: string;
   path: string;
   imageUrl: string;
@@ -27,21 +28,29 @@ export function GuideCollectionBrowser({
 }) {
   const [query, setQuery] = useState("");
   const [guideType, setGuideType] = useState(initialGuideType);
+  const [regionKey, setRegionKey] = useState("All");
   const guideTypes = useMemo(
     () => [...new Set(guides.map((guide) => guide.guideType))].sort(),
+    [guides],
+  );
+  const regions = useMemo(
+    () => [...new Map(guides.map((guide) => [guide.regionKey, guide.regionName])).entries()]
+      .filter(([key, name]) => String(key || "").trim() && String(name || "").trim())
+      .sort((left, right) => left[1].localeCompare(right[1])),
     [guides],
   );
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return guides.filter((guide) => {
       const matchesType = guideType === "All" || guide.guideType === guideType;
+      const matchesRegion = regionKey === "All" || guide.regionKey === regionKey;
       const matchesQuery = !needle
         || `${guide.title} ${guide.summary} ${guide.guideType} ${guide.regionName}`
           .toLowerCase()
           .includes(needle);
-      return matchesType && matchesQuery;
+      return matchesType && matchesRegion && matchesQuery;
     });
-  }, [guideType, guides, query]);
+  }, [guideType, guides, query, regionKey]);
 
   return (
     <section className="guide-browser" id="guide-library" aria-labelledby="guide-browser-title">
@@ -61,6 +70,13 @@ export function GuideCollectionBrowser({
           />
         </label>
         <label>
+          <span>Choose a cruising area</span>
+          <select value={regionKey} onChange={(event) => setRegionKey(event.target.value)}>
+            <option value="All">All cruising areas</option>
+            {regions.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+          </select>
+        </label>
+        <label>
           <span>Browse by Guide type</span>
           <select value={guideType} onChange={(event) => setGuideType(event.target.value)}>
             <option value="All">All published types</option>
@@ -69,7 +85,8 @@ export function GuideCollectionBrowser({
         </label>
       </div>
       <p className="guide-browser-status" aria-live="polite">
-        {guideType === "All" ? "The published library" : guideType} · {filtered.length} {filtered.length === 1 ? "Guide" : "Guides"}
+        {regionKey === "All" ? "The published library" : regions.find(([key]) => key === regionKey)?.[1]}
+        {guideType === "All" ? "" : ` · ${guideType}`} · {filtered.length} {filtered.length === 1 ? "Guide" : "Guides"}
       </p>
       {filtered.length ? (
         <>

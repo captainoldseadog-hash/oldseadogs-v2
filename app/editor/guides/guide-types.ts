@@ -3,7 +3,7 @@ import type { ManagedGuideFields } from "../../../lib/guide-contract";
 
 export type GuideStatus = "draft" | "published" | "unpublished";
 
-export type GuideSection = { id?: string; heading: string; body: string[] };
+export type GuideSection = { id?: string; heading: string; body: string[]; links?: Array<{ label: string; guideSlug: string }> };
 
 export type GuideImage = {
   mediaId?: string;

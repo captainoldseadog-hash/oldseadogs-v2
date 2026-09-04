@@ -11,7 +11,6 @@ import { publicNavigationLinks } from "../../../content/sections.ts";
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
-  guideAreaChildren,
   guideCruisingArea,
   guidePlaceJsonLd,
   guideCollectionJsonLd,
@@ -96,14 +95,15 @@ export default async function RegionPage({ params }: RegionPageProps) {
 
   const regionName = regional[0].regionName;
   const areaGuide = guideCruisingArea(region, regional);
-  const areaChildren = areaGuide ? guideAreaChildren(areaGuide, regional) : [];
   if (areaGuide) {
     const placeJsonLd = guidePlaceJsonLd(areaGuide);
-    const childItems = areaChildren.map((guide) => ({
+    const collectionGuides = regional.filter((guide) => guide.slug !== areaGuide.slug);
+    const childItems = collectionGuides.map((guide) => ({
       slug: guide.slug,
       title: guide.title,
       summary: guide.summary,
       guideType: guide.guideType,
+      regionKey: guide.regionKey,
       regionName: guide.regionName,
       path: guidePublicPath(guide),
       imageUrl: guide.imageUrl,
@@ -114,7 +114,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
         <JsonLd data={[
           guideArticleJsonLd(areaGuide),
           ...(placeJsonLd ? [placeJsonLd] : []),
-          guideCollectionJsonLd(regionName, areaChildren),
+          guideCollectionJsonLd(regionName, collectionGuides),
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: "Guides", path: "/guides" },
@@ -138,6 +138,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
     title: guide.title,
     summary: guide.summary,
     guideType: guide.guideType,
+    regionKey: guide.regionKey,
     regionName: guide.regionName,
     path: guidePublicPath(guide),
     imageUrl: guide.imageUrl,

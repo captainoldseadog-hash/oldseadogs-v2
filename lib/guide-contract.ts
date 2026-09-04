@@ -31,7 +31,7 @@ export type ManagedGuideFields = {
   editorial?: {
     standfirst?: string;
     introduction?: string;
-    sections?: Array<{ id?: string; heading: string; body: string[] }>;
+    sections?: Array<{ id?: string; heading: string; body: string[]; links?: Array<{ label: string; guideSlug: string }> }>;
     oldSeaDogsView?: string[];
     practicalNotes?: string[];
     localKnowledge?: string[];
@@ -184,7 +184,14 @@ export function normalizeManagedGuideFields(value: Partial<ManagedGuideFields>):
       standfirst: cleanString(editorial.standfirst) || undefined,
       introduction: cleanString(editorial.introduction) || undefined,
       sections: Array.isArray(editorial.sections) ? editorial.sections.flatMap((section) => isObject(section) && cleanString(section.heading, 500)
-        ? [{ id: cleanString(section.id, 200) || undefined, heading: cleanString(section.heading, 500), body: cleanStrings(section.body) }]
+        ? [{
+            id: cleanString(section.id, 200) || undefined,
+            heading: cleanString(section.heading, 500),
+            body: cleanStrings(section.body),
+            links: Array.isArray(section.links) ? section.links.flatMap((link) => isObject(link) && cleanString(link.label, 300) && cleanString(link.guideSlug, 200)
+              ? [{ label: cleanString(link.label, 300), guideSlug: cleanString(link.guideSlug, 200) }]
+              : []) : undefined,
+          }]
         : []) : undefined,
       oldSeaDogsView: cleanStrings(editorial.oldSeaDogsView),
       practicalNotes: cleanStrings(editorial.practicalNotes),

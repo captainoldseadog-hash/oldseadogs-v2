@@ -85,10 +85,9 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Old Sea Dogs Guides/);
   assert.match(landingHtml, /Practical marina, harbour and cruising information/);
   assert.doesNotMatch(landingHtml, /guide-library-hero-image|Featured Guide · The opening chapter/);
-  assert.match(landingHtml, /Marina &amp; Harbour Guides/);
-  assert.match(landingHtml, /href="\/guides\?type=Marina#guide-library"/);
-  assert.match(landingHtml, /Browse by region/);
-  assert.match(landingHtml, /Browse rivers and anchorages/);
+  assert.match(landingHtml, /Where do you want to sail/);
+  assert.match(landingHtml, /Start with the water/);
+  assert.match(landingHtml, /Find a particular harbour, marina or destination/);
   assert.match(landingHtml, /Hamble Point Marina/);
   assert.match(landingHtml, /River Hamble/);
   assert.match(landingHtml, /Cowes/);
@@ -104,9 +103,9 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   const region = await request("/guides/solent");
   assert.equal(region.status, 200);
   const regionHtml = await region.text();
-  assert.match(regionHtml, /Browse by type/);
-  assert.match(regionHtml, /Browse all Guides/);
-  assert.match(regionHtml, /View on map/);
+  assert.match(regionHtml, /Guide relationships/);
+  assert.match(regionHtml, /In this collection/);
+  assert.match(regionHtml, /Explore The Solent/);
   assert.match(regionHtml, /River Hamble/);
 
   for (const record of solentMarinaGuideRecords) {
@@ -280,7 +279,8 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(portsmouthHtml, /Haslar Marina/);
   assert.match(portsmouthHtml, /Gosport Marina/);
   assert.match(portsmouthHtml, /Port Solent/);
-  assert.match(portsmouthHtml, /Diesel and petrol are available at Port Solent Marina and Gosport Marina/);
+  assert.match(portsmouthHtml, /href="\/guides\/solent\/port-solent-marina"[^>]*>Port Solent Marina<\/a>/);
+  assert.match(portsmouthHtml, /href="\/guides\/solent\/gosport-marina"[^>]*>Gosport Marina<\/a>/);
   assert.match(portsmouthHtml, /guide-section-navigation guide-section-navigation--wrapped/);
   assert.match(portsmouthHtml, /portsmouth-navigation-warning-panel/);
   assert.match(portsmouthHtml, /portsmouth-information-panel/);
