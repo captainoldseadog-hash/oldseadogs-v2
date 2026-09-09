@@ -16,6 +16,12 @@ type StructuredStory = {
   updatedAt: string;
 };
 
+type StructuredImage = {
+  url: string;
+  width?: number;
+  height?: number;
+};
+
 export const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -66,7 +72,7 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   };
 }
 
-export function articleJsonLd(story: StructuredStory, hasImage: boolean) {
+export function articleJsonLd(story: StructuredStory, image?: StructuredImage) {
   const authorName = story.author.trim() || "Michael Hodges";
   const author = authorName.toLowerCase() === siteName.toLowerCase()
     ? {
@@ -92,7 +98,12 @@ export function articleJsonLd(story: StructuredStory, hasImage: boolean) {
     datePublished: story.publishedAt || story.date,
     dateModified: story.updatedAt || story.publishedAt || story.date,
     mainEntityOfPage: absoluteUrl(`/stories/${story.slug}`),
-    image: hasImage ? [absoluteUrl(story.imageUrl)] : undefined,
+    image: image ? [{
+      "@type": "ImageObject",
+      url: absoluteUrl(image.url),
+      ...(image.width ? { width: image.width } : {}),
+      ...(image.height ? { height: image.height } : {}),
+    }] : undefined,
     author,
     publisher: {
       "@type": "Organization",

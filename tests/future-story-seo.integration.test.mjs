@@ -166,6 +166,8 @@ before(async () => {
       originalKey: `local:${mediaId}:original`,
       webKey: `local:${mediaId}:web`,
       url: leadImage,
+      width: 1600,
+      height: 900,
       createdAt: publishedAt,
       updatedAt,
     }]), null, 2)}\n`,
@@ -205,7 +207,15 @@ test("a normal future published story is automatically indexable, server rendere
   assert.ok(article, "Article or NewsArticle JSON-LD must be present");
   assert.equal(article.headline, "Future published story SEO proof");
   assert.equal(article.description, "A representative future Old Sea Dogs story proving automatic search indexing, metadata and sitemap inclusion.");
-  assert.deepEqual(article.image, [`https://oldseadogs.com${leadImage}`]);
+  assert.deepEqual(article.image, [{
+    "@type": "ImageObject",
+    url: `https://oldseadogs.com${leadImage}?variant=original`,
+    width: 1600,
+    height: 900,
+  }]);
+  assert.match(html, new RegExp(`property=["']og:image["'] content=["']https://oldseadogs\\.com${leadImage.replaceAll("/", "\\/")}\\?variant=original["']`));
+  assert.match(html, /property=["']og:image:width["'] content=["']1600["']/);
+  assert.match(html, /property=["']og:image:height["'] content=["']900["']/);
   assert.equal(article.datePublished, publishedAt);
   assert.equal(article.dateModified, updatedAt);
   assert.equal(article.author?.name, "Michael Hodges");

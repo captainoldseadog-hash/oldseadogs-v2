@@ -56,12 +56,15 @@ function sectionForStory(story: EditableStory) {
   return oldSeaDogsSections.find((section) => storyMatchesSection(story, section));
 }
 
-function overlapScore(a: EditableStory, b: EditableStory) {
-  const aTokens = new Set(
-    searchTokens(`${a.title} ${a.summary} ${a.tags.join(" ")}`).filter(
+function storyMatchTokens(story: EditableStory) {
+  return new Set(
+    searchTokens(`${story.title} ${story.summary} ${story.tags.join(" ")}`).filter(
       (token) => token.length > 3
     )
   );
+}
+
+function overlapScore(a: EditableStory, aTokens: ReadonlySet<string>, b: EditableStory) {
   const bText = storyText(b);
   let score = 0;
 
@@ -98,9 +101,10 @@ export function findRelatedStories(
   stories: EditableStory[],
   limit = 4
 ) {
+  const currentTokens = storyMatchTokens(current);
   return stories
     .filter((story) => story.slug !== current.slug)
-    .map((story) => ({ story, score: overlapScore(current, story) }))
+    .map((story) => ({ story, score: overlapScore(current, currentTokens, story) }))
     .filter((item) => item.score > 2)
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
@@ -133,12 +137,13 @@ function detectRaceTopic(story: EditableStory) {
 
 export function getInternalLinkGroups(
   current: EditableStory,
-  stories: EditableStory[]
+  stories: EditableStory[],
+  options: { relatedStories?: EditableStory[] } = {},
 ): InternalLinkGroup[] {
   const groups: InternalLinkGroup[] = [];
   const section = sectionForStory(current);
 
-  const related = findRelatedStories(current, stories, 4);
+  const related = options.relatedStories?.slice(0, 4) || findRelatedStories(current, stories, 4);
   if (related.length > 0) {
     groups.push({
       title: section ? `Related ${section.label.toLowerCase()} stories` : "Related stories",

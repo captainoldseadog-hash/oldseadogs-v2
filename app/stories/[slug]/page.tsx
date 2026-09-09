@@ -26,12 +26,14 @@ import {
 } from "../../../lib/internal-links";
 import {
   getActiveAds,
+  getMediaAsset,
   getPublishedStories,
   getStoryBySlug,
   getSiteSettings,
   hasStoryPhoto,
   isStorySearchIndexable,
 } from "../../../lib/site-content";
+import { publicMediaVariantUrl } from "../../../lib/public-media";
 import {
   adsenseClientId,
   adsenseEnabled,
@@ -54,6 +56,21 @@ type StoryPageProps = {
     slug: string;
   }>;
 };
+
+function mediaIdFromPublicUrl(value: string) {
+  return value.match(/^\/api\/media\/([^/?#]+)/)?.[1] || "";
+}
+
+async function storyImageDetails(imageUrl: string) {
+  if (!imageUrl) return null;
+  const mediaId = mediaIdFromPublicUrl(imageUrl);
+  const media = mediaId ? await getMediaAsset(mediaId) : null;
+  return {
+    url: publicMediaVariantUrl(imageUrl, "original"),
+    width: media && media.width > 0 ? media.width : undefined,
+    height: media && media.height > 0 ? media.height : undefined,
+  };
+}
 
 function VenuePracticalPanel({ details }: { details: VenueDetails }) {
   const hasContact =
@@ -302,6 +319,8 @@ export async function generateMetadata({
     };
   }
 
+  const image = hasStoryPhoto(story) ? await storyImageDetails(story.imageUrl) : null;
+
   return createPageMetadata({
     title: story.title,
     description: story.summary,
@@ -310,7 +329,9 @@ export async function generateMetadata({
     noIndexFollow: true,
     image: hasStoryPhoto(story)
       ? {
-          url: story.imageUrl,
+          url: image?.url || story.imageUrl,
+          width: image?.width,
+          height: image?.height,
           alt: story.imageAlt || story.title,
         }
       : { url: settings.defaultSocialImageUrl, alt: "Old Sea Dogs" },
@@ -327,10 +348,11 @@ export default async function StoryPage({ params }: StoryPageProps) {
   }
 
   const [allStories, ads] = await Promise.all([getPublishedStories(), getActiveAds()]);
-  const internalLinkGroups = getInternalLinkGroups(story, allStories);
   const relatedStories = findRelatedStories(story, allStories, 6);
+  const internalLinkGroups = getInternalLinkGroups(story, allStories, { relatedStories });
   const storyHasPhoto = hasStoryPhoto(story);
   const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+  const storyImage = storyHasPhoto ? await storyImageDetails(story.imageUrl) : null;
   const clubProfile = getClubProfileForStory(story);
   const articleBody = clubProfile ? getClubProfileArticleBody(clubProfile) : story.body;
   const venueDetails = getVenueDetails(story);
@@ -340,7 +362,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
     <main className="article-shell">
       <JsonLd
         data={[
-          articleJsonLd(story, storyHasPhoto),
+          articleJsonLd(story, storyImage || undefined),
           michaelHodgesPersonJsonLd,
           breadcrumbJsonLd([
             { name: "Home", path: "/" },

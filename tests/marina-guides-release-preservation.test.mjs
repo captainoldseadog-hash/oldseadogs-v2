@@ -17,14 +17,14 @@ const protectedFiles = {
   // Phase 3 adds only authenticated Guide Draft import validation/confirmation to the approved editor route.
   "app/api/editor/route.ts": "9ddae5f3be2432c410afc80a1ed3c528e796b0fd8a484a8ba70ab8ee34883cbc",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
-  // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
-  "app/stories/[slug]/page.tsx": "915ea6f48a019eefece8cab35aab86ed9c9a0ba2fd566e6d5571af5644fa0aa0",
+  // Discover audit: retain responsive rendering and the CMS-dimensioned original social image.
+  "app/stories/[slug]/page.tsx": "6d9425fac10d5a1cc76f7faee730e08ceb7d361dda0cd4e40088e3ece66fa67d",
   // Poole: area-root canonicals are emitted once through the regional sitemap entry.
   "app/sitemap.ts": "6656a11ef5c0823de5f821a7bceeba2ca59e02679996515ea2ec27148f6411e7",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
-  // Option C: approved persistent consent with local-storage and first-party-cookie recovery.
-  "components/CookieConsent.tsx": "5392cc363a550850bd826102b739157835abbee83c4612e7451e1be9c901b10f",
+  // Option C follow-up: retain current/legacy recovery and a cookie spanning bare/www hosts.
+  "components/CookieConsent.tsx": "f102748f9ae7cfce13e38bdb62771af5c98db2f126cd7e96dbc2dbd24dfd79b5",
   "package.json": "807aec43bfaf6df71bb8217b527b547aeafa31dc369244e7e7f5d8c5bb30a8ef",
 };
 

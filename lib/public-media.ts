@@ -7,7 +7,7 @@ const mobileMediaVariants: Record<string, string> = {
     "/images/guides/guides-solent-needles-mobile.webp",
 };
 
-export function publicMediaVariantUrl(url: string, variant: "web" | "thumbnail" | "mobile") {
+export function publicMediaVariantUrl(url: string, variant: "original" | "web" | "thumbnail" | "mobile") {
   if (variant === "mobile" && mobileMediaVariants[url]) {
     return mobileMediaVariants[url];
   }

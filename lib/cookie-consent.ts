@@ -6,22 +6,31 @@ export type ConsentChoice = {
 };
 
 export const consentStorageKey = "oldseadogs_cookie_consent_v1";
+export const legacyConsentStorageKey = "oldseadogs_cookie_consent_v2";
 export const consentCookieName = "oldseadogs_cookie_consent";
 export const consentMaxAgeSeconds = 31_536_000;
+
+type PersistedConsentChoice = Omit<Partial<ConsentChoice>, "version"> & {
+  version?: number;
+  expiresAt?: string;
+};
 
 export function parseConsentChoice(raw: string | null | undefined, now = Date.now()): ConsentChoice | null {
   if (!raw) return null;
   try {
-    const value = JSON.parse(raw) as Partial<ConsentChoice>;
+    const value = JSON.parse(raw) as PersistedConsentChoice;
     const decidedAt = typeof value.decidedAt === "string" ? Date.parse(value.decidedAt) : Number.NaN;
-    const isCurrentVersion = value.version === undefined || value.version === 1;
+    const expiresAt = typeof value.expiresAt === "string" ? Date.parse(value.expiresAt) : Number.NaN;
+    const isSupportedVersion = value.version === undefined || value.version === 1 || value.version === 2;
+    const hasValidLegacyExpiry = value.version !== 2 || (Number.isFinite(expiresAt) && expiresAt > now);
     if (
       typeof value.analytics !== "boolean" ||
       typeof value.ads !== "boolean" ||
       !Number.isFinite(decidedAt) ||
       decidedAt > now + 300_000 ||
       now - decidedAt > consentMaxAgeSeconds * 1000 ||
-      !isCurrentVersion
+      !isSupportedVersion ||
+      !hasValidLegacyExpiry
     ) {
       return null;
     }
@@ -34,4 +43,15 @@ export function parseConsentChoice(raw: string | null | undefined, now = Date.no
   } catch {
     return null;
   }
+}
+
+export function consentCookieAttributes(
+  location: Pick<Location, "hostname" | "protocol">,
+  maxAge = consentMaxAgeSeconds,
+) {
+  const hostname = location.hostname.toLowerCase().replace(/^www\./, "");
+  const attributes = [`Max-Age=${Math.max(0, Math.floor(maxAge))}`, "Path=/", "SameSite=Lax"];
+  if (hostname === "oldseadogs.com") attributes.push("Domain=.oldseadogs.com");
+  if (location.protocol === "https:") attributes.push("Secure");
+  return attributes.join("; ");
 }

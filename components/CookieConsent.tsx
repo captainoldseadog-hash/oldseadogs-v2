@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   consentCookieName,
+  consentCookieAttributes,
   consentMaxAgeSeconds,
   consentStorageKey,
+  legacyConsentStorageKey,
   parseConsentChoice,
   type ConsentChoice,
 } from "../lib/cookie-consent.ts";
@@ -53,19 +55,26 @@ function persistChoice(nextChoice: ConsentChoice) {
   } catch {
     // A durable first-party cookie remains available when storage is restricted.
   }
-  const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; Max-Age=${consentMaxAgeSeconds}; Path=/; SameSite=Lax${secure}`;
+  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentMaxAgeSeconds)}`;
 }
 
 function readStoredChoice(): ConsentChoice | null {
   let localChoice: ConsentChoice | null = null;
   try {
-    localChoice = parseConsentChoice(window.localStorage.getItem(consentStorageKey));
+    localChoice = parseConsentChoice(window.localStorage.getItem(consentStorageKey))
+      || parseConsentChoice(window.localStorage.getItem(legacyConsentStorageKey));
   } catch {
     localChoice = null;
   }
   const choice = localChoice || readCookieChoice();
-  if (choice) persistChoice(choice);
+  if (choice) {
+    persistChoice(choice);
+    try {
+      window.localStorage.removeItem(legacyConsentStorageKey);
+    } catch {
+      // The normalized cookie and current storage key are already persisted.
+    }
+  }
   return choice;
 }
 

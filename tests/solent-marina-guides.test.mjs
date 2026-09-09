@@ -229,8 +229,8 @@ test("Phase Two preserves the approved homepage, cookie and story-publication co
   const protectedFiles = {
     // Option C: approved mobile/tablet hero and Guide promotion over the canonical feed.
     "app/page.tsx": "e88760bd3440568095f058003d3f56c047d4762752ebaffe47c21ef8c67b3a62",
-    // Option C: approved persistent consent with local-storage and first-party-cookie recovery.
-    "components/CookieConsent.tsx": "5392cc363a550850bd826102b739157835abbee83c4612e7451e1be9c901b10f",
+    // Option C follow-up: retain current/legacy recovery and a cookie spanning bare/www hosts.
+    "components/CookieConsent.tsx": "f102748f9ae7cfce13e38bdb62771af5c98db2f126cd7e96dbc2dbd24dfd79b5",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
     "content/homepage-production-snapshot.ts": "464346a0a9c6be2b34b168aae6a53b8d28b53016ad41d6c17a85c41a18ca1066",
     "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",

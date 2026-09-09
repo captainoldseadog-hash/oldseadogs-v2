@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { parseConsentChoice, consentMaxAgeSeconds } from "../lib/cookie-consent.ts";
+import { consentCookieAttributes, parseConsentChoice, consentMaxAgeSeconds } from "../lib/cookie-consent.ts";
 import { isEditorPath, isPublicPagePath } from "../lib/route-boundaries.ts";
 import { publicMediaVariantUrl } from "../lib/public-media.ts";
 
@@ -31,6 +31,7 @@ test("consent parser accepts current and legacy valid choices and expires stale 
   const now = Date.parse("2026-08-17T10:00:00.000Z");
   const valid = JSON.stringify({ analytics: true, ads: false, decidedAt: "2026-08-16T10:00:00.000Z", version: 1 });
   const legacy = JSON.stringify({ analytics: false, ads: false, decidedAt: "2026-08-16T10:00:00.000Z" });
+  const priorV2 = JSON.stringify({ analytics: true, ads: false, decidedAt: "2026-08-16T10:00:00.000Z", expiresAt: "2026-09-16T10:00:00.000Z", version: 2 });
   const stale = JSON.stringify({ analytics: true, ads: true, decidedAt: new Date(now - (consentMaxAgeSeconds + 1) * 1000).toISOString(), version: 1 });
 
   assert.deepEqual(parseConsentChoice(valid, now), {
@@ -40,9 +41,17 @@ test("consent parser accepts current and legacy valid choices and expires stale 
     version: 1,
   });
   assert.equal(parseConsentChoice(legacy, now)?.version, 1);
+  assert.equal(parseConsentChoice(priorV2, now)?.version, 1);
+  assert.equal(parseConsentChoice(JSON.stringify({ ...JSON.parse(priorV2), expiresAt: "2026-08-17T09:59:59.000Z" }), now), null);
   assert.equal(parseConsentChoice(stale, now), null);
   assert.equal(parseConsentChoice("not json", now), null);
   assert.equal(parseConsentChoice(JSON.stringify({ analytics: "yes", ads: false, decidedAt: "2026-08-16T10:00:00.000Z" }), now), null);
+});
+
+test("Option C consent survives canonical bare/www host changes", () => {
+  assert.match(consentCookieAttributes({ hostname: "www.oldseadogs.com", protocol: "https:" }), /Domain=\.oldseadogs\.com/);
+  assert.match(consentCookieAttributes({ hostname: "oldseadogs.com", protocol: "https:" }), /Domain=\.oldseadogs\.com/);
+  assert.doesNotMatch(consentCookieAttributes({ hostname: "127.0.0.1", protocol: "http:" }), /Domain=|Secure/);
 });
 
 test("mobile media requests use existing CMS variants and a lightweight legacy Guide derivative", () => {
