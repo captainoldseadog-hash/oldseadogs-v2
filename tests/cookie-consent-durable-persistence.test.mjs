@@ -12,16 +12,29 @@ import {
 
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 
-async function save(choice, host = "oldseadogs.com") {
-  return POST(new Request(`https://${host}/api/consent`, {
+async function save(choice, host = "oldseadogs.com", protocol = "https", forwardedProtocol = protocol) {
+  const headers = new Headers({
+    "content-type": "application/json",
+    "x-forwarded-host": host,
+  });
+  if (forwardedProtocol) headers.set("x-forwarded-proto", forwardedProtocol);
+  return POST(new Request(`${protocol}://${host}/api/consent`, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-forwarded-host": host,
-      "x-forwarded-proto": "https",
-    },
+    headers,
     body: JSON.stringify(choice),
   }));
+}
+
+async function withOldSeaDogsEnvironment(value, task) {
+  const previous = process.env.OLDSEADOGS_ENV;
+  if (value === undefined) delete process.env.OLDSEADOGS_ENV;
+  else process.env.OLDSEADOGS_ENV = value;
+  try {
+    return await task();
+  } finally {
+    if (previous === undefined) delete process.env.OLDSEADOGS_ENV;
+    else process.env.OLDSEADOGS_ENV = previous;
+  }
 }
 
 function cookieChoice(response) {
@@ -55,6 +68,28 @@ test("www and bare-domain responses share one consent scope", async () => {
   for (const host of ["oldseadogs.com", "www.oldseadogs.com"]) {
     assert.match(cookieChoice(await save({ analytics: true, ads: false }, host)).setCookie, /Domain=\.oldseadogs\.com/);
   }
+});
+
+test("production forces Secure when the origin request appears to be HTTP", async () => {
+  const response = await withOldSeaDogsEnvironment(
+    "production",
+    () => save({ analytics: true, ads: true }, "oldseadogs.com", "http", null),
+  );
+  assert.match(cookieChoice(response).setCookie, /(?:^|; )Secure(?:;|$)/);
+});
+
+test("production HTTPS retains Secure while local development HTTP remains usable", async () => {
+  const productionResponse = await withOldSeaDogsEnvironment(
+    "production",
+    () => save({ analytics: false, ads: false }),
+  );
+  assert.match(cookieChoice(productionResponse).setCookie, /(?:^|; )Secure(?:;|$)/);
+
+  const localResponse = await withOldSeaDogsEnvironment(
+    "development",
+    () => save({ analytics: true, ads: false }, "127.0.0.1:3003", "http", null),
+  );
+  assert.doesNotMatch(cookieChoice(localResponse).setCookie, /(?:^|; )Secure(?:;|$)/);
 });
 
 test("invalid or partial consent cannot create a cookie", async () => {

@@ -10,9 +10,12 @@ function requestLocation(request: Request) {
   const url = new URL(request.url);
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = process.env.OLDSEADOGS_ENV === "production"
+    ? "https:"
+    : `${forwardedProtocol || url.protocol.replace(":", "")}:`;
   return {
     hostname: (forwardedHost || url.hostname).split(":")[0],
-    protocol: `${forwardedProtocol || url.protocol.replace(":", "")}:`,
+    protocol,
   } as Pick<Location, "hostname" | "protocol">;
 }
 
