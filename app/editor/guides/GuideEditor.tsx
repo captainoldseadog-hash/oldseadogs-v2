@@ -19,12 +19,27 @@ function guideId(guide: EditorGuide) { return guide.id || guide.internalId || gu
 export function prepareGuide(guide: EditorGuide): EditorGuide {
   const hero = guide.media?.heroImage || (guide.imageUrl ? { mediaId: guide.featuredMediaId, url: guide.imageUrl, alt: guide.imageAlt, caption: guide.imageCaption, credit: guide.imageCredit, focalPoint: guide.imageFocalPoint } : undefined);
   const gallery = guide.media?.gallery || [];
+  const legacyEditorial = {
+    standfirst: guide.summary,
+    introduction: guide.introduction,
+    sections: guide.sections.map((section, index) => ({ id: `section-${index + 1}`, heading: section.heading, body: section.body, links: section.links })),
+    oldSeaDogsView: [],
+    practicalNotes: [],
+    localKnowledge: [],
+    warnings: [],
+  };
   return {
     ...guide,
     schemaVersion: 2,
     area: guide.area || guide.subregion || "",
     parentGuideId: guide.parentGuideId || "",
-    editorial: guide.editorial || { standfirst: guide.summary, introduction: guide.introduction, sections: guide.sections.map((section, index) => ({ id: `section-${index + 1}`, heading: section.heading, body: section.body, links: section.links })), oldSeaDogsView: [], practicalNotes: [], localKnowledge: [], warnings: [] },
+    editorial: {
+      ...legacyEditorial,
+      ...guide.editorial,
+      standfirst: guide.editorial?.standfirst ?? guide.summary,
+      introduction: guide.editorial?.introduction ?? guide.introduction,
+      sections: guide.editorial?.sections ?? legacyEditorial.sections,
+    },
     navigation: guide.navigation || { latitude: guide.location?.latitude, longitude: guide.location?.longitude, approach: [], hazards: [] },
     marina: guide.marina || {}, contacts: guide.contacts || {},
     media: { heroImage: hero, gallery },
@@ -106,7 +121,7 @@ export function GuideEditor({ guide, guides, assets, onSaved, onReload, onDuplic
       </div><datalist id="guide-identities">{guides.filter((item) => item.slug !== draft.slug).map((item) => <option key={item.slug} value={item.id || item.internalId || item.slug}>{item.title}</option>)}</datalist></section>
 
       <section className="bridge-panel"><div className="bridge-panel-heading"><div><p className="eyebrow">Editorial</p><h2>Structured Guide copy</h2></div><button type="button" onClick={() => updateEditorial({ sections: [...sections, { id: `section-${Date.now()}`, heading: "", body: [] }] })}>Add section</button></div>
-        <label><span>Standfirst</span><textarea className="bridge-summary-input" value={draft.editorial?.standfirst || ""} onChange={(event) => updateEditorial({ standfirst: event.target.value })} /></label><label><span>Introduction</span><textarea className="bridge-summary-input" value={draft.editorial?.introduction || ""} onChange={(event) => updateEditorial({ introduction: event.target.value })} /></label>
+        <label><span>Hero introduction / collection description</span><textarea className="bridge-summary-input" value={draft.editorial?.standfirst || ""} onChange={(event) => updateEditorial({ standfirst: event.target.value })} /></label><label><span>Welcome / overview introduction</span><textarea className="bridge-summary-input" value={draft.editorial?.introduction || ""} onChange={(event) => updateEditorial({ introduction: event.target.value })} /></label>
         <div className="guide-manager-sections">{sections.map((section, index) => <article className="bridge-panel" key={section.id || index}><label><span>Section heading</span><input value={section.heading} onChange={(event) => changeSection(index, { heading: event.target.value })} /></label><label><span>Paragraphs</span><textarea value={textList(section.body)} onChange={(event) => changeSection(index, { body: parseTextList(event.target.value) })} /></label><label><span>Editorial Guide links</span><textarea value={sectionLinkText(section.links)} onChange={(event) => changeSection(index, { links: parseSectionLinks(event.target.value) })} placeholder="Link label | published-guide-slug" /></label><p className="bridge-muted">One per line. Targets must be published; links stay editable in this Guide record.</p><div className="bridge-row-actions"><button disabled={index === 0} type="button" onClick={() => moveSection(index, -1)}>Move up</button><button disabled={index === sections.length - 1} type="button" onClick={() => moveSection(index, 1)}>Move down</button><button type="button" onClick={() => updateEditorial({ sections: sections.filter((_, itemIndex) => itemIndex !== index) })}>Remove</button></div></article>)}</div>
         <div className="bridge-field-row"><label><span>Practical notes</span><textarea value={textList(draft.editorial?.practicalNotes)} onChange={(event) => updateEditorial({ practicalNotes: parseTextList(event.target.value) })} /></label><label><span>Local knowledge</span><textarea value={textList(draft.editorial?.localKnowledge)} onChange={(event) => updateEditorial({ localKnowledge: parseTextList(event.target.value) })} /></label><label><span>Old Sea Dogs View</span><textarea value={textList(draft.editorial?.oldSeaDogsView)} onChange={(event) => updateEditorial({ oldSeaDogsView: parseTextList(event.target.value) })} /></label></div>
         <div className="guide-manager-sources"><h3>Warnings</h3>{(draft.editorial?.warnings || []).map((warning, index, warnings) => <article className="bridge-field-row thirds" key={`${warning.text}-${index}`}><label><span>Warning</span><textarea value={warning.text} onChange={(event) => updateEditorial({ warnings: warnings.map((item, itemIndex) => itemIndex === index ? { ...item, text: event.target.value } : item) })} /></label><label><span>Severity</span><select value={warning.severity || "advisory"} onChange={(event) => updateEditorial({ warnings: warnings.map((item, itemIndex) => itemIndex === index ? { ...item, severity: event.target.value as "advisory" | "important" | "safety" } : item) })}><option value="advisory">Advisory</option><option value="important">Important</option><option value="safety">Safety</option></select></label><label><span>Authoritative source URL</span><input type="url" value={warning.sourceUrl || ""} onChange={(event) => updateEditorial({ warnings: warnings.map((item, itemIndex) => itemIndex === index ? { ...item, sourceUrl: event.target.value } : item) })} /></label><button type="button" onClick={() => updateEditorial({ warnings: warnings.filter((_, itemIndex) => itemIndex !== index) })}>Remove warning</button></article>)}<button type="button" onClick={() => updateEditorial({ warnings: [...(draft.editorial?.warnings || []), { text: "", severity: "advisory", certainty: "uncertain" }] })}>Add warning</button></div>

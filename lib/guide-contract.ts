@@ -1,3 +1,5 @@
+import { normalizeEditorialTypography } from "./editorial-typography.ts";
+
 export const guideDraftContractName = "oldseadogs.guide-draft" as const;
 export const guideDraftContractVersion = 1 as const;
 
@@ -146,7 +148,9 @@ export class GuideContractValidationError extends Error {
 }
 
 function cleanString(value: unknown, limit = 10_000) {
-  return typeof value === "string" ? value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, limit) : "";
+  return typeof value === "string"
+    ? normalizeEditorialTypography(value).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim().slice(0, limit)
+    : "";
 }
 
 function cleanStrings(value: unknown, limit = 10_000) {
