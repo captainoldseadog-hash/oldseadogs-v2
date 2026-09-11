@@ -12,19 +12,19 @@ import {
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const read = (file) => fs.readFile(path.join(projectDir, file), "utf8");
 
-test("consent persists for 180 days and expires without granting optional services", () => {
+test("consent persists for 365 days and expires without granting optional services", () => {
   const now = Date.UTC(2026, 7, 10, 12);
   const accepted = createConsentChoice({ analytics: true, ads: true }, now);
   assert.deepEqual(parseConsentChoice(JSON.stringify(accepted), now + 1), accepted);
-  assert.equal(parseConsentChoice(JSON.stringify(accepted), Date.parse(accepted.expiresAt)), null);
-  assert.equal(Date.parse(accepted.expiresAt) - now, consentLifetimeSeconds * 1000);
+  assert.equal(parseConsentChoice(JSON.stringify(accepted), now + consentLifetimeSeconds * 1000 + 1), null);
+  assert.equal(consentLifetimeSeconds, 31_536_000);
   assert.equal(parseConsentChoice(null, now), null);
   assert.equal(parseConsentChoice(JSON.stringify({ analytics: true, ads: true }), now), null);
 });
 
 test("the consent cookie spans bare and www hosts with secure first-party attributes", () => {
   const attributes = consentCookieAttributes({ hostname: "www.oldseadogs.com", protocol: "https:" });
-  assert.match(attributes, /Max-Age=15552000/);
+  assert.match(attributes, /Max-Age=31536000/);
   assert.match(attributes, /Path=\//);
   assert.match(attributes, /SameSite=Lax/);
   assert.match(attributes, /Domain=\.oldseadogs\.com/);

@@ -7,8 +7,23 @@ export type ConsentChoice = {
 
 export const consentStorageKey = "oldseadogs_cookie_consent_v1";
 export const legacyConsentStorageKey = "oldseadogs_cookie_consent_v2";
-export const consentCookieName = "oldseadogs_cookie_consent";
+export const consentCookieName = "oldseadogs_cookie_consent_v2";
+export const legacyConsentCookieName = "oldseadogs_cookie_consent";
 export const consentMaxAgeSeconds = 31_536_000;
+export const consentSchemaVersion = 1;
+export const consentLifetimeSeconds = consentMaxAgeSeconds;
+
+export function createConsentChoice(
+  choice: Pick<ConsentChoice, "analytics" | "ads">,
+  now = Date.now(),
+): ConsentChoice {
+  return {
+    analytics: choice.analytics === true,
+    ads: choice.ads === true,
+    decidedAt: new Date(now).toISOString(),
+    version: consentSchemaVersion,
+  };
+}
 
 type PersistedConsentChoice = Omit<Partial<ConsentChoice>, "version"> & {
   version?: number;

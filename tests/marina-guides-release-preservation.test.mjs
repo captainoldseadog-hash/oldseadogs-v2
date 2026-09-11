@@ -23,8 +23,8 @@ const protectedFiles = {
   "app/sitemap.ts": "6656a11ef5c0823de5f821a7bceeba2ca59e02679996515ea2ec27148f6411e7",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
-  // Option C follow-up: retain current/legacy recovery and a cookie spanning bare/www hosts.
-  "components/CookieConsent.tsx": "f102748f9ae7cfce13e38bdb62771af5c98db2f126cd7e96dbc2dbd24dfd79b5",
+  // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
+  "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
   "package.json": "807aec43bfaf6df71bb8217b527b547aeafa31dc369244e7e7f5d8c5bb30a8ef",
 };
 

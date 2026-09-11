@@ -81,7 +81,8 @@ test("runtime production data remains external and no bundled editor store is av
 test("cookie consent code has no homepage or editor-record mutation path", async () => {
   const cookie = await read("components/CookieConsent.tsx");
   assert.doesNotMatch(cookie, /site-content|editor-store|saveHomepage|homepageSource|homepageLeadStory|homepageLatestStory|homepageEditorsChoice|homepageHiddenStory/i);
-  assert.doesNotMatch(cookie, /\/api\/editor|fetch\s*\(|XMLHttpRequest|WebSocket/);
+  assert.doesNotMatch(cookie, /\/api\/editor|XMLHttpRequest|WebSocket/);
+  assert.match(cookie, /fetch\("\/api\/consent"/);
 });
 
 test("Homepage Manager remains the sole homepage commit path", async () => {

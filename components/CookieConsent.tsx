@@ -8,6 +8,8 @@ import {
   consentCookieAttributes,
   consentMaxAgeSeconds,
   consentStorageKey,
+  createConsentChoice,
+  legacyConsentCookieName,
   legacyConsentStorageKey,
   parseConsentChoice,
   type ConsentChoice,
@@ -18,6 +20,8 @@ type CookieConsentProps = {
   ga4Id?: string;
   adsenseClientId?: string;
   adsenseEnabled?: boolean;
+  initialChoice?: ConsentChoice | null;
+  migrateInitialChoice?: boolean;
 };
 
 const openPrivacyChoicesEvent = "oldseadogs:open-privacy-choices";
@@ -34,8 +38,8 @@ declare global {
   }
 }
 
-function readCookieChoice() {
-  const prefix = `${consentCookieName}=`;
+function readCookieChoice(cookieName = consentCookieName) {
+  const prefix = `${cookieName}=`;
   const raw = document.cookie
     .split(";")
     .map((item) => item.trim())
@@ -49,16 +53,30 @@ function readCookieChoice() {
   }
 }
 
-function persistChoice(nextChoice: ConsentChoice) {
+function persistChoiceLocally(nextChoice: ConsentChoice) {
   try {
     window.localStorage.setItem(storageKey, JSON.stringify(nextChoice));
   } catch {
     // A durable first-party cookie remains available when storage is restricted.
   }
-  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentMaxAgeSeconds)}`;
+  document.cookie = `${legacyConsentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentMaxAgeSeconds)}`;
 }
 
-function readStoredChoice(): ConsentChoice | null {
+async function persistChoiceOnServer(nextChoice: ConsentChoice) {
+  const response = await fetch("/api/consent", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ analytics: nextChoice.analytics, ads: nextChoice.ads }),
+    keepalive: true,
+  });
+  if (!response.ok) throw new Error("The durable consent cookie could not be saved.");
+  const payload = await response.json() as { choice?: ConsentChoice };
+  if (!payload.choice) throw new Error("The durable consent cookie response was incomplete.");
+  return payload.choice;
+}
+
+function readStoredChoice(serverChoice: ConsentChoice | null = null, migrateServerChoice = false): ConsentChoice | null {
   let localChoice: ConsentChoice | null = null;
   try {
     localChoice = parseConsentChoice(window.localStorage.getItem(consentStorageKey))
@@ -66,9 +84,20 @@ function readStoredChoice(): ConsentChoice | null {
   } catch {
     localChoice = null;
   }
-  const choice = localChoice || readCookieChoice();
+  const cookieChoice = readCookieChoice() || readCookieChoice(legacyConsentCookieName);
+  const choice = serverChoice || localChoice || cookieChoice;
+  if (choice && (migrateServerChoice || (!serverChoice && !readCookieChoice()))) {
+    persistChoiceLocally(choice);
+    void persistChoiceOnServer(choice).catch(() => undefined);
+  }
+  if (choice && !localChoice) {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(choice));
+    } catch {
+      // The server-issued first-party cookie remains the durable source.
+    }
+  }
   if (choice) {
-    persistChoice(choice);
     try {
       window.localStorage.removeItem(legacyConsentStorageKey);
     } catch {
@@ -78,13 +107,15 @@ function readStoredChoice(): ConsentChoice | null {
   return choice;
 }
 
-function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
-  const nextChoice: ConsentChoice = {
-    ...choice,
-    decidedAt: new Date().toISOString(),
-    version: 1,
-  };
-  persistChoice(nextChoice);
+async function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
+  let nextChoice = createConsentChoice(choice);
+  persistChoiceLocally(nextChoice);
+  try {
+    nextChoice = await persistChoiceOnServer(nextChoice);
+    persistChoiceLocally(nextChoice);
+  } catch {
+    // Retain the immediate first-party fallbacks if the endpoint is unavailable.
+  }
   window.dispatchEvent(new Event(consentUpdatedEvent));
   return nextChoice;
 }
@@ -158,6 +189,8 @@ export function CookieConsent({
   ga4Id,
   adsenseClientId,
   adsenseEnabled = false,
+  initialChoice = null,
+  migrateInitialChoice = false,
 }: CookieConsentProps) {
   const pathname = usePathname();
   const isEditorRoute = pathname ? isEditorPath(pathname) : false;
@@ -172,14 +205,14 @@ export function CookieConsent({
   useEffect(() => {
     ensureGoogleConsentDefaults();
     const timer = window.setTimeout(() => {
-      const storedChoice = readStoredChoice();
+      const storedChoice = readStoredChoice(initialChoice, migrateInitialChoice);
       setChoice(storedChoice);
       setAnalytics(Boolean(storedChoice?.analytics));
       setAds(Boolean(storedChoice?.ads));
       setIsReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [initialChoice, migrateInitialChoice]);
 
   useEffect(() => {
     if (!choice || isEditorRoute) return;
@@ -244,24 +277,24 @@ export function CookieConsent({
     return "Non-essential cookies rejected.";
   }, [choice, hasOptionalServices]);
 
-  function acceptAll() {
-    const nextChoice = saveChoice({ analytics: true, ads: true });
+  async function acceptAll() {
+    const nextChoice = await saveChoice({ analytics: true, ads: true });
     setChoice(nextChoice);
     setAnalytics(true);
     setAds(true);
     setShowPreferences(false);
   }
 
-  function rejectAll() {
-    const nextChoice = saveChoice({ analytics: false, ads: false });
+  async function rejectAll() {
+    const nextChoice = await saveChoice({ analytics: false, ads: false });
     setChoice(nextChoice);
     setAnalytics(false);
     setAds(false);
     setShowPreferences(false);
   }
 
-  function savePreferences() {
-    const nextChoice = saveChoice({ analytics, ads });
+  async function savePreferences() {
+    const nextChoice = await saveChoice({ analytics, ads });
     setChoice(nextChoice);
     setShowPreferences(false);
   }
@@ -318,14 +351,14 @@ export function CookieConsent({
         ) : null}
       </div>
       <div className="cookie-actions">
-        <button className="cookie-action-primary" type="button" onClick={acceptAll}>
+        <button className="cookie-action-primary" type="button" onClick={() => void acceptAll()}>
           Accept all
         </button>
-        <button type="button" onClick={rejectAll}>
+        <button type="button" onClick={() => void rejectAll()}>
           Reject non-essential
         </button>
         {showPreferences ? (
-          <button type="button" onClick={savePreferences}>
+          <button type="button" onClick={() => void savePreferences()}>
             Save choices
           </button>
         ) : (

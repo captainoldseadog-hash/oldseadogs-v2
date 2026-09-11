@@ -68,16 +68,16 @@ test("the initial banner offers accessible Accept, Reject and Manage actions in 
   const manage = cookieConsent.indexOf("Manage choices");
 
   assert.ok(accept >= 0 && accept < reject && reject < manage);
-  assert.match(cookieConsent, /<button className="cookie-action-primary" type="button" onClick=\{acceptAll\}>/);
+  assert.match(cookieConsent, /<button className="cookie-action-primary" type="button" onClick=\{\(\) => void acceptAll\(\)\}>/);
   assert.doesNotMatch(cookieConsent, /<button[^>]*className="cookie-action-primary"[^>]*(?:disabled|aria-disabled)/);
-  assert.match(cookieConsent, /<button type="button" onClick=\{rejectAll\}>/);
+  assert.match(cookieConsent, /<button type="button" onClick=\{\(\) => void rejectAll\(\)\}>/);
   assert.match(cookieConsent, /<button type="button" onClick=\{\(\) => setShowPreferences\(true\)\}>/);
   assert.equal((cookieConsent.match(/>\s*Accept all\s*</g) || []).length, 1);
 });
 
 test("Accept all persists every optional category and closes the panel", async () => {
   const cookieConsent = await read("components/CookieConsent.tsx");
-  const acceptAll = cookieConsent.match(/function acceptAll\(\) \{[\s\S]*?\n  \}/)?.[0] || "";
+  const acceptAll = cookieConsent.match(/async function acceptAll\(\) \{[\s\S]*?\n  \}/)?.[0] || "";
 
   assert.match(acceptAll, /saveChoice\(\{ analytics: true, ads: true \}\)/);
   assert.match(acceptAll, /setChoice\(nextChoice\)/);
@@ -85,18 +85,18 @@ test("Accept all persists every optional category and closes the panel", async (
   assert.match(acceptAll, /setAds\(true\)/);
   assert.match(acceptAll, /setShowPreferences\(false\)/);
   assert.match(cookieConsent, /window\.localStorage\.setItem\(storageKey, JSON\.stringify\(nextChoice\)\)/);
-  assert.match(cookieConsent, /document\.cookie = `\$\{consentCookieName\}=/);
+  assert.match(cookieConsent, /document\.cookie = `\$\{legacyConsentCookieName\}=/);
 });
 
 test("Reject, preference management and consent withdrawal remain available", async () => {
   const cookieConsent = await read("components/CookieConsent.tsx");
-  const rejectAll = cookieConsent.match(/function rejectAll\(\) \{[\s\S]*?\n  \}/)?.[0] || "";
+  const rejectAll = cookieConsent.match(/async function rejectAll\(\) \{[\s\S]*?\n  \}/)?.[0] || "";
 
   assert.match(rejectAll, /saveChoice\(\{ analytics: false, ads: false \}\)/);
   assert.match(rejectAll, /setShowPreferences\(false\)/);
   assert.match(cookieConsent, /checked=\{analytics\}/);
   assert.match(cookieConsent, /checked=\{ads\}/);
-  assert.match(cookieConsent, /function savePreferences\(\)/);
+  assert.match(cookieConsent, /async function savePreferences\(\)/);
   assert.match(cookieConsent, /setGoogleAnalyticsDisabled\(ga4Id, !choice\.analytics\)/);
   assert.match(cookieConsent, /if \(!choice\.analytics\) removeGoogleAnalyticsCookies\(\)/);
 });
