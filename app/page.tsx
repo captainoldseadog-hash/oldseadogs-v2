@@ -220,24 +220,26 @@ export default async function Home() {
   return (
     <main className="site-shell">
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
+        <Link
+          aria-label={`Read ${featuredStory.title}`}
+          className="mobile-lead-story-link"
+          href={`/stories/${featuredStory.slug}`}
+          prefetch={true}
+        />
         {featuredHasPhoto ? (
-          <img
-            alt=""
-            aria-hidden="true"
-            className="mobile-hero-image"
-            decoding="async"
-            fetchPriority="high"
-            src={publicMediaVariantUrl(featuredStory.imageUrl, "mobile")}
-          />
-        ) : null}
-        {featuredHasPhoto ? (
-          <ResponsiveStoryImage
-            alt={featuredStory.imageAlt || featuredStory.title}
-            className="hero-image"
-            eager
-            sizes="100vw"
-            src={featuredStory.imageUrl}
-          />
+          <picture className="hero-image">
+            <source
+              media="(max-width: 1024px)"
+              srcSet={publicMediaVariantUrl(featuredStory.imageUrl, "mobile")}
+            />
+            <img
+              alt={featuredStory.imageAlt || featuredStory.title}
+              decoding="async"
+              fetchPriority="high"
+              loading="eager"
+              src={featuredStory.imageUrl}
+            />
+          </picture>
         ) : null}
         {featuredHasPhoto && featuredStory.imageCredit ? (
           <div className="hero-credit">{featuredStory.imageCredit}</div>
@@ -263,7 +265,7 @@ export default async function Home() {
           <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
           <div className="hero-actions">
-            <Link href={`/stories/${featuredStory.slug}`} className="button-primary">
+            <Link href={`/stories/${featuredStory.slug}`} className="button-primary" prefetch={true}>
               Read the lead story
             </Link>
             <a href="#latest" className="button-secondary">
@@ -273,9 +275,7 @@ export default async function Home() {
         </section>
         <section className="mobile-hero-content" aria-labelledby="mobile-lead-title">
           <p className="eyebrow">{displayCategoryLabel(featuredStory.category)}</p>
-          <h1 id="mobile-lead-title">
-            <Link href={`/stories/${featuredStory.slug}`}>{featuredStory.title}</Link>
-          </h1>
+          <h1 id="mobile-lead-title">{featuredStory.title}</h1>
           <p>{featuredStory.summary}</p>
           <div className="mobile-story-meta">
             <span>{formatDate(featuredStory.date)}</span>

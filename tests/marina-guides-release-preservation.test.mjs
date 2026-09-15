@@ -8,8 +8,8 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // Option C: approved mobile/tablet hero and Guide promotion over the canonical feed.
-  "app/page.tsx": "e88760bd3440568095f058003d3f56c047d4762752ebaffe47c21ef8c67b3a62",
+  // Option C plus the full-card, prefetched lead navigation over the canonical feed.
+  "app/page.tsx": "9950517cd59a5d46374ae2c3fc1aa724c14b41717b4951acc0fae41c370afb3a",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",

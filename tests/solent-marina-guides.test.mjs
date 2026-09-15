@@ -227,8 +227,8 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
 
 test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
-    // Option C: approved mobile/tablet hero and Guide promotion over the canonical feed.
-    "app/page.tsx": "e88760bd3440568095f058003d3f56c047d4762752ebaffe47c21ef8c67b3a62",
+    // Option C plus the full-card, prefetched lead navigation over the canonical feed.
+    "app/page.tsx": "9950517cd59a5d46374ae2c3fc1aa724c14b41717b4951acc0fae41c370afb3a",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",

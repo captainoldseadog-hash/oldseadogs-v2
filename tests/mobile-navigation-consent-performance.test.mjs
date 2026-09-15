@@ -59,13 +59,14 @@ test("homepage story cards expose one canonical native link across image, title 
   assert.match(css, /\.story-card-link:focus-visible/);
 });
 
-test("off-screen homepage images are lazy native images and the lead image stays eager", async () => {
+test("off-screen homepage images are lazy native images and the single responsive lead image stays eager", async () => {
   const [homepage, image] = await Promise.all([
     read("app/page.tsx"),
     read("components/ResponsiveStoryImage.tsx"),
   ]);
   assert.doesNotMatch(homepage, /style=\{\{ backgroundImage:/);
-  assert.match(homepage, /className="hero-image"[\s\S]*?eager/);
+  assert.match(homepage, /<picture className="hero-image">[\s\S]*?fetchPriority="high"[\s\S]*?loading="eager"/);
+  assert.doesNotMatch(homepage, /className="mobile-hero-image"/);
   assert.match(image, /loading=\{eager \? "eager" : "lazy"\}/);
   assert.match(image, /fetchPriority=\{eager \? "high" : "auto"\}/);
   assert.match(image, /variant=thumbnail/);
