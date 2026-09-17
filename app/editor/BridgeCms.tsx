@@ -99,6 +99,14 @@ type StorySummary = {
     changedAt: string;
   }>;
   noindex: boolean;
+  management: {
+    source: "cms" | "legacy";
+    origin: "cms" | "story-watch" | "newsroom-import" | "legacy";
+    label: string;
+    writable: boolean;
+    editable: boolean;
+  };
+  deletion: { eligible: boolean; reasons: string[] };
   homepageLeadEligible: boolean;
   homepageLeadDiagnostics: HomepageLeadDiagnostics;
   hasImage: boolean;
@@ -235,6 +243,13 @@ type StoriesPayload = {
     pageCount: number;
     total: number;
   };
+  sourceCounts: {
+    cmsManaged: number;
+    legacyReadOnly: number;
+    storyWatch: number;
+    newsroomImports: number;
+  };
+  storeVersion: string;
 };
 
 type StoryPayload = {
@@ -1208,7 +1223,7 @@ function StoryListPage({
 
   const deleteSelectedDrafts = async (ids: string[], label: string) => {
     if (ids.length === 0) {
-      setActionMessage("No scraped stories are selected.");
+      setActionMessage("No deletable Drafts are selected.");
       return;
     }
     const selected = (data?.stories || []).filter((story) => ids.includes(story.id));
@@ -1227,7 +1242,10 @@ function StoryListPage({
       setActionMessage(`Deleted ${payload.deleted} Draft stories after backup${payload.backup?.backupPath ? `: ${payload.backup.backupPath}` : "."}`);
       reload();
     } catch (error: unknown) {
-      setActionMessage(error instanceof Error ? error.message : "Draft cleanup could not be completed. No unsafe story was deleted.");
+      setSelectedIds([]);
+      reload();
+      const detail = error instanceof Error ? error.message : "Draft cleanup could not be completed. No unsafe story was deleted.";
+      setActionMessage(`${detail} The Story list has been refreshed so removed or changed records cannot remain selected.`);
     } finally {
       setActionBusy(false);
     }
@@ -1364,9 +1382,10 @@ function StoryListPage({
             </select>
           </label>
           {data ? (
-            <p>
-              {formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount} · Sort: Newest created
-            </p>
+            <div>
+              <p>{formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount} · Sort: Newest created</p>
+              <small>{formatNumber(data.sourceCounts.cmsManaged)} managed in The Helm · {formatNumber(data.sourceCounts.legacyReadOnly)} published archive records (read-only)</small>
+            </div>
           ) : null}
         </div>
         {loading ? <LoadingBlock label="Loading story summaries" /> : null}
@@ -1387,7 +1406,7 @@ function StoryListPage({
                 <div className="bridge-story-row-wrap" key={story.id}>
                   <article className="bridge-story-row" role="row">
                     <span className="bridge-story-select-thumb">
-                      {story.status === "draft" ? (
+                      {story.deletion.eligible ? (
                         <input
                           aria-label={`Select ${story.title}`}
                           checked={selectedIds.includes(story.id)}
@@ -1400,6 +1419,7 @@ function StoryListPage({
                     <div>
                       <strong>{story.title}</strong>
                       <small>{story.category} · {story.author} · {story.wordCount} words</small>
+                      <small>{story.management.label}</small>
                       <HomepageVisibilitySummary story={story} />
                       <p>{story.summary}</p>
                     </div>
@@ -1412,14 +1432,15 @@ function StoryListPage({
                     </span>
                     <span>{story.hasImage ? "Image" : "No image"}{story.hasVideo ? " · Video" : ""}</span>
                     <div className="bridge-row-actions">
-                      <Link href={`/editor/write?story=${encodeURIComponent(story.id)}`}>Edit</Link>
+                      {story.management.editable ? <Link href={`/editor/write?story=${encodeURIComponent(story.id)}`}>Edit</Link> : null}
                       {story.id ? <Link href={`/editor/preview/${story.id}`} target="_blank">Preview</Link> : null}
+                      {!story.management.editable && story.status === "published" ? <a href={`/stories/${story.slug}`} target="_blank">View public Story</a> : null}
                       {isScrapedQueue && story.sourceUrl ? <a href={story.sourceUrl} rel="noreferrer" target="_blank">View source</a> : null}
-                      <button type="button" onClick={() => setMediaStoryId((current) => current === story.id ? "" : story.id)}>Upload Image</button>
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Review")}>Needs Review</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Rewrite")}>Needs Rewrite</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
+                      {story.management.editable ? <button type="button" onClick={() => setMediaStoryId((current) => current === story.id ? "" : story.id)}>Upload Image</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Review")}>Needs Review</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Rewrite")}>Needs Rewrite</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
+                      {isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
                     </div>
                   </article>
                   {mediaStoryId === story.id ? (
@@ -1559,6 +1580,14 @@ function blankStory(): EditorStory {
     contentBasis: "Old Sea Dogs observation and editorial research",
     editorialStatus: "Needs improvement",
     noindex: false,
+    management: {
+      source: "cms",
+      origin: "cms",
+      label: "CMS-managed",
+      writable: true,
+      editable: true,
+    },
+    deletion: { eligible: true, reasons: [] },
     homepageLeadEligible: false,
     homepageLeadDiagnostics: {
       published: false,

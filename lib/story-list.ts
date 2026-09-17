@@ -8,7 +8,7 @@ export type StoryListRecord = {
   publishedAt?: string;
   scheduledPublishAt?: string;
   date?: string;
-  statusHistory?: Array<{ changedAt?: string }>;
+  statusHistory?: Array<{ changedAt?: string; fromStatus?: string; toStatus?: string }>;
 };
 
 const legacyEpoch = "1970-01-01T00:00:00.000Z";

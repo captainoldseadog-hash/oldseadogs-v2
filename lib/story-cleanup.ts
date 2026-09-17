@@ -1,4 +1,9 @@
 import type { StoryListRecord } from "./story-list";
+import {
+  storyDeletionEligibility,
+  storyManagementRecord,
+  type StoryManagementRecord,
+} from "./story-management.ts";
 
 export type DraftCleanupStory = StoryListRecord & { title: string; isFeatured?: boolean };
 
@@ -20,6 +25,7 @@ export function validateDraftCleanup(input: {
   homepageIds?: string[];
   homepageSlugs?: string[];
   referencedStoryIds?: string[];
+  management?: Record<string, StoryManagementRecord>;
 }) {
   const wanted = new Set(input.ids);
   const selected = input.stories.filter((story) => wanted.has(story.id));
@@ -29,14 +35,19 @@ export function validateDraftCleanup(input: {
   const referenced = new Set(input.referencedStoryIds || []);
   const errors: string[] = [];
 
-  for (const id of wanted) if (!found.has(id)) errors.push(`Story ${id} was not found.`);
+  for (const id of wanted) {
+    if (!found.has(id)) errors.push(`Story ${id} is no longer in the current CMS list. Refresh before trying again.`);
+  }
   for (const story of selected) {
-    if (story.status !== "draft") errors.push(`${story.title} is ${story.status}, not a Draft.`);
-    if (story.isFeatured || homepageIds.has(story.id) || homepageSlugs.has(story.slug || "")) {
-      errors.push(`${story.title} is selected in Homepage Manager.`);
-    }
-    if (referenced.has(story.id)) errors.push(`${story.title} is referenced by a press-release record.`);
+    const management = input.management?.[story.id] ?? storyManagementRecord(story, new Set([story.id]));
+    errors.push(...storyDeletionEligibility({
+      story,
+      management,
+      homepageIds,
+      homepageSlugs,
+      referencedStoryIds: referenced,
+    }).reasons);
   }
 
-  return { ok: errors.length === 0, selected, errors };
+  return { ok: errors.length === 0, selected, errors, refreshRequired: found.size !== wanted.size };
 }

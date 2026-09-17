@@ -6,6 +6,7 @@ import {
 import { runSourceWatch, scrapeStoryUrl } from "../../../lib/source-watch-runner";
 import { compareStoriesNewestCreated, storyMatchesWorkflow } from "../../../lib/story-list";
 import { parseCmsIdList, validateDraftCleanup } from "../../../lib/story-cleanup";
+import { storyDeletionEligibility, storySourceCounts } from "../../../lib/story-management";
 import { getDeploymentInfo } from "../../../lib/deployment-info";
 import { getInstagramConnectorStatus, syncInstagramGallery, testInstagramConnection } from "../../../lib/instagram-gallery";
 import { disconnectInstagram, refreshInstagramToken } from "../../../lib/instagram-oauth";
@@ -164,6 +165,8 @@ type HomepageDiagnosticsContext = {
   latestIds: Set<string>;
   latestSlugs: Set<string>;
   hiddenIds: Set<string>;
+  storyManagement: EditorData["storyManagement"];
+  referencedStoryIds: Set<string>;
 };
 
 function editorErrorResponse(error: unknown, fallback: string) {
@@ -296,6 +299,20 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
       (story.imageUrl && !story.imageCredit ? 6 : 0)
   );
   const qualityLabel = score >= 82 ? "Ready" : score >= 62 ? "Review" : "Needs work";
+  const management = context?.storyManagement[story.id] ?? {
+    source: "legacy" as const,
+    origin: "legacy" as const,
+    label: "Archive · read-only",
+    writable: false,
+    editable: false,
+  };
+  const deletion = storyDeletionEligibility({
+    story,
+    management,
+    homepageIds: context?.homepageIds,
+    homepageSlugs: context?.homepageSlugs,
+    referencedStoryIds: context?.referencedStoryIds,
+  });
 
   return {
     id: story.id,
@@ -327,6 +344,8 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
     editorialStatus: story.editorialStatus,
     statusHistory: story.statusHistory,
     noindex: story.noindex,
+    management,
+    deletion,
     homepageLeadEligible: isHomepageLeadSelectable(story),
     homepageLeadDiagnostics: buildHomepageLeadDiagnostics({
       story,
@@ -396,6 +415,8 @@ function buildHomepageDiagnosticsContext(data: EditorData): HomepageDiagnosticsC
     latestIds,
     latestSlugs,
     hiddenIds,
+    storyManagement: data.storyManagement,
+    referencedStoryIds: new Set(data.pressReleases.map((item) => item.storyId).filter(Boolean)),
   };
 }
 
@@ -518,7 +539,11 @@ function makeRecentActivity(data: EditorData) {
     .slice(0, 10);
 }
 
-function auditStory(story: EditorStory, stories: EditorStory[]) {
+function auditStory(
+  story: EditorStory,
+  stories: EditorStory[],
+  context: HomepageDiagnosticsContext
+) {
   const publicationIssues = validateStoryForPublication(story);
   const headlineReport = analyzeHeadlineQuality({
     title: story.title,
@@ -544,7 +569,7 @@ function auditStory(story: EditorStory, stories: EditorStory[]) {
   ].filter(Boolean);
 
   return {
-    story: compactStory(story),
+    story: compactStory(story, context),
     flags,
     primaryFix: flags[0] || "No blocking audit flags",
   };
@@ -637,6 +662,10 @@ async function bridgeEditorView(request: Request) {
         pageCount,
         total: filtered.length,
       },
+      sourceCounts: storySourceCounts(Object.fromEntries(
+        filtered.map((story) => [story.id, data.storyManagement[story.id]])
+      )),
+      storeVersion: data.storyStoreVersion,
       stories: filtered.slice(start, start + pageSize).map((story) => compactStory(story, homepageContext)),
       media: data.media
         .slice(0, 80)
@@ -650,6 +679,7 @@ async function bridgeEditorView(request: Request) {
     return {
       view,
       story: story ?? null,
+      management: story ? data.storyManagement[story.id] : null,
       revisions: story ? await getStoryRevisions(story.id) : [],
       media: data.media
         .slice(0, 60)
@@ -659,7 +689,7 @@ async function bridgeEditorView(request: Request) {
 
   if (view === "audit") {
     const rows = data.stories
-      .map((story) => auditStory(story, data.stories))
+      .map((story) => auditStory(story, data.stories, homepageContext))
       .filter((row) => row.flags.length > 0)
       .sort((a, b) => b.story.updatedAt.localeCompare(a.story.updatedAt))
       .slice(0, 120);
@@ -1477,9 +1507,14 @@ export async function POST(request: Request) {
         homepageIds,
         homepageSlugs: [settings.homepageLeadStorySlug].filter(Boolean),
         referencedStoryIds: editorData.pressReleases.map((item) => item.storyId).filter(Boolean),
+        management: editorData.storyManagement,
       });
       if (!validation.ok) {
-        return privateJson({ error: `No stories were deleted. ${validation.errors.join(" ")}`, errors: validation.errors }, { status: 409 });
+        return privateJson({
+          error: `No stories were deleted. ${validation.errors.join(" ")}`,
+          errors: validation.errors,
+          refreshRequired: validation.refreshRequired,
+        }, { status: 409 });
       }
       const backup = await createPreBulkDeleteBackup(`pre-bulk-delete-${new Date().toISOString().slice(0, 10)}`);
       for (const id of validation.selected.map((story) => story.id)) {

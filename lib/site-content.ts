@@ -27,6 +27,7 @@ import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
+import { makeStoryManagementIndex } from "./story-management";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
@@ -3096,8 +3097,11 @@ export async function getEditorData() {
   if (!db) {
     const store = await readLocalEditorStore();
     const storageStatus = await getEditorStorageStatus();
+    const stories = mergeLocalStoriesWithStatic(store.stories, true);
     return {
-      stories: mergeLocalStoriesWithStatic(store.stories, true),
+      stories,
+      storyManagement: makeStoryManagementIndex(stories, store.stories.map((story) => story.id)),
+      storyStoreVersion: store.updatedAt,
       media: store.media,
       galleryCategories: store.galleryCategories,
       galleryItems: store.galleryItems,
@@ -3127,11 +3131,15 @@ export async function getEditorData() {
     getSocialAnalytics(),
   ]);
 
-  return {
-    stories: mergeDbStoriesWithStatic(storyList, true).map((story) => ({
+  const stories = mergeDbStoriesWithStatic(storyList, true).map((story) => ({
       ...story,
       statusHistory: historyList.filter((entry) => entry.storyId === story.id),
-    })),
+    }));
+
+  return {
+    stories,
+    storyManagement: makeStoryManagementIndex(stories, storyList.map((story) => story.id)),
+    storyStoreVersion: storyList.reduce((latest, story) => story.updatedAt > latest ? story.updatedAt : latest, ""),
     media: media.map(normalizeMediaAsset),
     galleryCategories: categoryList.length > 0 ? categoryList : defaultGalleryCategories(),
     galleryItems: galleryList.map(rowToGalleryItem),

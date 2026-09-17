@@ -15,7 +15,7 @@ const protectedFiles = {
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
-  "app/api/editor/route.ts": "fafc9caa4d137097d629648885c6cdf0c7f2ec3a5e7db8f13a6c980512e6d1c9",
+  "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // Discover audit: retain responsive rendering and the CMS-dimensioned original social image.
   "app/stories/[slug]/page.tsx": "6d9425fac10d5a1cc76f7faee730e08ceb7d361dda0cd4e40088e3ece66fa67d",
@@ -43,7 +43,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
-  assert.equal(hash(reconstructedBaseline), "89fe62f8c671f953d3fcccb09a87711450e57f27d64f11fb010d2441f5fe94c2");
+  assert.equal(hash(reconstructedBaseline), "47d7408a0b581ef70c4448683849680a9f0f267f7af3e76932019fc8fa2d6fcc");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {
