@@ -26,6 +26,7 @@ import {
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
+import { storyCreatedAt } from "./story-list";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
@@ -971,9 +972,19 @@ export function isPublicStoryNow(
 }
 
 function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
-  const stamp = nowIso();
   const status = normalizeStoryStatus(String(story.status || "published"));
-  const createdAt = story.createdAt || stamp;
+  const createdAt = storyCreatedAt({
+    id: String(story.id || "legacy-story"),
+    slug: story.slug,
+    status,
+    editorialStatus: story.editorialStatus,
+    createdAt: story.createdAt,
+    updatedAt: story.updatedAt,
+    publishedAt: story.publishedAt,
+    scheduledPublishAt: story.scheduledPublishAt,
+    date: story.date,
+    statusHistory: story.statusHistory,
+  });
   const publishedAt =
     status === "published"
       ? story.publishedAt || story.updatedAt || createdAt
@@ -3740,7 +3751,9 @@ async function saveStoryInternal(
 
   const prospectiveStory = rowToStory(record as typeof storyRows.$inferSelect);
   const revisionComparable = (story: EditableStory) => {
-    const { updatedAt: _updatedAt, statusHistory: _statusHistory, ...content } = story;
+    const { updatedAt, statusHistory, ...content } = story;
+    void updatedAt;
+    void statusHistory;
     return JSON.stringify(content);
   };
   const publishedContentChanged = Boolean(

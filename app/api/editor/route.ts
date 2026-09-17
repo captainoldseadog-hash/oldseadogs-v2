@@ -3,7 +3,9 @@ import {
   HomepageContentProvider,
   isHomepageLatestStory,
 } from "../../../lib/homepage-content-provider";
-import { runSourceWatch } from "../../../lib/source-watch-runner";
+import { runSourceWatch, scrapeStoryUrl } from "../../../lib/source-watch-runner";
+import { compareStoriesNewestCreated, storyMatchesWorkflow } from "../../../lib/story-list";
+import { parseCmsIdList, validateDraftCleanup } from "../../../lib/story-cleanup";
 import { getDeploymentInfo } from "../../../lib/deployment-info";
 import { getInstagramConnectorStatus, syncInstagramGallery, testInstagramConnection } from "../../../lib/instagram-gallery";
 import { disconnectInstagram, refreshInstagramToken } from "../../../lib/instagram-oauth";
@@ -619,9 +621,9 @@ async function bridgeEditorView(request: Request) {
     const filtered = data.stories
       .filter((story) => storyMatchesStatus(story, status))
       .filter((story) => queue === "scraped" ? isReviewQueueStory(story) : true)
-      .filter((story) => !workflow || story.editorialStatus.trim().toLowerCase() === workflow)
+      .filter((story) => storyMatchesWorkflow(story, workflow))
       .filter((story) => storyMatchesQuery(story, query))
-      .sort((a, b) => storyUpdatedStamp(b).localeCompare(storyUpdatedStamp(a)));
+      .sort(compareStoriesNewestCreated);
     const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
     const page = Math.min(Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1), pageCount);
     const start = (page - 1) * pageSize;
@@ -1108,6 +1110,8 @@ export async function POST(request: Request) {
         maxDraftsPerSource?: number;
         previewOnly?: boolean;
       };
+      scrapeUrl?: string;
+      saveScrapedDraft?: boolean;
       workflowStatus?: string;
       status?: "draft" | "scheduled" | "published" | "unpublished";
       collection?: string;
@@ -1137,6 +1141,11 @@ export async function POST(request: Request) {
 
     if (payload.action === "checkSources") {
       return privateJson({ result: await runSourceWatch(payload.sourceWatchOptions) });
+    }
+
+    if (payload.action === "scrapeStoryUrl") {
+      if (!payload.scrapeUrl?.trim()) return privateJson({ error: "Enter an article URL to scrape." }, { status: 400 });
+      return privateJson({ result: await scrapeStoryUrl(payload.scrapeUrl, { saveDraft: Boolean(payload.saveScrapedDraft) }) });
     }
 
     if (payload.action === "publishScheduledStories") {
@@ -1454,11 +1463,29 @@ export async function POST(request: Request) {
       if (!payload.backupBeforeDelete) {
         return privateJson({ error: "Deletion requires a verified backup first." }, { status: 400 });
       }
+      const editorData = await getEditorData();
+      const settings = editorData.settings;
+      const homepageIds = [
+        settings.homepageLeadStoryId,
+        ...parseCmsIdList(settings.homepageLatestStoryIds),
+        ...parseCmsIdList(settings.homepageEditorsChoiceStoryIds),
+        ...parseCmsIdList(settings.homepageHiddenStoryIds),
+      ].filter(Boolean);
+      const validation = validateDraftCleanup({
+        ids,
+        stories: editorData.stories,
+        homepageIds,
+        homepageSlugs: [settings.homepageLeadStorySlug].filter(Boolean),
+        referencedStoryIds: editorData.pressReleases.map((item) => item.storyId).filter(Boolean),
+      });
+      if (!validation.ok) {
+        return privateJson({ error: `No stories were deleted. ${validation.errors.join(" ")}`, errors: validation.errors }, { status: 409 });
+      }
       const backup = await createPreBulkDeleteBackup(`pre-bulk-delete-${new Date().toISOString().slice(0, 10)}`);
-      for (const id of ids) {
+      for (const id of validation.selected.map((story) => story.id)) {
         await deleteStory(id);
       }
-      return privateJson({ ok: true, deleted: ids.length, backup });
+      return privateJson({ ok: true, deleted: validation.selected.length, backup });
     }
 
     if (payload.action === "saveSettings") {

@@ -376,6 +376,18 @@ type SourceWatchDiagnostics = {
   }>;
 };
 
+type ScrapedStoryPreview = {
+  sourceName: string;
+  sourceUrl: string;
+  headline: string;
+  category: string;
+  standfirst: string;
+  body: string[];
+  wordCount: number;
+  status: "ready" | "needsMoreDetail";
+  qualityWarnings: string[];
+};
+
 type MediaPayload = {
   media: MediaAsset[];
   filters?: { query: string; filter: string };
@@ -1101,6 +1113,8 @@ function StoryListPage({
   const [actionMessage, setActionMessage] = useState("");
   const [actionBusy, setActionBusy] = useState(false);
   const [scrapeDiagnostics, setScrapeDiagnostics] = useState<SourceWatchDiagnostics | null>(null);
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [scrapePreview, setScrapePreview] = useState<ScrapedStoryPreview | null>(null);
   const isScrapedQueue = queue === "scraped";
   const viewQuery = useMemo(() => {
     const params = new URLSearchParams();
@@ -1143,6 +1157,25 @@ function StoryListPage({
     }
   };
 
+  const scrapeSingleUrl = async (saveDraft: boolean) => {
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      const payload = await postBridgeAction<{ result: { preview: ScrapedStoryPreview; saved: boolean } }>({
+        action: "scrapeStoryUrl",
+        scrapeUrl,
+        saveScrapedDraft: saveDraft,
+      });
+      setScrapePreview(payload.result.preview);
+      setActionMessage(saveDraft ? "Private Draft created for editorial review. Nothing was published." : "Preview extracted. Review it before creating a private Draft.");
+      if (saveDraft) reload();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "The article could not be scraped.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const deleteScrapedStory = async (id: string) => {
     if (!window.confirm("Delete this scraped story from the review queue? A verified timestamped backup will be created first.")) return;
     setActionBusy(true);
@@ -1173,12 +1206,14 @@ function StoryListPage({
     }
   };
 
-  const deleteScrapedStories = async (ids: string[], label: string) => {
+  const deleteSelectedDrafts = async (ids: string[], label: string) => {
     if (ids.length === 0) {
       setActionMessage("No scraped stories are selected.");
       return;
     }
-    if (!window.confirm(`${label}? A backup will be created before the bulk delete runs.`)) return;
+    const selected = (data?.stories || []).filter((story) => ids.includes(story.id));
+    const titles = selected.map((story) => `• ${story.title}`).join("\n");
+    if (!window.confirm(`${label} (${ids.length})?\n\n${titles}\n\nOnly private Drafts are eligible. Homepage-selected and referenced stories are protected. A verified backup will be created first. This deletion is permanent.`)) return;
     setActionBusy(true);
     setActionMessage("");
     try {
@@ -1189,10 +1224,10 @@ function StoryListPage({
         backupBeforeDelete: true,
       });
       setSelectedIds([]);
-      setActionMessage(`Deleted ${payload.deleted} scraped stories after backup${payload.backup?.backupPath ? `: ${payload.backup.backupPath}` : "."}`);
+      setActionMessage(`Deleted ${payload.deleted} Draft stories after backup${payload.backup?.backupPath ? `: ${payload.backup.backupPath}` : "."}`);
       reload();
     } catch (error: unknown) {
-      setActionMessage(error instanceof Error ? error.message : "Bulk delete could not be completed.");
+      setActionMessage(error instanceof Error ? error.message : "Draft cleanup could not be completed. No unsafe story was deleted.");
     } finally {
       setActionBusy(false);
     }
@@ -1252,12 +1287,35 @@ function StoryListPage({
           <>
             <button className="bridge-secondary-action" disabled={actionBusy} onClick={() => void runScrape()} type="button">Run Scrape</button>
             <button className="bridge-secondary-action" disabled={actionBusy} onClick={reload} type="button">Refresh Queue</button>
-            <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteScrapedStories(selectedIds, "Delete selected scraped stories")} type="button">Delete selected scraped stories</button>
-            <button className="bridge-secondary-action" disabled={actionBusy || unusableScrapedIds.length === 0} onClick={() => void deleteScrapedStories(unusableScrapedIds, "Clear rejected/unusable scraped stories")} type="button">Clear rejected/unusable scraped stories</button>
+            <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected scraped Drafts")} type="button">Delete selected scraped drafts</button>
+            <button className="bridge-secondary-action" disabled={actionBusy || unusableScrapedIds.length === 0} onClick={() => void deleteSelectedDrafts(unusableScrapedIds, "Clear rejected/unusable scraped Drafts")} type="button">Clear rejected/unusable scraped stories</button>
           </>
-        ) : null}
+        ) : (
+          <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected Drafts")} type="button">Delete selected drafts</button>
+        )}
       </BridgeHeader>
       {actionMessage ? <p className="bridge-save-message">{actionMessage}</p> : null}
+      {isScrapedQueue ? (
+        <section className="bridge-panel">
+          <div className="bridge-panel-heading">
+            <div><h2>Scrape Story</h2><p className="bridge-muted">Fetch an article for review. Images are never copied automatically and nothing is published.</p></div>
+          </div>
+          <div className="bridge-story-toolbar">
+            <label><span>Article URL</span><input type="url" value={scrapeUrl} onChange={(event) => { setScrapeUrl(event.target.value); setScrapePreview(null); }} placeholder="https://publisher.example/article" /></label>
+            <button className="bridge-secondary-action" disabled={actionBusy || !scrapeUrl.trim()} onClick={() => void scrapeSingleUrl(false)} type="button">Fetch preview</button>
+          </div>
+          {scrapePreview ? (
+            <article className="bridge-empty-state">
+              <span className={`bridge-status ${scrapePreview.status === "ready" ? "good" : "warn"}`}>{scrapePreview.status === "ready" ? "Ready to review" : "Needs more detail"}</span>
+              <h3>{scrapePreview.headline}</h3>
+              <p>{scrapePreview.standfirst}</p>
+              <p>{scrapePreview.category} · {scrapePreview.wordCount} words · {scrapePreview.sourceName}</p>
+              {scrapePreview.qualityWarnings.length ? <p>{scrapePreview.qualityWarnings.join(" ")}</p> : null}
+              <button className="bridge-primary-action" disabled={actionBusy} onClick={() => void scrapeSingleUrl(true)} type="button">Create private Draft</button>
+            </article>
+          ) : null}
+        </section>
+      ) : null}
       {isScrapedQueue && scrapeDiagnostics ? (
         <section className="bridge-panel">
           <div className="bridge-panel-heading">
@@ -1293,20 +1351,21 @@ function StoryListPage({
               onChange={(event) => {
                 setQuery(event.target.value);
                 setPage(1);
+                setSelectedIds([]);
               }}
               placeholder="Search title, category, source or tags"
             />
           </label>
           <label>
             <span>Workflow</span>
-            <select value={workflowFilter} onChange={(event) => { setWorkflowFilter(event.target.value); setPage(1); }}>
+            <select value={workflowFilter} onChange={(event) => { setWorkflowFilter(event.target.value); setPage(1); setSelectedIds([]); }}>
               <option value="">All workflow statuses</option>
               {storyWorkflowStatuses.map((workflow) => <option key={workflow} value={workflow}>{workflow}</option>)}
             </select>
           </label>
           {data ? (
             <p>
-              {formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount}
+              {formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount} · Sort: Newest created
             </p>
           ) : null}
         </div>
@@ -1318,7 +1377,7 @@ function StoryListPage({
               <span>Story</span>
               <span>Status</span>
               <span>Quality</span>
-              <span>Date</span>
+              <span>Created</span>
               <span>Media</span>
               <span>Open</span>
             </div>
@@ -1328,7 +1387,7 @@ function StoryListPage({
                 <div className="bridge-story-row-wrap" key={story.id}>
                   <article className="bridge-story-row" role="row">
                     <span className="bridge-story-select-thumb">
-                      {isScrapedQueue ? (
+                      {story.status === "draft" ? (
                         <input
                           aria-label={`Select ${story.title}`}
                           checked={selectedIds.includes(story.id)}
@@ -1346,7 +1405,11 @@ function StoryListPage({
                     </div>
                     <span className={`bridge-status ${statusTone(queueStatus)}`}>{queueStatus}</span>
                     <span className={`bridge-status ${statusTone(story.quality.label)}`}>{story.quality.label}</span>
-                    <span>{formatDateTime(story.updatedAt || story.date)}</span>
+                    <span>
+                      {formatDateTime(story.createdAt || story.date)}
+                      {story.status === "published" && story.publishedAt ? <small>Published {formatDateTime(story.publishedAt)}</small> : null}
+                      {story.status === "scheduled" && story.scheduledPublishAt ? <small>Scheduled {formatDateTime(story.scheduledPublishAt)}</small> : null}
+                    </span>
                     <span>{story.hasImage ? "Image" : "No image"}{story.hasVideo ? " · Video" : ""}</span>
                     <div className="bridge-row-actions">
                       <Link href={`/editor/write?story=${encodeURIComponent(story.id)}`}>Edit</Link>
@@ -1387,11 +1450,11 @@ function StoryListPage({
         ) : null}
         {data && data.pagination.pageCount > 1 ? (
           <div className="bridge-pager">
-            <button type="button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+            <button type="button" disabled={page <= 1} onClick={() => { setSelectedIds([]); setPage((value) => Math.max(1, value - 1)); }}>
               Previous
             </button>
             <span>{page} / {data.pagination.pageCount}</span>
-            <button type="button" disabled={page >= data.pagination.pageCount} onClick={() => setPage((value) => value + 1)}>
+            <button type="button" disabled={page >= data.pagination.pageCount} onClick={() => { setSelectedIds([]); setPage((value) => value + 1); }}>
               Next
             </button>
           </div>

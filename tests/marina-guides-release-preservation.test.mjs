@@ -14,8 +14,8 @@ const protectedFiles = {
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
-  // Phase 3 adds only authenticated Guide Draft import validation/confirmation to the approved editor route.
-  "app/api/editor/route.ts": "9ddae5f3be2432c410afc80a1ed3c528e796b0fd8a484a8ba70ab8ee34883cbc",
+  // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
+  "app/api/editor/route.ts": "fafc9caa4d137097d629648885c6cdf0c7f2ec3a5e7db8f13a6c980512e6d1c9",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // Discover audit: retain responsive rendering and the CMS-dimensioned original social image.
   "app/stories/[slug]/page.tsx": "6d9425fac10d5a1cc76f7faee730e08ceb7d361dda0cd4e40088e3ece66fa67d",
@@ -43,7 +43,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
-  assert.equal(hash(reconstructedBaseline), "cbc7be51a47372aecdbb7b641c71d7b8cd40f5436a5f1a641a0ae455e5bbdf0b");
+  assert.equal(hash(reconstructedBaseline), "89fe62f8c671f953d3fcccb09a87711450e57f27d64f11fb010d2441f5fe94c2");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

@@ -3,6 +3,7 @@ import { stories as storyRows } from "../db/schema";
 import { sourceWatchSites, type SourceWatchSite } from "../content/source-watch";
 import { ensureContentSchema, getEditorData, makeSlug, saveStory } from "./site-content";
 import { analyzeOldSeaDogsStyle, type OldSeaDogsStyleReport } from "./editorial-quality";
+import { fetchSourceText } from "./safe-source-fetch";
 
 export type SourceWatchResult = {
   checkedAt: string;
@@ -56,6 +57,7 @@ type FeedEntry = {
   description: string;
   publishedAt: string;
   articleText?: string;
+  scrapeError?: string;
 };
 
 const maxEntriesPerSource = 24;
@@ -522,18 +524,11 @@ function scrapeCanonicalUrl(html: string, baseUrl: string) {
   );
 }
 
-async function scrapeArticlePage(source: SourceWatchSite, entry: FeedEntry) {
+async function scrapeArticlePage(source: SourceWatchSite, entry: FeedEntry): Promise<FeedEntry> {
   try {
-    const response = await fetch(entry.link, {
-      headers: {
-        accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
-        "user-agent": "OldSeaDogsSourceWatch/1.0 (+https://oldseadogs.com)",
-      },
+    const { text: html } = await fetchSourceText(entry.link, {
+      accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
     });
-
-    if (!response.ok) return entry;
-
-    const html = await response.text();
     const canonicalUrl = scrapeCanonicalUrl(html, entry.link);
     const link = isUsefulArticleLink(source, canonicalUrl) ? canonicalUrl : entry.link;
     const title = scrapeHeadline(html, source, entry.title, entry.link);
@@ -547,8 +542,8 @@ async function scrapeArticlePage(source: SourceWatchSite, entry: FeedEntry) {
       publishedAt,
       articleText: scrapeArticleText(html),
     };
-  } catch {
-    return entry;
+  } catch (error) {
+    return { ...entry, scrapeError: error instanceof Error ? `${entry.link}: ${error.message}` : `${entry.link}: article extraction failed` };
   }
 }
 
@@ -957,19 +952,9 @@ async function fetchEntries(source: SourceWatchSite): Promise<FetchEntriesResult
 
   for (const feedUrl of source.feedUrls) {
     try {
-      const response = await fetch(feedUrl, {
-        headers: {
-          accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
-          "user-agent": "OldSeaDogsSourceWatch/1.0 (+https://oldseadogs.com)",
-        },
+      const { text } = await fetchSourceText(feedUrl, {
+        accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
       });
-
-      if (!response.ok) {
-        errors.push(feedUrl + " returned " + response.status);
-        continue;
-      }
-
-      const text = await response.text();
       const feedEntries = parseFeed(text, feedUrl);
       const sitemapEntries = feedEntries.length > 0
         ? []
@@ -997,6 +982,7 @@ async function fetchEntries(source: SourceWatchSite): Promise<FetchEntriesResult
 
     for (const candidate of candidates) {
       const scraped = await scrapeArticlePage(source, candidate);
+      if (scraped.scrapeError) errors.push(scraped.scrapeError);
       if (!scrapedEntriesByLink.has(scraped.link)) {
         scrapedEntriesByLink.set(scraped.link, scraped);
       }
@@ -1206,4 +1192,49 @@ export async function runSourceWatch(options: SourceWatchOptions = {}) {
   }
 
   return result;
+}
+
+export async function scrapeStoryUrl(value: string, options: { saveDraft?: boolean } = {}) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("Enter a valid HTTP or HTTPS article URL.");
+  }
+  if (!/^https?:$/.test(url.protocol)) throw new Error("Only HTTP and HTTPS article URLs are supported.");
+
+  const source: SourceWatchSite = {
+    id: `manual-${simpleHash(url.hostname)}`,
+    name: url.hostname.replace(/^www\./, ""),
+    url: url.origin,
+    group: "Manual story scrape",
+    focus: "Editor-supplied article URL",
+    sections: ["News"],
+    storyStyle: "Create a private editorial review draft without copying publisher wording.",
+    photoRule: "Do not import third-party imagery without explicit rights.",
+    approvalRule: "Editor approval is required before publication.",
+    feedUrls: [],
+    checkEveryHours: 0,
+    status: "active",
+  };
+  const entry = await scrapeArticlePage(source, {
+    title: titleFromUrl(url.toString()),
+    link: normaliseSourceUrl(url.toString()),
+    description: "",
+    publishedAt: "",
+  });
+  if (entry.scrapeError) throw new Error(entry.scrapeError);
+  if (!entry.articleText && !entry.description) throw new Error("The page loaded, but no usable article text or metadata could be extracted.");
+
+  const hash = simpleHash(`${source.id}:${entry.link}`);
+  const generated = storyInputFromGeneratedArticle(source, entry, hash);
+  if (!options.saveDraft) return { preview: generated.preview, story: null, saved: false };
+
+  await ensureContentSchema();
+  const existing = await readExistingSourceFingerprints(getDbOrNull());
+  if (existing.urls.has(entry.link) || existing.ids.has(generated.story.id) || existing.slugs.has(generated.story.slug)) {
+    throw new Error("This source URL is already represented by an existing Story.");
+  }
+  const story = await saveStory({ ...generated.story, status: "draft", editorialStatus: "Needs Review" });
+  return { preview: generated.preview, story, saved: true };
 }
