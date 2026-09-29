@@ -4,6 +4,7 @@ import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
+  guideCollectionPath,
   guideEditorialLinkMatches,
   guidePublicPath,
   relatedGuides,
@@ -719,7 +720,7 @@ export function GuidePublicContent({
         {previous ? (
           <Link href={guidePublicPath(previous)}><span>Previous Guide</span><strong>{previous.title}</strong></Link>
         ) : (
-          <Link href={guide.regionKey ? `/guides/${guide.regionKey}` : "/guides"}>
+          <Link href={guideCollectionPath(guide)}>
             <span>Previous</span>
             <strong>{guide.regionName ? `${guide.regionName} collection` : "All Old Sea Dogs Guides"}</strong>
           </Link>

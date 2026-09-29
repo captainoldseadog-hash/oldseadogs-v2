@@ -30,6 +30,16 @@ export function guideProductRecords(guides: readonly EditableGuide[]) {
     );
 }
 
+export function guideRegionRecords(guides: readonly EditableGuide[]) {
+  return guideProductRecords(guides).filter((guide) => guide.regionName.trim());
+}
+
+export function guideCollectionPath(guide: Pick<EditableGuide, "regionKey" | "regionName">) {
+  return guide.regionKey.trim() && guide.regionName.trim()
+    ? guideRegionPath(guide.regionKey)
+    : "/guides";
+}
+
 export function guideCruisingArea(regionKey: string, guides: readonly EditableGuide[]) {
   const candidates = guides.filter((guide) =>
     guide.regionKey === regionKey

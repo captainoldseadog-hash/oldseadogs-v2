@@ -14,8 +14,8 @@ import {
   guideCruisingArea,
   guidePlaceJsonLd,
   guideCollectionJsonLd,
-  guideProductRecords,
   guidePublicPath,
+  guideRegionRecords,
 } from "../../../lib/guides.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: RegionPageProps): Promise<Metadata> {
   const { region } = await params;
-  const guides = guideProductRecords(await getPublishedGuides());
+  const guides = guideRegionRecords(await getPublishedGuides());
   const regional = guides.filter((guide) => guide.regionKey === region);
   if (regional.length) {
     const regionName = regional[0].regionName;
@@ -77,7 +77,7 @@ function PrimaryNavigation() {
 export default async function RegionPage({ params }: RegionPageProps) {
   const { region } = await params;
   const allPublished = await getPublishedGuides();
-  const regional = guideProductRecords(allPublished).filter((guide) => guide.regionKey === region);
+  const regional = guideRegionRecords(allPublished).filter((guide) => guide.regionKey === region);
 
   if (!regional.length) {
     const legacyGuide = await getGuideBySlug(region);
@@ -122,6 +122,11 @@ export default async function RegionPage({ params }: RegionPageProps) {
           ]),
         ]} />
         <PrimaryNavigation />
+        {region === "solent" ? (
+          <p className="guide-back-link">
+            <Link href="/guides/solent-marina-guide">Read the Solent Marina Guide →</Link>
+          </p>
+        ) : null}
         <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} />
         <GuideCollectionBrowser
           guides={childItems}

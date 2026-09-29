@@ -96,7 +96,8 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Portsmouth Harbour/);
   assert.match(landingHtml, /Southampton Water/);
   assert.match(landingHtml, /Beaulieu River/);
-  assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise|solent-marina-guide/);
+  assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise/);
+  assert.match(landingHtml, /href="\/guides\/solent-marina-guide"/);
   assert.match(landingHtml, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(landingHtml, /The Solent/);
 
@@ -106,6 +107,7 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(regionHtml, /Guide relationships/);
   assert.match(regionHtml, /In this collection/);
   assert.match(regionHtml, /Explore The Solent/);
+  assert.match(regionHtml, /href="\/guides\/solent-marina-guide"/);
   assert.match(regionHtml, /River Hamble/);
 
   for (const record of solentMarinaGuideRecords) {

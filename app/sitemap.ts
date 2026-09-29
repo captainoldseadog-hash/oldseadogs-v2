@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { manufacturers, storyMatchesManufacturer } from "../content/manufacturers";
 import { oldSeaDogsSections } from "../content/sections";
-import { guideProductRecords, guidePublicPath, guideRegionPath } from "../lib/guides.ts";
+import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { getIndexedGuides, getPublishedStories, isStorySearchIndexable } from "../lib/site-content";
 import { absoluteUrl } from "../lib/seo";
 
@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [publishedStories, indexedGuides] = await Promise.all([getPublishedStories(), getIndexedGuides()]);
   const stories = publishedStories.filter(isStorySearchIndexable);
   const now = new Date();
-  const productGuides = guideProductRecords(indexedGuides);
+  const productGuides = guideRegionRecords(indexedGuides);
   const guideRegions = [...new Set(productGuides.map((guide) => guide.regionKey))];
   return [
     ...staticRoutes.map((route) => ({ url: absoluteUrl(route.path), lastModified: now, changeFrequency: route.path === "/" ? "daily" as const : "monthly" as const, priority: route.priority })),

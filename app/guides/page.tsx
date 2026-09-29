@@ -71,7 +71,10 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
           Practical marina, harbour and cruising information, organised by the water.
           Choose a cruising area, then follow it into harbours, marinas and destinations.
         </p>
-        <a className="guide-skip-to-search" href="#guide-library">Find a particular place</a>
+        <div className="guide-directory-actions">
+          <a className="guide-skip-to-search" href="#guide-library">Find a particular place</a>
+          <Link className="guide-skip-to-search" href="/guides/solent-marina-guide">Read the Solent Marina Guide</Link>
+        </div>
       </header>
 
       <section className="guide-area-discovery" aria-labelledby="guide-area-discovery-title">

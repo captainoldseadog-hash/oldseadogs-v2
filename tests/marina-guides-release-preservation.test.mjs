@@ -19,8 +19,8 @@ const protectedFiles = {
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
   // Discover audit: retain responsive rendering and the CMS-dimensioned original social image.
   "app/stories/[slug]/page.tsx": "6d9425fac10d5a1cc76f7faee730e08ceb7d361dda0cd4e40088e3ece66fa67d",
-  // Poole: area-root canonicals are emitted once through the regional sitemap entry.
-  "app/sitemap.ts": "6656a11ef5c0823de5f821a7bceeba2ca59e02679996515ea2ec27148f6411e7",
+  // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
+  "app/sitemap.ts": "b27526b586863be7ae4b82ef26b0c2465bc7f14958f662ed4bd6673d8dd28418",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

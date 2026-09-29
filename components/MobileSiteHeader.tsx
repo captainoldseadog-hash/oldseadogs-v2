@@ -7,7 +7,7 @@ import { oldSeaDogsSections } from "../content/sections";
 const guideLinks = [
   { href: "/guides", label: "All Guides" },
   { href: "/guides/solent", label: "The Solent" },
-  { href: "/marina-guide", label: "Marina Guide" },
+  { href: "/guides/solent-marina-guide", label: "Marina Guide" },
 ];
 
 export function MobileSiteHeader() {
