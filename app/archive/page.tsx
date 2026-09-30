@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { displayCategoryLabel } from "../../content/sections";
+import { displayCategoryLabel, marinaGuideNavigationLink } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
@@ -68,7 +68,10 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           <span className="brand-mark" aria-hidden="true" />
           <span>Old Sea Dogs</span>
         </Link>
-        <Link href="/">Back to home</Link>
+        <div className="nav-links section-nav-links">
+          <Link href="/">Back to home</Link>
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+        </div>
       </nav>
 
       <header className="archive-hero">

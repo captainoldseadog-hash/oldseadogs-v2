@@ -9,6 +9,7 @@ import {
   getOldSeaDogsSection,
   displayCategoryLabel,
   getSectionHeroArtwork,
+  marinaGuideNavigationLink,
   oldSeaDogsSections,
   storyMatchesSection,
 } from "../../content/sections";
@@ -103,6 +104,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
               {item.label}
             </Link>
           ))}
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
           <Link href="/search">Search</Link>
         </div>
       </nav>

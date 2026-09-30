@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { oldSeaDogsSections } from "../../content/sections";
+import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { createPageMetadata } from "../../lib/seo";
 import { searchStories } from "../../lib/search";
 import { SearchClient } from "./SearchClient";
@@ -40,6 +40,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               {section.label}
             </Link>
           ))}
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
         </div>
       </nav>
 

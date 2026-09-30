@@ -5,7 +5,7 @@ import {
   getManufacturerBySlug,
   storyMatchesManufacturer,
 } from "../../../content/manufacturers";
-import { displayCategoryLabel, oldSeaDogsSections } from "../../../content/sections";
+import { displayCategoryLabel, marinaGuideNavigationLink, oldSeaDogsSections } from "../../../content/sections";
 import { formatDate } from "../../../content/stories";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
@@ -63,6 +63,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
               {section.label}
             </Link>
           ))}
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
           <Link href="/search">Search</Link>
         </div>
       </nav>

@@ -12,17 +12,45 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const read = (file) => readFile(path.join(projectDir, file), "utf8");
 
 test("Marina Guide navigation and the legacy URL use the canonical Guide route", async () => {
-  const [header, index, region, proxy] = await Promise.all([
+  const [navigation, header, homepage, story, index, region, proxy] = await Promise.all([
+    read("content/sections.ts"),
     read("components/MobileSiteHeader.tsx"),
+    read("app/page.tsx"),
+    read("app/stories/[slug]/page.tsx"),
     read("app/guides/page.tsx"),
     read("app/guides/[region]/page.tsx"),
     read("proxy.ts"),
   ]);
   assert.doesNotMatch(header, /href: "\/marina-guide"/);
-  assert.match(header, /href: "\/guides\/solent-marina-guide", label: "Marina Guide"/);
+  assert.match(navigation, /marinaGuideNavigationLink[\s\S]*?href: "\/guides\/solent-marina-guide"[\s\S]*?label: "Marina Guide"/);
+  assert.match(header, /marinaGuideNavigationLink/);
+  assert.match(homepage, /\.concat\(marinaGuideNavigationLink\)/);
+  assert.match(story, /href=\{marinaGuideNavigationLink\.href\}[\s\S]*?marinaGuideNavigationLink\.label/);
   assert.match(index, /href="\/guides\/solent-marina-guide"/);
   assert.match(region, /region === "solent"[\s\S]*?href="\/guides\/solent-marina-guide"/);
   assert.match(proxy, /pathname === "\/marina-guide"[\s\S]*?status: 301[\s\S]*?Location: "\/guides\/solent-marina-guide"/);
+});
+
+test("every public desktop header uses the shared Marina Guide destination", async () => {
+  const desktopHeaderFiles = [
+    "app/page.tsx",
+    "app/[section]/page.tsx",
+    "app/about/page.tsx",
+    "app/archive/page.tsx",
+    "app/authors/michael-hodges/page.tsx",
+    "app/contact/page.tsx",
+    "app/cookie-policy/page.tsx",
+    "app/editorial-standards/page.tsx",
+    "app/manufacturers/[manufacturer]/page.tsx",
+    "app/privacy/page.tsx",
+    "app/search/page.tsx",
+    "app/social/page.tsx",
+    "app/stories/[slug]/page.tsx",
+    "app/terms/page.tsx",
+  ];
+  for (const file of desktopHeaderFiles) {
+    assert.match(await read(file), /marinaGuideNavigationLink/, file);
+  }
 });
 
 test("unnamed legacy region placeholders never become public collection routes", () => {

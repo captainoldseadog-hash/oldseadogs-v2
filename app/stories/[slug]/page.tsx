@@ -5,7 +5,7 @@ import { ArticlePreviewContent } from "../../../components/ArticlePreviewContent
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SocialShare } from "../../../components/SocialShare";
 import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
-import { displayCategoryLabel, sectionPathForCategory } from "../../../content/sections";
+import { displayCategoryLabel, marinaGuideNavigationLink, sectionPathForCategory } from "../../../content/sections";
 import {
   getClubProfileArticleBody,
   getClubProfileForStory,
@@ -376,7 +376,10 @@ export default async function StoryPage({ params }: StoryPageProps) {
           <span className="brand-mark" aria-hidden="true" />
           <span>Old Sea Dogs</span>
         </Link>
-        <Link href="/#latest">Latest dispatches</Link>
+        <div className="nav-links section-nav-links">
+          <Link href="/#latest">Latest dispatches</Link>
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+        </div>
       </nav>
 
       <ArticlePreviewContent

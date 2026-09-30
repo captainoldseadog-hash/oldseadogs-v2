@@ -4053,6 +4053,18 @@ a {
   color: var(--signal);
 }
 
+@media (min-width: 1025px) {
+  .guides-shell .article-nav .section-nav-links {
+    gap: 16px;
+    font-size: .88rem;
+  }
+
+  .guides-shell .article-nav .brand-lockup,
+  .guides-shell .article-nav .section-nav-links a {
+    white-space: nowrap;
+  }
+}
+
 .hero-content {
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto;

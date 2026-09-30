@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { oldSeaDogsSections } from "../../content/sections";
+import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { contactEmail, createPageMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -25,6 +25,7 @@ export default function TermsPage() {
               {section.label}
             </Link>
           ))}
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
         </div>
       </nav>
 

@@ -8,6 +8,7 @@ import { getClubProfileExcerpt } from "../content/club-profiles";
 import {
   categoryMatchesLabel,
   displayCategoryLabel,
+  marinaGuideNavigationLink,
   oldSeaDogsSections,
 } from "../content/sections";
 import { formatDate } from "../content/stories";
@@ -44,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const sections = oldSeaDogsSections.map((section) => ({
   href: `/${section.slug}`,
   label: section.label,
-}));
+})).concat(marinaGuideNavigationLink);
 
 function GuidePromoBand({
   guides,

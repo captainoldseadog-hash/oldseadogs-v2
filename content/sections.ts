@@ -108,6 +108,12 @@ export const oldSeaDogsSections: OldSeaDogsSection[] = [
   },
 ];
 
+export const marinaGuideNavigationLink = {
+  href: "/guides/solent-marina-guide",
+  label: "Marina Guide",
+  slug: "marina-guide",
+} as const;
+
 export const publicNavigationLinks = [
   ...oldSeaDogsSections.map((section) => ({
     href: `/${section.slug}`,
@@ -119,6 +125,7 @@ export const publicNavigationLinks = [
     label: "Guides",
     slug: "guides",
   },
+  marinaGuideNavigationLink,
 ] as const;
 
 function categoryKey(category: string) {

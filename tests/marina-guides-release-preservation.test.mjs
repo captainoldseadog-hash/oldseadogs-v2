@@ -8,8 +8,8 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // Option C plus the full-card, prefetched lead navigation over the canonical feed.
-  "app/page.tsx": "9950517cd59a5d46374ae2c3fc1aa724c14b41717b4951acc0fae41c370afb3a",
+  // Option C, the prefetched lead, and the canonical desktop Marina Guide navigation.
+  "app/page.tsx": "b13fd12247a3cb0414b9b0d4f0f8b2eea919df6dc990d8442f1fc4a9da44c67c",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -17,8 +17,8 @@ const protectedFiles = {
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
   "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
   "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
-  // Discover audit: retain responsive rendering and the CMS-dimensioned original social image.
-  "app/stories/[slug]/page.tsx": "6d9425fac10d5a1cc76f7faee730e08ceb7d361dda0cd4e40088e3ece66fa67d",
+  // Discover audit plus the canonical desktop Marina Guide navigation.
+  "app/stories/[slug]/page.tsx": "fe5aadc1390a6864698cc1703f7dadc48b8bc7e847dd5093e7010a5772534cc7",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   "app/sitemap.ts": "b27526b586863be7ae4b82ef26b0c2465bc7f14958f662ed4bd6673d8dd28418",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",

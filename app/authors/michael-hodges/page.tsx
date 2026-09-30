@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd } from "../../../components/JsonLd";
 import { SiteFooter } from "../../../components/SiteFooter";
-import { oldSeaDogsSections } from "../../../content/sections";
+import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../../content/sections";
 import { contactEmail, createPageMetadata } from "../../../lib/seo";
 import { profilePageJsonLd } from "../../../lib/structured-data";
 
@@ -35,6 +35,7 @@ export default function MichaelHodgesAuthorPage() {
               {section.label}
             </Link>
           ))}
+          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
         </div>
       </nav>
 
