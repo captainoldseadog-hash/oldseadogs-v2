@@ -4093,7 +4093,8 @@ a {
 }
 
 .hero h1,
-.article-header h1 {
+.article-header h1,
+.mobile-hero-content h2 {
   margin: 0;
   max-width: 780px;
   font-family: Georgia, "Times New Roman", serif;
@@ -4103,7 +4104,8 @@ a {
   letter-spacing: 0;
 }
 
-.hero h1 {
+.hero h1,
+.mobile-hero-content h2 {
   text-shadow: 0 4px 22px rgba(0, 0, 0, 0.42);
 }
 
@@ -4168,6 +4170,29 @@ a {
 .button-secondary:focus-visible {
   border-color: rgba(255, 255, 255, 0.82);
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* Pale guide panels cannot use the homepage hero's white ghost button. */
+.guide-feedback .button-secondary,
+.guide-verified-facilities .button-secondary,
+.guide-card .button-secondary {
+  border-color: var(--harbour);
+  background: #ffffff;
+  color: var(--harbour);
+}
+
+.guide-feedback .button-secondary:hover,
+.guide-feedback .button-secondary:focus-visible,
+.guide-feedback .button-secondary:active,
+.guide-verified-facilities .button-secondary:hover,
+.guide-verified-facilities .button-secondary:focus-visible,
+.guide-verified-facilities .button-secondary:active,
+.guide-card .button-secondary:hover,
+.guide-card .button-secondary:focus-visible,
+.guide-card .button-secondary:active {
+  border-color: var(--harbour);
+  background: var(--harbour);
+  color: #ffffff;
 }
 
 .ticker-band {
@@ -12237,7 +12262,7 @@ a {
     outline-offset: -5px;
   }
 
-  .mobile-hero-content h1 {
+  .mobile-hero-content h2 {
     max-width: 730px;
     font-size: clamp(2.35rem, 8vw, 4rem);
     line-height: 1;
@@ -12724,7 +12749,7 @@ a {
     min-height: 540px;
   }
 
-  .mobile-hero-content h1 {
+  .mobile-hero-content h2 {
     font-size: clamp(2.2rem, 10.6vw, 3.2rem);
   }
 
@@ -12819,5 +12844,111 @@ a {
   .guide-relationship-navigation > div {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+.featured-port-club-layout.featured-port-club-layout--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.newsletter-band {
+  width: min(1180px, calc(100% - 40px));
+  margin: 38px auto 0;
+  padding-bottom: 30px;
+}
+
+.newsletter-signup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 28px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sea);
+  border-radius: 8px;
+  padding: clamp(22px, 4vw, 36px);
+  background:
+    linear-gradient(135deg, rgba(47, 111, 103, 0.1), rgba(201, 84, 50, 0.05)),
+    var(--panel);
+  color: var(--ink);
+}
+
+.newsletter-signup--guide {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto 58px;
+}
+
+.newsletter-signup-copy {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.newsletter-signup h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.newsletter-signup p:not(.eyebrow) {
+  max-width: 62ch;
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.newsletter-signup .eyebrow {
+  margin-bottom: 6px;
+}
+
+.newsletter-signup-cta {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 0 18px;
+  background: var(--signal);
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.newsletter-signup-cta:hover,
+.newsletter-signup-cta:focus-visible {
+  background: var(--harbour);
+}
+
+.newsletter-signup-cta:focus-visible {
+  outline: 3px solid var(--sea);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+  .site-shell > .newsletter-band {
+    order: 10;
+  }
+
+  .newsletter-signup--guide {
+    width: min(100% - 36px, 760px);
+  }
+}
+
+@media (max-width: 920px) {
+  .newsletter-band {
+    width: min(100% - 28px, 1180px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .newsletter-signup--guide {
+    width: min(100% - 56px, 980px);
+  }
+}
+
+@media (max-width: 640px) {
+  .newsletter-signup-cta {
+    width: 100%;
   }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DerivativeImage } from "../../components/DerivativeImage";
 import { PortsInteractiveMap } from "../../components/PortsInteractiveMap";
 import { SiteFooter } from "../../components/SiteFooter";
 import { getClubProfileExcerpt } from "../../content/club-profiles";
@@ -119,11 +120,11 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
       >
         {heroPhoto ? (
           <figure className="section-hero-artwork">
-            <img
-              src={heroPhoto.imageUrl}
+            <DerivativeImage
               alt={heroPhoto.imageAlt}
-              loading="eager"
-              decoding="async"
+              eager
+              sizes="100vw"
+              src={heroPhoto.imageUrl}
               style={{ objectPosition: heroPhoto.focalPoint }}
             />
           </figure>

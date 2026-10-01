@@ -27,6 +27,11 @@ function dayNumber(date = new Date()) {
   );
 }
 
+export function isOffTopicInvestorAdvert(ad: Advert | null | undefined) {
+  if (!ad) return false;
+  return /anewfn/i.test(`${ad.id} ${ad.label} ${ad.title} ${ad.linkUrl} ${ad.body}`);
+}
+
 export function pickAdvertForPlacement(
   ads: Advert[],
   placement: string | string[],

@@ -28,6 +28,7 @@ import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
+import { publicImageAlt } from "./public-image-alt";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
@@ -2803,11 +2804,43 @@ export async function publishDueScheduledStories() {
   return { checkedAt: stamp, published, nextScheduledAt };
 }
 
+function presentPublicStory(story: EditableStory): EditableStory {
+  const imageAlt = publicImageAlt({
+    alt: story.imageAlt,
+    caption: story.imageCaption,
+    title: story.title,
+  });
+  return imageAlt === story.imageAlt ? story : { ...story, imageAlt };
+}
+
+function presentPublicStories(stories: EditableStory[]) {
+  return stories.map(presentPublicStory);
+}
+
+function presentPublicGuide(guide: EditableGuide): EditableGuide {
+  const imageAlt = publicImageAlt({
+    alt: guide.imageAlt,
+    caption: guide.imageCaption,
+    title: guide.title,
+  });
+  const inlineImages = (guide.inlineImages || []).map((image) => {
+    const alt = publicImageAlt({
+      alt: image.alt,
+      caption: image.caption,
+      title: guide.title,
+    });
+    return alt === image.alt ? image : { ...image, alt };
+  });
+  const inlineChanged = inlineImages.some((image, index) => image !== guide.inlineImages?.[index]);
+  if (imageAlt === guide.imageAlt && !inlineChanged) return guide;
+  return { ...guide, imageAlt, inlineImages };
+}
+
 export async function getPublishedStories() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    return getLocalPublishedStories(store);
+    return presentPublicStories(await getLocalPublishedStories(store));
   }
 
   try {
@@ -2816,7 +2849,7 @@ export async function getPublishedStories() {
       .select()
       .from(storyRows)
       .orderBy(desc(storyRows.isFeatured), desc(storyRows.date), asc(storyRows.sortOrder));
-    return mergeDbStoriesWithStatic(rows);
+    return presentPublicStories(mergeDbStoriesWithStatic(rows));
   } catch (error) {
     console.error("[OldSeaDogs storage] published CMS stories could not be loaded", {
       errorName: error instanceof Error ? error.name : "",
@@ -2826,7 +2859,7 @@ export async function getPublishedStories() {
       throw new Error("Published CMS stories could not be loaded. Static-only fallback was blocked to prevent newer stories disappearing.", { cause: error });
     }
     const fixture = await loadDevelopmentHomepageFixture(0);
-    return sortStories(staticStories(fixture.stories));
+    return presentPublicStories(sortStories(staticStories(fixture.stories)));
   }
 }
 
@@ -2834,7 +2867,8 @@ export async function getStoryBySlug(slug: string) {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    return (await getLocalPublishedStories(store)).find((story) => story.slug === slug) ?? null;
+    const story = (await getLocalPublishedStories(store)).find((item) => item.slug === slug) ?? null;
+    return story ? presentPublicStory(story) : null;
   }
 
   try {
@@ -2846,28 +2880,37 @@ export async function getStoryBySlug(slug: string) {
       .limit(1);
     if (row) {
       const story = rowToStory(row);
-      if (isPublicStoryNow(story)) return story;
+      if (isPublicStoryNow(story)) return presentPublicStory(story);
       if (story.status === "unpublished") return null;
-      return staticStories().find((candidate) => candidate.slug === slug) ?? null;
+      const archived = staticStories().find((candidate) => candidate.slug === slug) ?? null;
+      return archived ? presentPublicStory(archived) : null;
     }
-    return staticStories().find((story) => story.slug === slug) ?? null;
+    const archived = staticStories().find((story) => story.slug === slug) ?? null;
+    return archived ? presentPublicStory(archived) : null;
   } catch (error) {
     if (homepageFixturePolicy(0).productionRuntime) {
       throw new Error("Published CMS story data could not be loaded. Development fixture fallback is blocked in production.", { cause: error });
     }
     const fixture = await loadDevelopmentHomepageFixture(0);
-    return staticStories(fixture.stories).find((story) => story.slug === slug) ?? null;
+    const story = staticStories(fixture.stories).find((item) => item.slug === slug) ?? null;
+    return story ? presentPublicStory(story) : null;
   }
 }
 
+const localGuidesCache = new WeakMap<LocalEditorStore, EditableGuide[]>();
+
 export async function getAllGuides() {
   const store = await readLocalEditorStore();
-  return mergeLocalGuidesWithStatic(store.guides);
+  const cached = localGuidesCache.get(store);
+  if (cached) return cached;
+  const guides = mergeLocalGuidesWithStatic(store.guides);
+  localGuidesCache.set(store, guides);
+  return guides;
 }
 
 export async function getPublishedGuides() {
   const guides = await getAllGuides();
-  return guides.filter((guide) => guide.status === "published");
+  return guides.filter((guide) => guide.status === "published").map(presentPublicGuide);
 }
 
 export async function getIndexedGuides() {
@@ -2887,16 +2930,22 @@ export async function getGuideBySlug(slug: string, options: { includeDrafts?: bo
   const guides = await getAllGuides();
   const guide = guides.find((item) => item.slug === slug) ?? null;
   if (!guide) return null;
-  if (options.includeDrafts) return guide;
-  return guide.status === "published" ? guide : null;
+  if (!options.includeDrafts && guide.status !== "published") return null;
+  return presentPublicGuide(guide);
 }
+
+const localSettingsCache = new WeakMap<LocalEditorStore, SiteSettings>();
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const cached = localSettingsCache.get(store);
+    if (cached) return cached;
     const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
-    return { ...defaultSettings, ...store.settings, ...fixture.settings };
+    const settings = { ...defaultSettings, ...store.settings, ...fixture.settings };
+    localSettingsCache.set(store, settings);
+    return settings;
   }
 
   try {
@@ -3000,12 +3049,19 @@ export async function saveHomepageSettings(input: {
   return { settings: await getSiteSettings(), story: selectedLead };
 }
 
+const localAdsCache = new WeakMap<LocalEditorStore, { ads: Advert[]; day: string }>();
+
 export async function getActiveAds() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const day = new Date().toISOString().slice(0, 10);
+    const cached = localAdsCache.get(store);
+    if (cached?.day === day) return cached.ads;
     const adverts = store.ads.length > 0 ? store.ads : defaultAdvertRows();
-    return activeAdvertRows(adverts);
+    const active = activeAdvertRows(adverts);
+    localAdsCache.set(store, { ads: active, day });
+    return active;
   }
 
   try {

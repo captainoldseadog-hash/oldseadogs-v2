@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
+import { publicImageAlt } from "../lib/public-image-alt";
+import { DerivativeImage } from "./DerivativeImage.tsx";
+import { readImageSize } from "../lib/image-derivatives.ts";
+import { mobileSourceSrcSet } from "../lib/responsive-image.ts";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
@@ -11,6 +15,7 @@ import {
 } from "../lib/guides.ts";
 import type { EditableGuide } from "../lib/site-content.ts";
 import { GuideBreadcrumbs } from "./GuideBreadcrumbs.tsx";
+import { NewsletterSignup } from "./NewsletterSignup.tsx";
 import { GuideGoogleMap } from "./GuideGoogleMap.tsx";
 import { GuideSectionNavigation } from "./GuideSectionNavigation.tsx";
 
@@ -291,6 +296,33 @@ function HamblePointPracticalReference() {
   );
 }
 
+async function GuideHeroPicture({ guide }: { guide: EditableGuide }) {
+  const size = await readImageSize(guide.imageUrl).catch(() => null);
+  const dedicatedMobile = publicMediaVariantUrl(guide.imageUrl, "mobile");
+  return (
+    <picture>
+      <source
+        media="(max-width: 1024px)"
+        sizes="100vw"
+        srcSet={mobileSourceSrcSet(guide.imageUrl, dedicatedMobile)}
+      />
+      <DerivativeImage
+        alt={publicImageAlt({
+          alt: guide.imageAlt,
+          caption: guide.imageCaption,
+          title: guide.title,
+        })}
+        eager
+        height={size?.height}
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        src={guide.imageUrl}
+        style={{ objectPosition: guide.imageFocalPoint }}
+        width={size?.width}
+      />
+    </picture>
+  );
+}
+
 export function GuidePublicContent({
   guide,
   publishedGuides,
@@ -454,19 +486,7 @@ export function GuidePublicContent({
 
       <header className="guide-product-hero">
         {guide.imageUrl ? <figure>
-          <picture>
-            <source
-              media="(max-width: 1024px)"
-              srcSet={publicMediaVariantUrl(guide.imageUrl, "mobile")}
-            />
-            <img
-              src={publicMediaVariantUrl(guide.imageUrl, "web")}
-              alt={guide.imageAlt}
-              decoding="async"
-              fetchPriority="high"
-              style={{ objectPosition: guide.imageFocalPoint }}
-            />
-          </picture>
+          <GuideHeroPicture guide={guide} />
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (
             <figcaption>
               {guide.imageCaption}
@@ -602,7 +622,11 @@ export function GuidePublicContent({
                     .sort((left, right) => left.order - right.order)
                     .map((image) => (
                       <figure className="article-inline-figure" key={image.id}>
-                        <img loading="lazy" src={image.url} alt={image.alt} />
+                        <DerivativeImage
+                          alt={publicImageAlt({ alt: image.alt, caption: image.caption, title: guide.title })}
+                          sizes="(max-width: 760px) calc(100vw - 28px), 860px"
+                          src={image.url}
+                        />
                         <figcaption>{image.caption}{image.credit ? ` · ${image.credit}` : ""}</figcaption>
                       </figure>
                     ))}
@@ -610,7 +634,11 @@ export function GuidePublicContent({
               ))}
               {guideSectionImagesFor(guide.slug, section.heading).map((image) => (
                 <figure className="article-inline-figure" key={image.id}>
-                  <img loading="lazy" src={image.url} alt={image.alt} />
+                  <DerivativeImage
+                    alt={publicImageAlt({ alt: image.alt, title: guide.title })}
+                    sizes="(max-width: 760px) calc(100vw - 28px), 860px"
+                    src={image.url}
+                  />
                 </figure>
               ))}
               {section.listItems?.length ? <ul>{section.listItems.map((item) => <li key={item}>{item}</li>)}</ul> : null}
@@ -703,7 +731,12 @@ export function GuidePublicContent({
             {related.map((item) => (
               <article className="guide-card" key={item.slug}>
                 <Link className="guide-card-image" href={guidePublicPath(item)}>
-                  <img loading="lazy" src={item.imageUrl} alt={item.imageAlt} />
+                  <DerivativeImage
+                    alt={publicImageAlt({ alt: item.imageAlt, caption: item.imageCaption, title: item.title })}
+                    sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                    src={item.imageUrl}
+                    widths={[480, 768]}
+                  />
                 </Link>
                 <div>
                   <p className="eyebrow">{item.guideType}</p>
@@ -744,6 +777,10 @@ export function GuidePublicContent({
           Send Guide feedback
         </a>
       </section>
+
+      {guide.guideType === "Marina" || guide.guideType === "Harbour" ? (
+        <NewsletterSignup placement="guide" />
+      ) : null}
     </>
   );
 }

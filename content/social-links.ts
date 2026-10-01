@@ -1,3 +1,5 @@
+import { oldSeaDogsNewsletter } from "./newsletter";
+
 export const oldSeaDogsSocialLinks = {
   tiktok: "https://www.tiktok.com/@oldseadogs8",
   instagram: "https://www.instagram.com/oldseadogs_website/",
@@ -6,6 +8,7 @@ export const oldSeaDogsSocialLinks = {
   youtube: "https://www.youtube.com/@oldseadogsnews/shorts",
   threads: "https://www.threads.com/@oldseadogs_website",
   linkedin: "https://www.linkedin.com/company/old-sea-dogs/?viewAsMember=true",
+  substack: oldSeaDogsNewsletter.publicationUrl,
 };
 
 export type OldSeaDogsSocialPlatform = {
@@ -74,6 +77,14 @@ export const oldSeaDogsSocialPlatforms: OldSeaDogsSocialPlatform[] = [
     description: "Marine industry updates, publishing notes and business contact.",
     href: oldSeaDogsSocialLinks.linkedin,
   },
+  {
+    key: "substack",
+    label: oldSeaDogsNewsletter.socialLabel,
+    icon: "S",
+    handle: oldSeaDogsNewsletter.socialHandle,
+    description: oldSeaDogsNewsletter.socialDescription,
+    href: oldSeaDogsSocialLinks.substack,
+  },
 ];
 
 export const oldSeaDogsSameAsLinks = [
@@ -84,6 +95,7 @@ export const oldSeaDogsSameAsLinks = [
   oldSeaDogsSocialLinks.youtube,
   oldSeaDogsSocialLinks.threads,
   oldSeaDogsSocialLinks.linkedin,
+  oldSeaDogsSocialLinks.substack,
 ];
 
 export type OldSeaDogsVideoItem = {

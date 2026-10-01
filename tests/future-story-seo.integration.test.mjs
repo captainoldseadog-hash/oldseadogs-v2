@@ -199,7 +199,7 @@ test("a normal future published story is automatically indexable, server rendere
   assert.match(html, new RegExp(`rel=["']canonical["'] href=["']https://oldseadogs\\.com/stories/${futureSlug}["']`));
   const articleFigure = html.match(/<figure class="article-figure">[\s\S]*?<\/figure>/)?.[0] || "";
   assert.match(articleFigure, new RegExp(`src="${leadImage.replaceAll("/", "\\/")}\\?variant=web"`, "i"));
-  assert.match(articleFigure, new RegExp(`srcSet="${leadImage.replaceAll("/", "\\/")}\\?variant=web"`, "i"));
+  assert.match(articleFigure, new RegExp(`srcSet="[^"]*${leadImage.replaceAll("/", "\\/")}\\?variant=web 1600w"`, "i"));
   assert.match(articleFigure, /fetchpriority="high"/i);
   assert.match(articleFigure, /loading="eager"/i);
 

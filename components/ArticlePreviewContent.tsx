@@ -6,7 +6,9 @@ import { SocialFollowBlock } from "./SocialFollowBlock";
 import { displayCategoryLabel, sectionPathForCategory } from "../content/sections";
 import type { Advert, EditableStory } from "../lib/site-content";
 import { cleanStoryTags } from "../lib/tags";
+import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet } from "../lib/responsive-image";
 
 type ArticlePreviewContentProps = {
   story: Pick<
@@ -276,7 +278,11 @@ function parseInlineImageFigure(paragraph: string) {
 }
 
 function inlineImageAlt(inlineImage: { alt?: string; caption?: string }, fallback: string) {
-  return inlineImage.alt?.trim() || inlineImage.caption || fallback;
+  return publicImageAlt({
+    alt: inlineImage.alt,
+    caption: inlineImage.caption,
+    title: fallback,
+  });
 }
 
 export function ArticlePreviewContent({
@@ -345,11 +351,17 @@ export function ArticlePreviewContent({
               <picture>
                 <source
                   media="(max-width: 1024px)"
-                  srcSet={publicMediaVariantUrl(story.imageUrl, "mobile")}
+                  sizes="(max-width: 760px) calc(100vw - 40px), 860px"
+                  srcSet={mobileSourceSrcSet(story.imageUrl, publicMediaVariantUrl(story.imageUrl, "mobile"))}
                 />
                 <img
-                  src={publicMediaVariantUrl(story.imageUrl, "web")}
-                  alt={story.imageAlt || story.title}
+                  src={derivativeImageUrl(story.imageUrl, 1600)}
+                  srcSet={derivativeSrcSet(story.imageUrl, [768, 1200, 1600]) || undefined}
+                  alt={publicImageAlt({
+                    alt: story.imageAlt,
+                    caption: story.imageCaption,
+                    title: story.title,
+                  })}
                   decoding="async"
                   loading="eager"
                   fetchPriority="high"
@@ -379,7 +391,8 @@ export function ArticlePreviewContent({
               return (
                 <figure className="article-inline-figure article-inline-image" key={`${inlineImage.url}-${index}`}>
                   <img
-                    src={inlineImage.url}
+                    src={derivativeImageUrl(inlineImage.url, 1200)}
+                    srcSet={derivativeSrcSet(inlineImage.url, [480, 768, 1200]) || undefined}
                     alt={inlineImageAlt(inlineImage, story.title)}
                     decoding="async"
                     loading="lazy"
