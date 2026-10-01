@@ -1,10 +1,12 @@
 # Release plan: 1 October 2026 candidate
 
-This note is for the owner. It describes the draft release on branch `release/2026-10-01-candidate`. It is not a go-ahead to change the live site.
-
-Every command below that runs on the Droplet, reads live files, or changes Cloudflare is marked **REQUIRES OWNER APPROVAL**. Do not run those commands until you have decided to go ahead. Nothing in this plan should be run against production from a helper machine without that decision.
+This note is for the owner. It describes the draft release on branch `release/2026-10-01-candidate`, and the packaging change on branch `deploy/prebuilt-package`. It is not a go-ahead to change the live site.
 
 The live site stays on commit `6ce0718c6d3de4bbfe8c43ea4bebccdbe05f8508` until you switch it. Do not use, merge, or deploy branch `main`.
+
+Every command below that runs on the Droplet, reads live files, or changes Cloudflare is marked **REQUIRES OWNER APPROVAL**. Commands you run only on your Mac are not marked.
+
+The fuller notes are in `RELEASE_DEPLOYMENT.md`. Follow this plan for this release. Where a server command appears, use the copy in this plan.
 
 ## What this release contains
 
@@ -20,29 +22,19 @@ Four draft changes, merged on top of the live production commit, with their hist
 - Do not replace `/var/www/oldseadogs-data/editor-store.json`.
 - Do not replace `/var/www/oldseadogs-data/media`.
 - Do not copy a local or git copy of stories, guides, or uploads onto the Droplet.
-- Do not run a full site build (`npm run build:do`) on the Droplet.
+- Do not run `npm ci`, `npm install`, or `npm run build:do` on the Droplet.
 - Do not point this release at branch `main`.
+- Do not use `npm run deploy:safe` or the old `npm run rollback`. Those belong to the historical rsync notes in `SAFE_DEPLOYMENT.md`.
 
-## Documents and scripts this plan follows
+## How the new site gets onto the server
 
-Use these:
+The site is built on another computer, packed with the libraries it needs, and copied to the Droplet as one archive. A script then points the live folder at that new copy and restarts the app.
 
-- `deploy/release-deploy.sh` and `deploy/release-common.sh` put a finished package in a new folder under `/var/www/oldseadogs/releases`, then point `/var/www/oldseadogs/current` at it and restart PM2 process `oldseadogs-web`.
-- `deploy/release-rollback.sh` switches back to an older release folder and restarts that same PM2 process.
-- `BACKUP_RUNBOOK.md` is the backup to take before a deploy: `npm run backup:create` and `npm run backup:verify`.
-- `npm run build:do` is the DigitalOcean build. It is run off the Droplet.
-- `lib/generated-build-info.ts` records the git commit that was built. `scripts/write-build-info.mjs` writes a 12-character commit id. For the live site that id is `6ce0718c6d3d`.
-- `lib/image-derivatives.ts` is where the picture cache path comes from.
+The Droplet does not download libraries and does not rebuild the site. That matters because the Droplet has 4 GB of memory, and because `sharp` (the library that makes the smaller pictures) must be the Linux version. A package built the ordinary way on a Mac would contain the Mac version, and picture resizing would fail.
 
-Do not use these for this release:
+The live app is PM2 process `oldseadogs-web`. The script only restarts that process.
 
-- `npm run deploy:safe` and `npm run rollback`. `SAFE_DEPLOYMENT.md` says that rsync process is historical and must not be used for new production package deployments.
-- `BACKUP.md` shows an older `ln -sfn` plus `pm2 reload` example. The release scripts do the switch and the PM2 restart themselves. Follow the scripts, not that older example.
-- The files `scripts/create-*-package.mjs`. Each one is hardcoded to an older release name. Do not run them for this candidate.
-
-`SAFE_DEPLOYMENT.md` points at `RELEASE_DEPLOYMENT.md`. That file is not in the repository. Where this plan cannot quote a documented step, it says so.
-
-## 1. Pre-flight, before any new code is switched on
+## 1. Look at the live site before changing anything
 
 Do this on the Droplet as the account that already runs PM2. Older notes call that account `oldseadogs`. If `pm2 status` does not list `oldseadogs-web` for the account you are using, stop.
 
@@ -55,23 +47,18 @@ test -L /var/www/oldseadogs/current && echo "current is a symlink"
 test -x /var/www/oldseadogs/current/node_modules/.bin/vinext && echo "current release can start on its own"
 test -r /var/www/oldseadogs-data/editor-store.json && echo "editor store is readable"
 test -r /etc/oldseadogs/oldseadogs.env && echo "env file is readable"
-```
-
-Write down the folder name printed by `readlink`. That folder is the live release. You will need that exact name for rollback. `release-rollback.sh` rolls back by folder name, not by git commit.
-
-Confirm the live build is the 30 September production commit. The build file stores the first 12 characters of the commit:
-
-**REQUIRES OWNER APPROVAL**
-
-```bash
 grep gitCommit /var/www/oldseadogs/current/lib/generated-build-info.ts
 ```
 
-You want `6ce0718c6d3d`. That is the start of `6ce0718c6d3de4bbfe8c43ea4bebccdbe05f8508`. If the file says something else, stop. The repository does not document another way to prove which git commit is inside the live folder.
+Write down the folder name printed by `readlink`. That folder is the live release. You will need that exact name if you want to go back. The rollback script uses the folder name, not the git commit.
 
-Also confirm PM2 is not still running the old process name `oldseadogs`. `deploy/release-deploy.sh` stops immediately if a process with that exact name is online. Only `oldseadogs-web` should be the live app.
+The `gitCommit` line should show `6ce0718c6d3d`. That is the start of `6ce0718c6d3de4bbfe8c43ea4bebccdbe05f8508`. If it says something else, stop.
 
-Take the backup the runbook requires. Run it from the live app directory so you are backing up the server’s data, not a copy on another computer. This creates a new timestamped folder. It does not overwrite the live store or the media folder.
+Also confirm PM2 is not still running an old process named exactly `oldseadogs`. The deploy script stops if that name is online. Only `oldseadogs-web` should be the live app.
+
+The line about `vinext` matters for going back. The 30 September folder can be restored only if that file is already there. The rollback script will not install anything to recreate it. If the test does not print `current release can start on its own`, stop. Do not run `npm ci` on the Droplet to fix it.
+
+Take the backup the runbook requires. Run it from the live app directory so you are backing up the server’s data. This creates a new timestamped folder. It does not overwrite the live store or the media folder. `npm run backup:create` is not an install and it is not a site build.
 
 **REQUIRES OWNER APPROVAL**
 
@@ -83,107 +70,169 @@ npm run backup:verify
 
 Write down the new backup path. Do not continue if verify fails.
 
-The deploy script also keeps the current release folder where it is, and it copies `editor-store.json` into `/var/www/Oldseadogsbackups/release-deployments/<release-id>/` before it switches. It does not make a second full copy of the release folder. The repository does not document an extra copy of that folder. The rollback copy is the folder you wrote down from `readlink`.
-
 Stop here if any of these are true:
 
 - `current` is not a symlink into `/var/www/oldseadogs/releases`.
-- `node_modules/.bin/vinext` is missing from that folder. The rollback script will refuse a release that cannot start on its own, and the repository does not document a different rollback.
+- `node_modules/.bin/vinext` is missing from that folder.
 - The editor store backup did not verify.
+- `gitCommit` is not `6ce0718c6d3d`.
 
-## 2. Build the package off the Droplet
+## 2. Build the package on your Mac, not on the Droplet
 
-On a computer that is not the Droplet, with Node 22.13 or newer:
-
-```bash
-git fetch origin release/2026-10-01-candidate
-git checkout release/2026-10-01-candidate
-npm ci
-npm run build:do
-```
-
-`npm run build:do` deletes `dist`, writes `lib/generated-build-info.ts`, builds, and checks that the server bundle has no Cloudflare worker imports. This is the build. Do not run it on the Droplet.
-
-There is no packaging command in `package.json` for this release. The older `scripts/create-*-package.mjs` files show the shape the deploy script accepts, but they are tied to old release names. A valid package is a `.tar.gz` with exactly one top folder. `deploy/release-deploy.sh` refuses the archive unless that folder contains:
-
-- `package.json`
-- `package-lock.json`
-- `ecosystem.config.cjs`
-- `dist` and `dist/server/index.js`
-- `public`
-- `scripts`
-- `lib/generated-build-info.ts`
-- `SHA256SUMS` (one checksum line per file inside the folder)
-
-The script also refuses the archive if it contains `editor-store.json`, a `.env` file, `node_modules`, `.git`, a log, or a nested `.tar.gz`. Do not put the Helm store or uploaded media in the package.
-
-The script then wants a second small file, next to the archive, whose line is the SHA-256 of the `.tar.gz` and the archive’s file name. The older package scripts write that as `<archive>.sha256`.
-
-The repository does not contain a finished command that builds this particular archive. Do not invent extra files to satisfy the script. Match the checks in `deploy/release-deploy.sh`.
-
-## 3. Put the package on the Droplet as a new release
-
-The repository does not document the copy onto the Droplet. `deploy/release-deploy.sh` expects the archive and the checksum file to already be on the server. Copy those two files only. Do not rsync the app over `/var/www/oldseadogs`, and do not copy anything into `/var/www/oldseadogs-data`.
-
-**REQUIRES OWNER APPROVAL** for the copy, and for the command below.
-
-Run the deploy script from a copy of this release’s `deploy/` folder, as the PM2 account. Choose a new release id that does not already exist under `/var/www/oldseadogs/releases`. The script refuses if that folder exists. It creates `/var/www/oldseadogs/releases/<release-id>` itself. You do not create or overwrite that folder by hand.
+You need branch `deploy/prebuilt-package`. It contains the 1 October site changes and the new packaging scripts. Do this on your Mac.
 
 ```bash
-bash deploy/release-deploy.sh \
-  --archive /path/to/the-package.tar.gz \
-  --checksum /path/to/the-package.tar.gz.sha256 \
-  --release-id 2026-10-01-candidate
+git fetch origin deploy/prebuilt-package
+git checkout deploy/prebuilt-package
 ```
 
-Use the real paths of the two files you copied. The example id `2026-10-01-candidate` is a name, not a commit. Any other new id that matches the script’s character rule is fine. Write the id down.
+Pick one of the two ways below. Both build Linux libraries. Neither one logs into the Droplet.
 
-What the script does, in order:
+### Way A. GitHub, if you would rather not use Docker
 
-1. Checks Node is 22.13 or newer.
-2. Stops if PM2 process `oldseadogs` is online.
-3. Checks it can read the live editor store and `/etc/oldseadogs/oldseadogs.env`. It does not write the live store.
-4. Checks the archive checksum, then unpacks into a hidden staging folder under `/var/www/oldseadogs/releases`.
-5. Runs `npm ci --include=dev --no-audit --no-fund` inside that new folder.
+1. Open https://github.com/captainoldseadog-hash/oldseadogs-v2 in the browser.
+2. Click Actions.
+3. Click **Build release package**.
+4. Click **Run workflow**.
+5. Choose branch `deploy/prebuilt-package`.
+6. Wait until the run is green.
+7. Download the artifact named `oldseadogs-prebuilt-release`.
+8. Unzip it. GitHub puts the real files inside a zip. You want three files: a `.tar.gz`, a `.sha256`, and a `.manifest.json`.
 
-This install conflicts with the standing rule not to run `npm ci` on the Droplet. The script has no flag to skip it. It also rejects a package that already contains `node_modules`, so the supported script cannot start the site without this install. It is not `npm run build:do`. The build must already be inside the archive. On a 4 GB Droplet this install is the heavy step. Do not run the script until you accept that install, in the new folder only.
+That workflow only builds a file you can download. It does not know the Droplet address, it does not use passwords, and it does not change Cloudflare.
 
-6. Runs `node scripts/check-digitalocean-build.mjs`, `npm run check:bridge`, and `npm run check:controlled-media` in the staged folder.
-7. Starts the staged site on port 3099 with a temporary copy of the editor store. It deletes that temporary copy afterwards. It does not write the copy back over the live store.
-8. Copies the live `editor-store.json` into `/var/www/Oldseadogsbackups/release-deployments/<release-id>/` and checks the copy.
-9. Points `/var/www/oldseadogs/current` at the new folder with `mv -Tf` (an atomic symlink replace).
-10. Restarts PM2. If `oldseadogs-web` is already running with this new folder as its working directory, it runs `pm2 startOrReload` on that release’s `ecosystem.config.cjs` with `--only oldseadogs-web --env production --update-env`. If the working directory is different, which it will be on a normal switch, it runs `pm2 delete oldseadogs-web` and then `pm2 start` on the new ecosystem file with the same flags. It does not delete any other PM2 process.
-11. Checks that PM2 is online in the new folder and that `http://127.0.0.1:3000/editor` returns HTTP 200.
-12. Records the new folder and the previous folder in `/var/www/oldseadogs/shared/`, then runs `pm2 save`.
+### Way B. Docker on the Mac
 
-If the new site fails those last checks, the script points `current` back at the previous folder and starts that folder again.
+Install Docker Desktop if it is not already installed. From the repository folder:
 
-Do not follow this with `npm ci`, `npm run build:do`, or `pm2 reload` by hand. The script has already done the switch and the restart.
+```bash
+bash deploy/release-package-docker.sh
+```
 
-## 4. Picture cache folder
+This starts a Linux container on your Mac, builds the site there, and writes the same three files into the `outputs` folder. It can take a while. The archive is large because it includes the libraries the site needs, including `vinext` and the Linux `sharp`.
 
-Resized WebP files are written outside the release, so a later code rollback does not delete them, and they are not written beside the originals.
+### Then check the files on your Mac
 
-The code uses `OLDSEADOGS_IMAGE_CACHE_DIR` if that variable is set. Otherwise it uses `$OLDSEADOGS_DATA_DIR/cache/image-derivatives`. On the live server the data directory is `/var/www/oldseadogs-data`, so the normal folder is:
+Open the `.manifest.json` file in TextEdit. You want to see:
+
+- `gitCommit` set to a long id. On your Mac, `git rev-parse HEAD` after the checkout above should print the same id. It must not start with `6ce0718`. That id is the site that is already live.
+- `productionDataIncluded` set to `false`.
+- `platform` set to `linux`, `arch` set to `x64`, and `libc` set to `glibc`.
+
+In the folder that contains the three files, check the archive has not been damaged. Use the real file name:
+
+```bash
+shasum -a 256 -c oldseadogs-THE-REAL-NAME.tar.gz.sha256
+```
+
+It should print `OK`.
+
+## 3. Copy the package to the Droplet
+
+The live server still has an older deploy script that would run `npm ci` and would refuse a package that already contains libraries. Do not run the script that sits inside the live site folder. Copy the new scripts to a tools folder first.
+
+The server name on your Mac is the alias `oldseadogs-production`.
+
+**REQUIRES OWNER APPROVAL**
+
+```bash
+ssh oldseadogs-production 'mkdir -p /var/www/oldseadogs/shared/deploy-tools /var/www/oldseadogs/incoming'
+scp deploy/release-common.sh deploy/release-deploy.sh deploy/release-rollback.sh oldseadogs-production:/var/www/oldseadogs/shared/deploy-tools/
+scp outputs/oldseadogs-THE-REAL-NAME.tar.gz outputs/oldseadogs-THE-REAL-NAME.tar.gz.sha256 oldseadogs-production:/var/www/oldseadogs/incoming/
+```
+
+Use the real file name from `outputs`. Copy only those files. Do not copy anything into `/var/www/oldseadogs-data`. Do not copy the archive on top of `/var/www/oldseadogs` or `/var/www/oldseadogs/current`.
+
+The same copy can be done with rsync. It is the same files and the same folders.
+
+**REQUIRES OWNER APPROVAL**
+
+```bash
+rsync -av --progress deploy/release-common.sh deploy/release-deploy.sh deploy/release-rollback.sh oldseadogs-production:/var/www/oldseadogs/shared/deploy-tools/
+rsync -av --progress outputs/oldseadogs-THE-REAL-NAME.tar.gz outputs/oldseadogs-THE-REAL-NAME.tar.gz.sha256 oldseadogs-production:/var/www/oldseadogs/incoming/
+```
+
+## 4. Create the picture cache folder
+
+The smaller WebP pictures are saved outside the code folder, so going back to the old code does not delete them, and so they are not written on top of the original uploads.
+
+The folder is:
 
 ```text
 /var/www/oldseadogs-data/cache/image-derivatives
 ```
 
-No deploy script creates this folder. The app will try to create it on the first picture request if the parent directory is writable by the PM2 user. If that write is refused, the picture is still sent, but the next request has to encode it again. The code refuses to use a cache folder inside `public/`, or inside `media/originals`, `media/web`, or `media/thumbnails`.
-
-The repository does not document an owner or a permission mode for this new folder. Create it as the same account that runs `oldseadogs-web`, before visitors hit the new release, and do not change the editor store or the media tree while you do it.
+`ecosystem.config.cjs` does not name a Unix account. It only names the PM2 process `oldseadogs-web`. The older setup notes create an account called `oldseadogs` and start PM2 as that user. Confirm the live account before you create the folder. If the command prints a different user, use that user instead of `oldseadogs` in the `chown` line.
 
 **REQUIRES OWNER APPROVAL**
 
 ```bash
-mkdir -p /var/www/oldseadogs-data/cache/image-derivatives
-test -w /var/www/oldseadogs-data/cache/image-derivatives && echo "picture cache is writable"
+ps -o user=,group= -p "$(pm2 pid oldseadogs-web)"
 ```
 
-If the account that runs PM2 cannot write there, stop and fix the owner of that new folder only. Do not chmod the whole data directory, and do not copy anything into `media`.
+When the user is `oldseadogs`, run:
 
-## 5. Checks after the switch
+**REQUIRES OWNER APPROVAL**
+
+```bash
+sudo mkdir -p /var/www/oldseadogs-data/cache/image-derivatives
+sudo chown oldseadogs:oldseadogs /var/www/oldseadogs-data/cache /var/www/oldseadogs-data/cache/image-derivatives
+sudo chmod 755 /var/www/oldseadogs-data/cache /var/www/oldseadogs-data/cache/image-derivatives
+sudo -u oldseadogs test -w /var/www/oldseadogs-data/cache/image-derivatives && echo "picture cache is writable"
+```
+
+These commands create and set the owner of the two cache folders only. They do not change `editor-store.json`. They do not change `media`. They do not change the permissions of `/var/www/oldseadogs-data` itself. Mode `755` means the PM2 account can write the cache. Do not use mode `777`.
+
+If the writable test does not succeed, stop. Fix only this new folder.
+
+## 5. Rehearse the deploy
+
+This checks the package on the server and does not switch the site. It does not install libraries. It does read the live editor store, so it still needs your approval.
+
+**REQUIRES OWNER APPROVAL**
+
+```bash
+ssh oldseadogs-production
+bash /var/www/oldseadogs/shared/deploy-tools/release-deploy.sh \
+  --dry-run \
+  --archive /var/www/oldseadogs/incoming/oldseadogs-THE-REAL-NAME.tar.gz \
+  --checksum /var/www/oldseadogs/incoming/oldseadogs-THE-REAL-NAME.tar.gz.sha256 \
+  --release-id 2026-10-01-candidate
+```
+
+A good rehearsal says `npm ci was not run` and `Nothing was promoted`. It also prints the package `gitCommit`. That id should match the manifest you read on your Mac.
+
+If the script talks about running `npm ci`, stop. You are running the old script from the live site folder. Use the path `/var/www/oldseadogs/shared/deploy-tools/release-deploy.sh`.
+
+If it says `sharp`'s linux-x64 binary is missing, stop. The package was built for the wrong computer. Build it again with Way A or Way B. Do not install `sharp` on the Droplet.
+
+## 6. Switch the site on
+
+Use the same command without `--dry-run`.
+
+**REQUIRES OWNER APPROVAL**
+
+```bash
+bash /var/www/oldseadogs/shared/deploy-tools/release-deploy.sh \
+  --archive /var/www/oldseadogs/incoming/oldseadogs-THE-REAL-NAME.tar.gz \
+  --checksum /var/www/oldseadogs/incoming/oldseadogs-THE-REAL-NAME.tar.gz.sha256 \
+  --release-id 2026-10-01-candidate
+```
+
+What you should see it do:
+
+1. Check the archive matches its checksum.
+2. Unpack it into a new folder under `/var/www/oldseadogs/releases`. It will refuse if `2026-10-01-candidate` already exists. It does not replace the 30 September folder.
+3. Check the libraries inside the package, including `vinext` and Linux `sharp`. It does not run `npm ci`.
+4. Start the new copy on a spare port, using a temporary copy of the story file, then delete that temporary copy. It does not write the copy back over the live story file.
+5. Save a backup copy of the story file under `/var/www/Oldseadogsbackups/release-deployments/2026-10-01-candidate/`.
+6. Point `/var/www/oldseadogs/current` at the new folder.
+7. Restart PM2 process `oldseadogs-web`.
+8. If the new site does not come up healthy, point `current` back at the previous folder and start that folder again.
+
+Do not run `npm ci`, `npm run build:do`, or `pm2 reload` yourself afterwards.
+
+## 7. Checks after the switch
 
 The deploy script has already checked PM2 and `/editor` on port 3000. These are the extra checks for this release. Run the `curl` commands on the Droplet against `http://127.0.0.1:3000`. That talks to the app directly. A check through `https://oldseadogs.com` goes through Cloudflare, which can change caching headers. Looking at the public site in a browser is still worth doing for the words and the buttons.
 
@@ -219,7 +268,7 @@ The editor, API, preview, POST, and cookie lines should include `private, no-sto
 
 The favicon line should include `200` and `image/x-icon`.
 
-Then confirm the live store was not replaced. The backup from step 1 and the file now on disk should be the same story file you started with, plus any Helm edit you made yourself during the check. The deploy script does not write that file.
+Then confirm the live store was not replaced, and that PM2 is in the new folder.
 
 **REQUIRES OWNER APPROVAL**
 
@@ -228,35 +277,49 @@ pm2 describe oldseadogs-web | sed -n '1,40p'
 readlink -f /var/www/oldseadogs/current
 ```
 
-The working directory and `current` should both be the new release folder. The previous folder should still be on disk.
+The working directory and `current` should both be `/var/www/oldseadogs/releases/2026-10-01-candidate`. The previous folder should still be on disk.
 
 Until the optional Cloudflare step below, anonymous HTML may still show `cf-cache-status: DYNAMIC` at https://oldseadogs.com even though the Droplet is sending public cache headers. That is expected. Cloudflare does not cache ordinary HTML unless a cache rule says so.
 
-## 6. Rollback to the 6ce0718 release
+## 8. Go back to the 30 September site
 
-Use this if the new site is wrong. It does not restore stories or media. It only points the site back at the release folder you wrote down, then restarts PM2 the same way the deploy script does.
-
-The new deploy writes the previous folder into `/var/www/oldseadogs/shared/previous-release`. Running the rollback script with no extra name uses that record. To name the 30 September folder yourself, use the folder name from step 1, not the git commit.
+Use this if the new site is wrong. It does not restore stories or media. It points the site back at the folder you wrote down in step 1, then restarts PM2. It does not run `npm ci` or any other install. The 30 September folder already has its own libraries from the day it was put live. That is why step 1 checks `vinext` before you switch.
 
 **REQUIRES OWNER APPROVAL**
 
 ```bash
-bash deploy/release-rollback.sh --release THE_FOLDER_NAME_YOU_WROTE_DOWN
+bash /var/www/oldseadogs/shared/deploy-tools/release-rollback.sh --release THE_FOLDER_NAME_YOU_WROTE_DOWN
 ```
 
-That folder name is the last part of the `readlink` path, the directory under `/var/www/oldseadogs/releases/`. The script checks the folder is inside `releases`, checks it can start on its own, switches `current` with the same atomic rename, then `pm2 delete` plus `pm2 start` or `pm2 startOrReload` for `oldseadogs-web`, then `pm2 save`. If the old release fails its health check, the script switches back to whatever was current when you started the rollback.
+You can rehearse that switch without changing the site:
 
-After it finishes, `grep gitCommit` on `current/lib/generated-build-info.ts` should again show `6ce0718c6d3d`, and the homepage should be the site you had before this release.
+**REQUIRES OWNER APPROVAL**
 
-Do not delete the new release folder as part of rollback. The script leaves it in place.
+```bash
+bash /var/www/oldseadogs/shared/deploy-tools/release-rollback.sh --dry-run --release THE_FOLDER_NAME_YOU_WROTE_DOWN
+```
 
-The repository does not document a rollback for the case where the 30 September folder has no `node_modules/.bin/vinext`. Do not improvise an install on the Droplet to make rollback work. That is the situation the pre-flight test is there to catch.
+The folder name is the last part of the `readlink` path from step 1. It is the directory under `/var/www/oldseadogs/releases/`. It is not the git id `6ce0718`.
 
-## 7. Optional later step: Cloudflare cache rules
+If you leave off `--release`, the script uses the previous folder recorded by the new deploy. Prefer the name you wrote down.
 
-Do this only after the site switch looks right, and only if you want Cloudflare to store anonymous HTML. It is not part of `release-deploy.sh`. No code change does this. The recommendations are the ones from the caching work, matched to `lib/public-cache-policy.ts`.
+After it finishes, this should show `6ce0718c6d3d` again:
 
-**REQUIRES OWNER APPROVAL** for every Cloudflare change. Do not enable a zone-wide “cache everything” setting.
+**REQUIRES OWNER APPROVAL**
+
+```bash
+grep gitCommit /var/www/oldseadogs/current/lib/generated-build-info.ts
+```
+
+The homepage should be the site you had before this release. Do not delete the new release folder as part of going back. The script leaves it in place.
+
+If the script says `vinext is absent`, it has refused to install libraries. Stop. Do not run `npm ci` on the Droplet. The step 1 check is there to catch that before the switch.
+
+## 9. Optional later step: Cloudflare cache rules
+
+Do this only after the site switch looks right, and only if you want Cloudflare to store anonymous HTML. It is not part of the deploy script. No code change does this.
+
+**REQUIRES OWNER APPROVAL** for every Cloudflare change. Do not turn on a setting that caches the whole zone.
 
 1. HTML is not in Cloudflare’s default list of cacheable file types. Add a Cache Rule that caches GET and HEAD responses whose content type is `text/html`. Bypass `/editor`, `/api` (the media responses can stay cached), paths ending in `.rsc`, preview queries, the `oldseadogs_editor_staging` cookie, and requests that carry `RSC`, `Next-Router-Prefetch`, or `Next-Router-Segment-Prefetch`. Include those headers in the cache key if they are not bypassed. Do not cache 5xx responses.
 2. Leave the edge TTL respecting the origin. The `CDN-Cache-Control` header is the one that keeps stale-while-revalidate. An `s-maxage` value on `Cache-Control` turns that off at Cloudflare.
@@ -268,10 +331,10 @@ Do this only after the site switch looks right, and only if you want Cloudflare 
 
 After this optional step, an anonymous homepage request can be served from Cloudflare for about 120 seconds, and then reused while a refresh happens for up to 300 seconds. `/editor` stays uncached. The Helm store is still read on the Droplet whenever a page is actually rendered.
 
-## Open points
+## Still to confirm before you approve
 
-- `RELEASE_DEPLOYMENT.md` is named in `SAFE_DEPLOYMENT.md` and is missing from the repo.
-- There is no current packaging script for this candidate. Section 2 lists the checks the deploy script enforces.
-- The repo does not document how to copy the archive onto the Droplet, or the owner and mode of the new picture-cache folder.
-- `deploy/release-deploy.sh` runs `npm ci` in the new release folder. That is the supported promotion path, and it disagrees with the rule against installs on the Droplet. There is no documented alternative that still uses this script.
-- Do not merge this candidate, and do not restart PM2, until you have approved it.
+- The PM2 Unix account is not written into `ecosystem.config.cjs`. Step 4’s `ps` command is the check. The setup notes expect `oldseadogs`.
+- The live release folder name is on the server. Step 1 is where you write it down. Git does not know that folder name.
+- The GitHub workflow builds a downloadable package only. It does not deploy.
+- The archive is large because it includes the libraries. Copying it can take a few minutes.
+- Do not merge this work, and do not restart PM2, until you have approved it.
