@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+
 import { contactEmail, createPageMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Editorial Standards",
@@ -14,20 +14,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function EditorialStandardsPage() {
   return (
     <main className="article-shell editorial-standards-shell">
-      <nav className="article-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <header className="guide-hero editorial-standards-hero">
         <div>

@@ -49,6 +49,35 @@ const nextConfig: NextConfig = {
         headers: privateNoStoreHeaders,
       },
       {
+        source: "/api/boats/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/list-your-boat",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+      {
+        source: "/boats-for-sale/manage/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/verify/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/keep/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/relist/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
         source: "/editor",
         headers: privateNoStoreHeaders,
       },

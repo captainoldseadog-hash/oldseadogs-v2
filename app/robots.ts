@@ -10,6 +10,12 @@ const privateRoutes = [
   "/api/search",
   "/api/search/",
   "/api/social/track",
+  "/api/boats",
+  "/api/boats/",
+  "/boats-for-sale/manage",
+  "/boats-for-sale/verify",
+  "/boats-for-sale/keep",
+  "/boats-for-sale/relist",
 ];
 
 export default function robots(): MetadataRoute.Robots {

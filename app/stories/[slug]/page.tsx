@@ -5,7 +5,7 @@ import { ArticlePreviewContent } from "../../../components/ArticlePreviewContent
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SocialShare } from "../../../components/SocialShare";
 import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
-import { displayCategoryLabel, marinaGuideNavigationLink, sectionPathForCategory } from "../../../content/sections";
+import { displayCategoryLabel, sectionPathForCategory } from "../../../content/sections";
 import {
   getClubProfileArticleBody,
   getClubProfileForStory,
@@ -43,6 +43,7 @@ import {
   isProduction,
   robotsMetadata,
 } from "../../../lib/seo";
+import { SiteHeader } from "../../../components/SiteHeader";
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -371,16 +372,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
           ]),
         ]}
       />
-      <nav className="article-nav" aria-label="Story navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          <Link href="/#latest">Latest dispatches</Link>
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader label="Story navigation" />
 
       <ArticlePreviewContent
         ads={ads}

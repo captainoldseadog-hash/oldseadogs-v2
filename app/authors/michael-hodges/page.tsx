@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { JsonLd } from "../../../components/JsonLd";
 import { SiteFooter } from "../../../components/SiteFooter";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../../content/sections";
+
 import { contactEmail, createPageMetadata } from "../../../lib/seo";
 import { profilePageJsonLd } from "../../../lib/structured-data";
+import { SiteHeader } from "../../../components/SiteHeader";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Michael Hodges Author Profile",
@@ -24,20 +24,7 @@ export default function MichaelHodgesAuthorPage() {
   return (
     <main className="article-shell about-shell">
       <JsonLd data={profilePageJsonLd()} />
-      <nav className="article-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <header className="about-hero">
         <div className="about-intro">

@@ -17,6 +17,7 @@ import {
   parseInlineImageBlock,
   splitStoryBlocks,
 } from "../../lib/story-media-composer.js";
+import BoatsForSaleManager from "./boats/BoatsForSaleManager";
 import GuideManager from "./guides/GuideManager";
 import type { EditorGuide, GuidesPayload } from "./guides/guide-types";
 
@@ -41,7 +42,8 @@ export type BridgeCmsSection =
   | "advertising"
   | "backups"
   | "settings"
-  | "health";
+  | "health"
+  | "boats";
 
 type StoryStatus = "draft" | "scheduled" | "published" | "unpublished";
 
@@ -664,6 +666,7 @@ const navGroups: Array<{
       { section: "stories", label: "Stories", href: "/editor/stories" },
       { section: "write", label: "Write Story", href: "/editor/write" },
       { section: "guides", label: "Guides", href: "/editor/guides" },
+      { section: "boats", label: "Boats for Sale", href: "/editor/boats" },
       { section: "homepage", label: "Homepage Manager", href: "/editor/homepage" },
     ],
   },
@@ -4998,6 +5001,7 @@ function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) 
   if (section === "stories") return <StoryListPage section="stories" title="All story summaries" />;
   if (section === "write") return <WriteStoryPage storyId={storyId} mediaId={mediaId} />;
   if (section === "guides") return <GuideManager />;
+  if (section === "boats") return <BoatsForSaleManager />;
   if (section === "homepage") return <HomepagePage />;
   if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" />;
   if (section === "published") return <StoryListPage section="published" title="Published stories" status="published" />;

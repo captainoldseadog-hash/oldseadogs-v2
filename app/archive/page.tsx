@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { displayCategoryLabel, marinaGuideNavigationLink } from "../../content/sections";
+import { displayCategoryLabel } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -63,16 +64,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
 
   return (
     <main className="article-shell archive-shell">
-      <nav className="article-nav" aria-label="Archive navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          <Link href="/">Back to home</Link>
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader label="Archive navigation" />
 
       <header className="archive-hero">
         <p className="eyebrow">Restored Archive</p>

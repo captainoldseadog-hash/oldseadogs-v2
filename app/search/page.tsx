@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+
 import { createPageMetadata } from "../../lib/seo";
 import { searchStories } from "../../lib/search";
 import { SearchClient } from "./SearchClient";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -29,20 +29,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <main className="article-shell search-shell">
-      <nav className="article-nav" aria-label="Search navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader label="Search navigation" />
 
       <header className="privacy-hero">
         <p className="eyebrow">Search</p>

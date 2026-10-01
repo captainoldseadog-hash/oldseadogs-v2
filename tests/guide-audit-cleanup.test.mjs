@@ -24,8 +24,9 @@ test("Marina Guide navigation and the legacy URL use the canonical Guide route",
   assert.doesNotMatch(header, /href: "\/marina-guide"/);
   assert.match(navigation, /marinaGuideNavigationLink[\s\S]*?href: "\/guides\/solent-marina-guide"[\s\S]*?label: "Marina Guide"/);
   assert.match(header, /marinaGuideNavigationLink/);
-  assert.match(homepage, /\.concat\(marinaGuideNavigationLink\)/);
-  assert.match(story, /href=\{marinaGuideNavigationLink\.href\}[\s\S]*?marinaGuideNavigationLink\.label/);
+  assert.match(homepage, /<SiteHeader/);
+  assert.match(await read("components/SiteHeader.tsx"), /publicNavigationLinks/);
+  assert.match(story, /<SiteHeader/);
   assert.match(index, /href="\/guides\/solent-marina-guide"/);
   assert.match(region, /region === "solent"[\s\S]*?href="\/guides\/solent-marina-guide"/);
   assert.match(proxy, /pathname === "\/marina-guide"[\s\S]*?status: 301[\s\S]*?Location: "\/guides\/solent-marina-guide"/);
@@ -49,7 +50,7 @@ test("every public desktop header uses the shared Marina Guide destination", asy
     "app/terms/page.tsx",
   ];
   for (const file of desktopHeaderFiles) {
-    assert.match(await read(file), /marinaGuideNavigationLink/, file);
+    assert.match(await read(file), /<SiteHeader/, file);
   }
 });
 

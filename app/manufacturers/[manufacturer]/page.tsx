@@ -5,11 +5,12 @@ import {
   getManufacturerBySlug,
   storyMatchesManufacturer,
 } from "../../../content/manufacturers";
-import { displayCategoryLabel, marinaGuideNavigationLink, oldSeaDogsSections } from "../../../content/sections";
+import { displayCategoryLabel } from "../../../content/sections";
 import { formatDate } from "../../../content/stories";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
 import { createPageMetadata } from "../../../lib/seo";
+import { SiteHeader } from "../../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -52,21 +53,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
 
   return (
     <main className="article-shell section-shell">
-      <nav className="article-nav" aria-label="Manufacturer navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
+      <SiteHeader label="Manufacturer navigation" />
 
       <header className="section-page-hero section-page-hero-text">
         <div className="section-page-copy">

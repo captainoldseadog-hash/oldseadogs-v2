@@ -3,6 +3,7 @@ import { manufacturers, storyMatchesManufacturer } from "../content/manufacturer
 import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { getIndexedGuides, getPublishedStories, isStorySearchIndexable } from "../lib/site-content";
+import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { absoluteUrl } from "../lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -16,13 +17,20 @@ function lastModifiedDate(...values: Array<string | undefined>) {
   return new Date();
 }
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [publishedStories, indexedGuides] = await Promise.all([getPublishedStories(), getIndexedGuides()]);
+  const [publishedStories, indexedGuides, boatListings] = await Promise.all([
+    getPublishedStories(),
+    getIndexedGuides(),
+    listPublicBoatListings().catch(() => []),
+  ]);
   const stories = publishedStories.filter(isStorySearchIndexable);
   const now = new Date();
   const productGuides = guideRegionRecords(indexedGuides);
   const guideRegions = [...new Set(productGuides.map((guide) => guide.regionKey))];
   return [
     ...staticRoutes.map((route) => ({ url: absoluteUrl(route.path), lastModified: now, changeFrequency: route.path === "/" ? "daily" as const : "monthly" as const, priority: route.priority })),
+    { url: absoluteUrl("/boats-for-sale"), lastModified: now, changeFrequency: "daily" as const, priority: 0.8 },
+    { url: absoluteUrl("/boats-for-sale/list-your-boat"), lastModified: now, changeFrequency: "monthly" as const, priority: 0.55 },
+    ...boatListings.map((listing) => ({ url: absoluteUrl(`/boats-for-sale/${listing.slug}`), lastModified: now, changeFrequency: "weekly" as const, priority: 0.64 })),
     ...oldSeaDogsSections.map((section) => ({ url: absoluteUrl(`/${section.slug}`), lastModified: now, changeFrequency: "daily" as const, priority: section.slug === "news" ? 0.9 : 0.75 })),
     ...(indexedGuides.length ? [{ url: absoluteUrl("/guides"), lastModified: now, changeFrequency: "monthly" as const, priority: 0.68 }] : []),
     ...guideRegions.map((region) => ({ url: absoluteUrl(`/guides/${region}`), lastModified: lastModifiedDate(...productGuides.filter((guide) => guide.regionKey === region).map((guide) => guide.updatedAt)), changeFrequency: "monthly" as const, priority: 0.66 })),

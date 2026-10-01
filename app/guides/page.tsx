@@ -4,10 +4,11 @@ import { GuideCollectionBrowser } from "../../components/GuideCollectionBrowser.
 import { JsonLd } from "../../components/JsonLd.tsx";
 import { SiteFooter } from "../../components/SiteFooter.tsx";
 import type { GuideType } from "../../content/flagship-guides.ts";
-import { publicNavigationLinks } from "../../content/sections.ts";
+
 import { guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
 import { getIndexedGuides, getPublishedGuides } from "../../lib/site-content.ts";
 import { createPageMetadata } from "../../lib/seo.ts";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -49,20 +50,7 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
   return (
     <main className="article-shell guides-shell guide-product-shell">
       <JsonLd data={guideCollectionJsonLd("Old Sea Dogs", guides)} />
-      <nav className="article-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark" aria-label="Old Sea Dogs home">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {publicNavigationLinks.map((section) => (
-            <Link className={section.slug === "guides" ? "active" : ""} href={section.href} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
+      <SiteHeader current="guides" />
 
       <header className="guide-library-intro-simple guide-discovery-intro">
         <p className="eyebrow">Old Sea Dogs Guides</p>

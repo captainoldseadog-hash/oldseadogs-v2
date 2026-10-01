@@ -3,13 +3,14 @@ import Link from "next/link";
 import { AdBlock, isOffTopicInvestorAdvert, pickAdvertForPlacement } from "../components/AdBlock";
 import { NewsletterSignup } from "../components/NewsletterSignup";
 import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
+import { BoatsForSaleTeaser } from "../components/BoatsForSaleTeaser";
+import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import {
   categoryMatchesLabel,
   displayCategoryLabel,
-  marinaGuideNavigationLink,
   oldSeaDogsSections,
 } from "../content/sections";
 import { formatDate } from "../content/stories";
@@ -41,14 +42,6 @@ export async function generateMetadata(): Promise<Metadata> {
     image: { url: settings.homepageSocialImageUrl || settings.defaultSocialImageUrl, alt: settings.brandName },
   });
 }
-
-// Keep the magazine homepage navigation aligned with the live site. Guides
-// enter through the single editorial promotion below rather than expanding
-// this already dense masthead.
-const sections = oldSeaDogsSections.map((section) => ({
-  href: `/${section.slug}`,
-  label: section.label,
-})).concat(marinaGuideNavigationLink);
 
 function GuidePromoBand({
   guides,
@@ -229,6 +222,7 @@ export default async function Home() {
 
   return (
     <main className="site-shell">
+      <SiteHeader />
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
         <Link
           aria-label={`Read ${featuredStory.title}`}
@@ -260,21 +254,6 @@ export default async function Home() {
           <div className="hero-credit">{featuredStory.imageCredit}</div>
         ) : null}
         <div className="hero-scrim" />
-        <nav className="topbar" aria-label="Primary navigation">
-          <Link href="/" className="brand-lockup" aria-label="Old Sea Dogs home">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>Old Sea Dogs</span>
-          </Link>
-          <div className="nav-links">
-            {sections.map((section) => (
-              <a key={section.label} href={section.href}>
-                {section.label}
-              </a>
-            ))}
-            <Link href="/search">Search</Link>
-          </div>
-        </nav>
-
         <section className="hero-content" aria-labelledby="site-title">
           <p className="eyebrow">{settings.kicker}</p>
           <h1 id="site-title">{settings.brandName}</h1>
@@ -316,6 +295,8 @@ export default async function Home() {
       ) : null}
 
       <GuidePromoBand guides={homepageGuides} />
+
+      <BoatsForSaleTeaser />
 
       <EditorCredibilityBand />
 
