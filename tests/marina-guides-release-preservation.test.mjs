@@ -8,8 +8,9 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // Option C, the prefetched lead, and the canonical desktop Marina Guide navigation.
-  "app/page.tsx": "f50911ef4f43e92c46b0a91736a3f32aa67b024fd9be63ca6676571e6caee4e9",
+  // Option C, the prefetched lead, the canonical desktop Marina Guide navigation,
+  // one homepage H1, and the homepage Substack signup in place of the aNewFN investor slots.
+  "app/page.tsx": "d009e18ca3a11a5b61568935321e35e9d2072dd1d3043063815a26ab84a1af4c",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",

@@ -12,6 +12,7 @@ import {
 } from "../lib/guides.ts";
 import type { EditableGuide } from "../lib/site-content.ts";
 import { GuideBreadcrumbs } from "./GuideBreadcrumbs.tsx";
+import { NewsletterSignup } from "./NewsletterSignup.tsx";
 import { GuideGoogleMap } from "./GuideGoogleMap.tsx";
 import { GuideSectionNavigation } from "./GuideSectionNavigation.tsx";
 
@@ -749,6 +750,10 @@ export function GuidePublicContent({
           Send Guide feedback
         </a>
       </section>
+
+      {guide.guideType === "Marina" || guide.guideType === "Harbour" ? (
+        <NewsletterSignup placement="guide" />
+      ) : null}
     </>
   );
 }

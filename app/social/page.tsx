@@ -14,7 +14,7 @@ import { createPageMetadata } from "../../lib/seo";
 export const metadata: Metadata = createPageMetadata({
   title: "Social Media",
   description:
-    "Follow Old Sea Dogs across TikTok, Instagram, Facebook, X, YouTube Shorts, Threads and LinkedIn.",
+    "Follow Old Sea Dogs across TikTok, Instagram, Facebook, X, YouTube Shorts, Threads, LinkedIn and Substack.",
   path: "/social",
 });
 
