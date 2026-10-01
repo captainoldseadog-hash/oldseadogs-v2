@@ -31,7 +31,7 @@ const policyLinks: FooterLink[] = [
   { href: "/terms", label: "Terms of Use" },
 ];
 
-const socialSettingKeys: Record<OldSeaDogsSocialPlatform["key"], keyof SiteSettings> = {
+const socialSettingKeys: Partial<Record<OldSeaDogsSocialPlatform["key"], keyof SiteSettings>> = {
   tiktok: "socialTikTok",
   instagram: "socialInstagram",
   facebook: "socialFacebook",
@@ -50,10 +50,14 @@ function socialHref(value: string, fallbackUrl: string) {
 
 function linksFromSettings(settings: SiteSettings) {
   return oldSeaDogsSocialPlatforms
-    .map((platform) => ({
-      ...platform,
-      href: socialHref(settings[socialSettingKeys[platform.key]], platform.href),
-    }))
+    .map((platform) => {
+      const settingKey = socialSettingKeys[platform.key];
+      const configured = settingKey ? settings[settingKey] : "";
+      return {
+        ...platform,
+        href: socialHref(configured, platform.href),
+      };
+    })
     .filter((platform) => platform.href);
 }
 
