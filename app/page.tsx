@@ -15,7 +15,9 @@ import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { HomepageContentProvider } from "../lib/homepage-content-provider";
 import { guidePublicPath } from "../lib/guides";
+import { readImageSize } from "../lib/image-derivatives";
 import { publicMediaVariantUrl } from "../lib/public-media";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet } from "../lib/responsive-image";
 import {
   getActiveAds,
   getHomepageGuides,
@@ -217,6 +219,7 @@ export default async function Home() {
     .slice(0, 2);
   const homepageBottomAd = pickAdvertForPlacement(ads, "homepage-bottom");
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
+  const heroSize = featuredHasPhoto ? await readImageSize(featuredStory.imageUrl).catch(() => null) : null;
 
   return (
     <main className="site-shell">
@@ -231,14 +234,19 @@ export default async function Home() {
           <picture className="hero-image">
             <source
               media="(max-width: 1024px)"
-              srcSet={publicMediaVariantUrl(featuredStory.imageUrl, "mobile")}
+              sizes="100vw"
+              srcSet={mobileSourceSrcSet(featuredStory.imageUrl, publicMediaVariantUrl(featuredStory.imageUrl, "mobile"))}
             />
             <img
               alt={featuredStory.imageAlt || featuredStory.title}
               decoding="async"
               fetchPriority="high"
+              height={heroSize?.height}
               loading="eager"
-              src={featuredStory.imageUrl}
+              sizes="100vw"
+              src={derivativeImageUrl(featuredStory.imageUrl, 1600)}
+              srcSet={derivativeSrcSet(featuredStory.imageUrl, [768, 1200, 1600]) || undefined}
+              width={heroSize?.width}
             />
           </picture>
         ) : null}
