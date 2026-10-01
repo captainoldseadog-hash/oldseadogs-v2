@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdBlock, pickAdvertForPlacement } from "../components/AdBlock";
+import { AdBlock, isOffTopicInvestorAdvert, pickAdvertForPlacement } from "../components/AdBlock";
+import { NewsletterSignup } from "../components/NewsletterSignup";
 import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
@@ -212,10 +213,15 @@ export default async function Home() {
   } = new HomepageContentProvider(stories, settings).getContent();
   const bannerAd = pickAdvertForPlacement(ads, "banner");
   const featuredClubAd = pickAdvertForPlacement(ads, "homepage-featured-club");
+  const visibleFeaturedClubAd =
+    featuredClubAd && !isOffTopicInvestorAdvert(featuredClubAd) ? featuredClubAd : null;
   const sidebarAds = ads
     .filter((ad) => ad.placement === "homepage-sidebar" || ad.placement === "sidebar")
+    .filter((ad) => !isOffTopicInvestorAdvert(ad))
     .slice(0, 2);
   const homepageBottomAd = pickAdvertForPlacement(ads, "homepage-bottom");
+  const visibleHomepageBottomAd =
+    homepageBottomAd && !isOffTopicInvestorAdvert(homepageBottomAd) ? homepageBottomAd : null;
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
 
   return (
@@ -310,7 +316,10 @@ export default async function Home() {
         aria-labelledby="featured-port-club-title"
         data-compact-version="featured-club-ad-compact-v2"
       >
-        <div className="featured-port-club-layout" data-featured-club-row="compact">
+        <div
+          className={`featured-port-club-layout${visibleFeaturedClubAd ? "" : " featured-port-club-layout--solo"}`}
+          data-featured-club-row="compact"
+        >
           {featuredPortClub ? (
             <article className="featured-port-club-card">
               <Link
@@ -358,12 +367,9 @@ export default async function Home() {
             </div>
           )}
 
-          <AdBlock
-            ad={featuredClubAd}
-            className="featured-port-club-ad"
-            placeholderTitle="Featured Club sponsor space"
-            reserveSpace
-          />
+          {visibleFeaturedClubAd ? (
+            <AdBlock ad={visibleFeaturedClubAd} className="featured-port-club-ad" />
+          ) : null}
         </div>
       </section>
 
@@ -491,18 +497,20 @@ export default async function Home() {
 
       <SocialFollowBlock />
 
-      {homepageBottomAd ? (
+      {visibleHomepageBottomAd ? (
         <section className="ad-band footer-ad-band" aria-label="Footer advertisement">
           <p className="ad-band-label">Advertisement</p>
           <AdBlock
-            ad={homepageBottomAd}
+            ad={visibleHomepageBottomAd}
             className="homepage-bottom-ad"
-            ctaLabel="Visit www.aNewFN.com"
-            placeholderTitle="Homepage bottom sponsor space"
             showSponsor
           />
         </section>
       ) : null}
+
+      <div className="newsletter-band">
+        <NewsletterSignup placement="homepage" />
+      </div>
 
       <SiteFooter
         brandName={settings.brandName}
