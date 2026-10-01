@@ -2897,9 +2897,15 @@ export async function getStoryBySlug(slug: string) {
   }
 }
 
+const localGuidesCache = new WeakMap<LocalEditorStore, EditableGuide[]>();
+
 export async function getAllGuides() {
   const store = await readLocalEditorStore();
-  return mergeLocalGuidesWithStatic(store.guides);
+  const cached = localGuidesCache.get(store);
+  if (cached) return cached;
+  const guides = mergeLocalGuidesWithStatic(store.guides);
+  localGuidesCache.set(store, guides);
+  return guides;
 }
 
 export async function getPublishedGuides() {
@@ -2928,12 +2934,18 @@ export async function getGuideBySlug(slug: string, options: { includeDrafts?: bo
   return presentPublicGuide(guide);
 }
 
+const localSettingsCache = new WeakMap<LocalEditorStore, SiteSettings>();
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const cached = localSettingsCache.get(store);
+    if (cached) return cached;
     const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
-    return { ...defaultSettings, ...store.settings, ...fixture.settings };
+    const settings = { ...defaultSettings, ...store.settings, ...fixture.settings };
+    localSettingsCache.set(store, settings);
+    return settings;
   }
 
   try {
@@ -3037,12 +3049,19 @@ export async function saveHomepageSettings(input: {
   return { settings: await getSiteSettings(), story: selectedLead };
 }
 
+const localAdsCache = new WeakMap<LocalEditorStore, { ads: Advert[]; day: string }>();
+
 export async function getActiveAds() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const day = new Date().toISOString().slice(0, 10);
+    const cached = localAdsCache.get(store);
+    if (cached?.day === day) return cached.ads;
     const adverts = store.ads.length > 0 ? store.ads : defaultAdvertRows();
-    return activeAdvertRows(adverts);
+    const active = activeAdvertRows(adverts);
+    localAdsCache.set(store, { ads: active, day });
+    return active;
   }
 
   try {

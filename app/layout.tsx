@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { CookieConsent } from "../components/CookieConsent";
 import { JsonLd } from "../components/JsonLd";
 import { MobileSiteHeader } from "../components/MobileSiteHeader";
@@ -15,7 +15,6 @@ import {
 } from "../lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "../lib/structured-data";
 import { isPublicPagePath } from "../lib/route-boundaries";
-import { consentCookieName, legacyConsentCookieName, parseConsentChoice } from "../lib/cookie-consent";
 import "./globals.css";
 
 const adsensePublisherId = "ca-pub-7278382533036873";
@@ -55,21 +54,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const requestHeaders = await headers();
-  const requestCookies = await cookies();
   const pathname = requestHeaders.get(requestPathHeader) || "/";
   const adsenseAccountId = adsenseClientId || adsensePublisherId;
   const isPublicPage = isPublicPagePath(pathname);
   const shouldRenderAdsenseMeta = isPublicPage && Boolean(adsenseAccountId);
   const shouldRenderGoogleConsent = isPublicPage && Boolean(ga4MeasurementId);
-  const encodedConsent = requestCookies.get(consentCookieName)?.value;
-  const encodedLegacyConsent = requestCookies.get(legacyConsentCookieName)?.value;
-  let initialConsentChoice: ReturnType<typeof parseConsentChoice> = null;
-  try {
-    initialConsentChoice = parseConsentChoice(encodedConsent ? decodeURIComponent(encodedConsent) : null)
-      || parseConsentChoice(encodedLegacyConsent ? decodeURIComponent(encodedLegacyConsent) : null);
-  } catch {
-    initialConsentChoice = null;
-  }
 
   return (
     <html lang="en">
@@ -95,8 +84,6 @@ export default async function RootLayout({
           adsenseClientId={adsenseClientId}
           adsenseEnabled={adsenseEnabled}
           ga4Id={ga4MeasurementId}
-          initialChoice={initialConsentChoice}
-          migrateInitialChoice={!encodedConsent && Boolean(initialConsentChoice)}
         />
       </body>
     </html>

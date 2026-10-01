@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { derivativeImageUrl, derivativeSrcSet } from "../lib/responsive-image";
 
 export type GuideBrowserItem = {
   slug: string;
@@ -99,7 +100,8 @@ export function GuideCollectionBrowser({
                     decoding="async"
                     loading="lazy"
                     sizes="(max-width: 640px) calc(100vw - 40px), 360px"
-                    src={guide.imageUrl}
+                    src={derivativeImageUrl(guide.imageUrl, 768)}
+                    srcSet={derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined}
                   />
                 </Link>
                 <div>
