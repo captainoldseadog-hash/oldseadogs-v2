@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
+import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
@@ -461,7 +462,11 @@ export function GuidePublicContent({
             />
             <img
               src={publicMediaVariantUrl(guide.imageUrl, "web")}
-              alt={guide.imageAlt}
+              alt={publicImageAlt({
+                alt: guide.imageAlt,
+                caption: guide.imageCaption,
+                title: guide.title,
+              })}
               decoding="async"
               fetchPriority="high"
               style={{ objectPosition: guide.imageFocalPoint }}
@@ -602,7 +607,7 @@ export function GuidePublicContent({
                     .sort((left, right) => left.order - right.order)
                     .map((image) => (
                       <figure className="article-inline-figure" key={image.id}>
-                        <img loading="lazy" src={image.url} alt={image.alt} />
+                        <img loading="lazy" src={image.url} alt={publicImageAlt({ alt: image.alt, caption: image.caption, title: guide.title })} />
                         <figcaption>{image.caption}{image.credit ? ` · ${image.credit}` : ""}</figcaption>
                       </figure>
                     ))}
@@ -610,7 +615,7 @@ export function GuidePublicContent({
               ))}
               {guideSectionImagesFor(guide.slug, section.heading).map((image) => (
                 <figure className="article-inline-figure" key={image.id}>
-                  <img loading="lazy" src={image.url} alt={image.alt} />
+                  <img loading="lazy" src={image.url} alt={publicImageAlt({ alt: image.alt, title: guide.title })} />
                 </figure>
               ))}
               {section.listItems?.length ? <ul>{section.listItems.map((item) => <li key={item}>{item}</li>)}</ul> : null}
@@ -703,7 +708,7 @@ export function GuidePublicContent({
             {related.map((item) => (
               <article className="guide-card" key={item.slug}>
                 <Link className="guide-card-image" href={guidePublicPath(item)}>
-                  <img loading="lazy" src={item.imageUrl} alt={item.imageAlt} />
+                  <img loading="lazy" src={item.imageUrl} alt={publicImageAlt({ alt: item.imageAlt, caption: item.imageCaption, title: item.title })} />
                 </Link>
                 <div>
                   <p className="eyebrow">{item.guideType}</p>

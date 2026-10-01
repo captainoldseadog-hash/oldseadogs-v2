@@ -276,7 +276,7 @@ export default async function Home() {
         </section>
         <section className="mobile-hero-content" aria-labelledby="mobile-lead-title">
           <p className="eyebrow">{displayCategoryLabel(featuredStory.category)}</p>
-          <h1 id="mobile-lead-title">{featuredStory.title}</h1>
+          <h2 id="mobile-lead-title">{featuredStory.title}</h2>
           <p>{featuredStory.summary}</p>
           <div className="mobile-story-meta">
             <span>{formatDate(featuredStory.date)}</span>
