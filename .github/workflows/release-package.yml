@@ -6,6 +6,10 @@ name: Build release package
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - deploy/prebuilt-package
+      - "release/**"
 
 permissions:
   contents: read
