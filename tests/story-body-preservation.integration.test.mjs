@@ -122,13 +122,13 @@ test("full story rendering preserves all 29 source body blocks without truncatio
   }
 
   assert.match(html, /<h1>Full story body preservation<\/h1>/);
-  const leadImage = html.match(/<img[^>]+src="\/images\/racing-yachts\.png"[^>]*>/)?.[0] || "";
-  assert.match(leadImage, /src="\/images\/racing-yachts\.png"/);
+  const leadImage = html.match(/<img[^>]+src="\/img\/1600\/images\/racing-yachts\.png"[^>]*>/)?.[0] || "";
+  assert.match(leadImage, /src="\/img\/1600\/images\/racing-yachts\.png"/);
   assert.doesNotMatch(leadImage, /loading="lazy"/);
   assert.match(leadImage, /loading="eager"/);
   assert.match(leadImage, /fetchPriority="high"/);
   assert.match(leadImage, /sizes="\(max-width: 760px\) calc\(100vw - 40px\), 860px"/);
-  assert.match(html, /<source[^>]+media="\(max-width: 1024px\)"[^>]+srcSet="\/images\/racing-yachts\.png"/);
+  assert.match(html, /<source[^>]+media="\(max-width: 1024px\)"[^>]+srcSet="\/img\/480\/images\/racing-yachts\.png 480w/);
   assert.match(html, /A complete lead image caption/);
   assert.match(html, /Old Sea Dogs test credit/);
   assert.match(html, /href="\/stories\/related-story-one"/);
@@ -137,8 +137,8 @@ test("full story rendering preserves all 29 source body blocks without truncatio
   const relatedSectionEnd = html.indexOf("</section>", relatedSectionStart);
   assert.ok(relatedSectionStart >= 0 && relatedSectionEnd > relatedSectionStart);
   const relatedSection = html.slice(relatedSectionStart, relatedSectionEnd);
-  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/images\/related-story-one\.png"/);
-  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/images\/related-story-two\.png"/);
+  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/img\/480\/images\/related-story-one\.png"/);
+  assert.match(relatedSection, /<img[^>]+loading="lazy"[^>]+src="\/img\/480\/images\/related-story-two\.png"/);
   assert.match(html, /rel="canonical" href="https:\/\/oldseadogs\.com\/stories\/full-body-preservation-story"/);
   assert.doesNotMatch(html, /isolated validation record mirrors|production-representative-validation/i);
 

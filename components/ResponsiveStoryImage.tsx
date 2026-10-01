@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { derivativeImageUrl, derivativeSrcSet } from "../lib/responsive-image";
 
 type ResponsiveStoryImageProps = {
   alt: string;
@@ -27,6 +28,7 @@ export function ResponsiveStoryImage({
   src,
 }: ResponsiveStoryImageProps) {
   const thumbnail = thumbnailImageUrl(src);
+  const srcSet = derivativeSrcSet(src, eager ? [768, 1200, 1600] : [480, 768]);
 
   return (
     <span className={className}>
@@ -37,7 +39,8 @@ export function ResponsiveStoryImage({
         fetchPriority={eager ? "high" : "auto"}
         loading={eager ? "eager" : "lazy"}
         sizes={sizes}
-        src={eager ? src : thumbnail}
+        src={eager ? derivativeImageUrl(src, 1200) : (srcSet ? derivativeImageUrl(src, 480) : thumbnail)}
+        srcSet={srcSet || undefined}
         style={objectPosition ? { objectPosition } : undefined}
       />
       {children}

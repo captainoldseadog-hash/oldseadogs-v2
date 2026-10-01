@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/img/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "no-cache, must-revalidate",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
           },
         ],
       },

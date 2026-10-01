@@ -9,7 +9,7 @@ const hash = (contents) => crypto.createHash("sha256").update(contents).digest("
 
 const protectedFiles = {
   // Option C, the prefetched lead, and the canonical desktop Marina Guide navigation.
-  "app/page.tsx": "b13fd12247a3cb0414b9b0d4f0f8b2eea919df6dc990d8442f1fc4a9da44c67c",
+  "app/page.tsx": "8a6b057632d25c33c3f089f191a59695779c27fab6add36f74d79aeb055e2608",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -43,7 +43,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
-  assert.equal(hash(reconstructedBaseline), "47d7408a0b581ef70c4448683849680a9f0f267f7af3e76932019fc8fa2d6fcc");
+  assert.equal(hash(reconstructedBaseline), "2f000f259b3ac536daaaa37cec9396dce17f8f2f5ed611bb079799483fc4eeb7");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

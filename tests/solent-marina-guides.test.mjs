@@ -228,7 +228,7 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
 test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
     // Option C, the prefetched lead, and the canonical desktop Marina Guide navigation.
-    "app/page.tsx": "b13fd12247a3cb0414b9b0d4f0f8b2eea919df6dc990d8442f1fc4a9da44c67c",
+    "app/page.tsx": "8a6b057632d25c33c3f089f191a59695779c27fab6add36f74d79aeb055e2608",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",

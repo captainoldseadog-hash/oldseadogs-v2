@@ -72,9 +72,18 @@ test("off-screen homepage images are lazy native images and the single responsiv
   assert.match(image, /variant=thumbnail/);
 });
 
-test("dynamic HTML revalidates while immutable asset rules remain separate", async () => {
-  const config = await read("next.config.ts");
-  assert.match(config, /source: "\/:path\*"[\s\S]*?value: "no-cache, must-revalidate"/);
+test("public documents are cacheable and private routes stay no-store", async () => {
+  const [config, policy, layout] = await Promise.all([
+    read("next.config.ts"),
+    read("lib/public-cache-policy.ts"),
+    read("app/layout.tsx"),
+  ]);
+  assert.match(policy, /public, max-age=60, s-maxage=120, stale-while-revalidate=300/);
+  assert.match(policy, /private, no-store/);
+  assert.match(config, /source: "\/api\/editor"/);
+  assert.match(config, /value: "no-store"/);
   assert.match(config, /source: "\/images\/:path\*"[\s\S]*?max-age=86400/);
   assert.match(config, /source: "\/legacy-photos\/:path\*"[\s\S]*?max-age=86400/);
+  assert.doesNotMatch(config, /source: "\/:path\*"[\s\S]*?no-cache, must-revalidate/);
+  assert.doesNotMatch(layout, /cookies\(\)/);
 });

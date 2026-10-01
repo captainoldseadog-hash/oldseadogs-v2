@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DerivativeImage } from "../../../components/DerivativeImage.tsx";
 import { GuideCollectionBrowser } from "../../../components/GuideCollectionBrowser.tsx";
 import { GuidePublicContent } from "../../../components/GuidePublicContent.tsx";
 import { JsonLd } from "../../../components/JsonLd.tsx";
@@ -178,13 +179,11 @@ export default async function RegionPage({ params }: RegionPageProps) {
 
       <header className="guide-region-hero">
         <figure>
-          <img
-            src={lead.imageUrl}
+          <DerivativeImage
             alt=""
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
+            eager
             sizes="100vw"
+            src={lead.imageUrl}
             style={{ objectPosition: lead.imageFocalPoint }}
           />
         </figure>
