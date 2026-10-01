@@ -4093,7 +4093,8 @@ a {
 }
 
 .hero h1,
-.article-header h1 {
+.article-header h1,
+.mobile-hero-content h2 {
   margin: 0;
   max-width: 780px;
   font-family: Georgia, "Times New Roman", serif;
@@ -4103,7 +4104,8 @@ a {
   letter-spacing: 0;
 }
 
-.hero h1 {
+.hero h1,
+.mobile-hero-content h2 {
   text-shadow: 0 4px 22px rgba(0, 0, 0, 0.42);
 }
 
@@ -12260,7 +12262,7 @@ a {
     outline-offset: -5px;
   }
 
-  .mobile-hero-content h1 {
+  .mobile-hero-content h2 {
     max-width: 730px;
     font-size: clamp(2.35rem, 8vw, 4rem);
     line-height: 1;
@@ -12747,7 +12749,7 @@ a {
     min-height: 540px;
   }
 
-  .mobile-hero-content h1 {
+  .mobile-hero-content h2 {
     font-size: clamp(2.2rem, 10.6vw, 3.2rem);
   }
 

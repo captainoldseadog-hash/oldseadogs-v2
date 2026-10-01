@@ -6,6 +6,7 @@ import { SocialFollowBlock } from "./SocialFollowBlock";
 import { displayCategoryLabel, sectionPathForCategory } from "../content/sections";
 import type { Advert, EditableStory } from "../lib/site-content";
 import { cleanStoryTags } from "../lib/tags";
+import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
 
 type ArticlePreviewContentProps = {
@@ -276,7 +277,11 @@ function parseInlineImageFigure(paragraph: string) {
 }
 
 function inlineImageAlt(inlineImage: { alt?: string; caption?: string }, fallback: string) {
-  return inlineImage.alt?.trim() || inlineImage.caption || fallback;
+  return publicImageAlt({
+    alt: inlineImage.alt,
+    caption: inlineImage.caption,
+    title: fallback,
+  });
 }
 
 export function ArticlePreviewContent({
@@ -349,7 +354,11 @@ export function ArticlePreviewContent({
                 />
                 <img
                   src={publicMediaVariantUrl(story.imageUrl, "web")}
-                  alt={story.imageAlt || story.title}
+                  alt={publicImageAlt({
+                    alt: story.imageAlt,
+                    caption: story.imageCaption,
+                    title: story.title,
+                  })}
                   decoding="async"
                   loading="eager"
                   fetchPriority="high"
