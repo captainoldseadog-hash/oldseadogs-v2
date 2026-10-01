@@ -1,46 +1,19 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { boatsForSaleNavigationLink, publicNavigationLinks } from "../../content/sections.ts";
 
 const requestPathHeader = "x-oldseadogs-request-path";
 
 export async function BoatsMasthead() {
   const requestHeaders = await headers();
   const path = requestHeaders.get(requestPathHeader) || "/boats-for-sale";
-  const browsing = path === "/boats-for-sale";
+  const browsing = path === "/boats-for-sale" || (path.startsWith("/boats-for-sale/") && !path.startsWith("/boats-for-sale/list-your-boat") && !path.startsWith("/boats-for-sale/manage") && !path.startsWith("/boats-for-sale/verify") && !path.startsWith("/boats-for-sale/keep") && !path.startsWith("/boats-for-sale/relist"));
   const listingForm = path.startsWith("/boats-for-sale/list-your-boat");
 
   return (
-    <header className="boats-masthead">
-      <nav className="article-nav boats-site-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark" aria-label="Old Sea Dogs home">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {publicNavigationLinks.map((link) => (
-            <Link className={link.slug === "boats-for-sale" ? "active" : ""} href={link.href} key={link.slug}>
-              {link.label}
-            </Link>
-          ))}
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
-      <div className="boats-masthead-panel">
-        <CompassRose />
-        <p className="boats-kicker">Classifieds · Private sellers</p>
-        <div className="boats-masthead-title">
-          {browsing ? <h1>Boats for Sale</h1> : <p className="boats-display">Boats for Sale</p>}
-          <p>Free advertisements from people selling their own boats. No commission, and the seller’s email stays private.</p>
-        </div>
-        <nav className="boats-subnav" aria-label="Boats for Sale">
-          <Link aria-current={browsing ? "page" : undefined} href="/boats-for-sale">Browse</Link>
-          <Link aria-current={listingForm ? "page" : undefined} href="/boats-for-sale/list-your-boat">List your boat free</Link>
-          <Link href={boatsForSaleNavigationLink.href === path ? "/boats-for-sale#grounds" : "/boats-for-sale#grounds"}>Cruising grounds</Link>
-          <Link href="/guides/solent-marina-guide">Marina guide</Link>
-        </nav>
-      </div>
-    </header>
+    <nav className="boats-subnav" aria-label="Boats for Sale">
+      <Link aria-current={browsing && !listingForm ? "page" : undefined} href="/boats-for-sale">Browse boats</Link>
+      <Link aria-current={listingForm ? "page" : undefined} className="boats-subnav-button" href="/boats-for-sale/list-your-boat">List your boat free</Link>
+    </nav>
   );
 }
 

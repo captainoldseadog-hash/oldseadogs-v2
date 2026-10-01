@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { JsonLd } from "../../components/JsonLd";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialFollowBlock } from "../../components/SocialFollowBlock";
-import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+
 import { contactEmail, createPageMetadata } from "../../lib/seo";
 import { contactPageJsonLd } from "../../lib/structured-data";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Contact",
@@ -18,21 +18,7 @@ export default function ContactPage() {
   return (
     <main className="article-shell privacy-shell">
       <JsonLd data={contactPageJsonLd()} />
-      <nav className="article-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <header className="privacy-hero">
         <p className="eyebrow">Contact</p>

@@ -227,10 +227,9 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
 
 test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
-    // Option C, the prefetched lead, the canonical desktop Marina Guide navigation,
-    // one homepage H1, the Substack signup, responsive image derivatives,
-    // and the Boats for Sale homepage teaser plus navigation link.
-    "app/page.tsx": "854107bc3d94030f75509edf47bf50ee0bb8f979d1ff6c5817c27b8e1da89154",
+    // Option C, the prefetched lead, one homepage H1, the Substack signup,
+    // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
+    "app/page.tsx": "5ad532741b671264d2479206bd58db464237ed340f341d61eda736e36a103ff3",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",

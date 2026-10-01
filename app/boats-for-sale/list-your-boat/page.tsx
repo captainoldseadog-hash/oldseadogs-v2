@@ -20,19 +20,25 @@ export default async function ListYourBoatPage({
   return (
     <main className="boats-wrap boats-logbook-page">
       <header className="boats-logbook-heading">
-        <p className="boats-kicker">Seller’s log</p>
-        <h1>List your boat free</h1>
+        <p className="boats-kicker">Free for private owners</p>
+        <h1>Enter your boat in the Register</h1>
         <p>{boatsTermSummary}</p>
       </header>
-      <ol className="boats-timeline" aria-label="How a free advertisement runs">
-        <li><span>Week 0</span><strong>You list it</strong><p>We email a confirmation link. Nothing is public until you confirm and the editor approves it.</p></li>
-        <li><span>Every fortnight</span><strong>A short note</strong><p>While the advertisement is live we email to say it is still running, with a link to mark it sold, change it or take it down.</p></li>
-        <li><span>Three months</span><strong>Keep it running?</strong><p>We ask once. One confirmation keeps it up for another three months. If we hear nothing within 14 days, it ends.</p></li>
-      </ol>
       {query.sent ? (
         <p className="boats-note" role="status">Thank you. Check your email and confirm the address. The advertisement is not published until you do, and until the editor has read it.</p>
       ) : (
-        <ListYourBoatForm consentLabel={boatsConsentLabel} privacyNotice={boatsPrivacyNotice} />
+        <div className="boats-book">
+          <ListYourBoatForm consentLabel={boatsConsentLabel} privacyNotice={boatsPrivacyNotice} />
+          <aside className="boats-passage">
+            <p className="boats-kicker">The passage of your advert</p>
+            <h2>Three months, with a note every fortnight.</h2>
+            <ol>
+              <li><strong>Week 0.</strong> You list it. We email a confirmation link. Nothing is public until you confirm and the editor approves it.</li>
+              <li><strong>Every fortnight.</strong> A short note while the advertisement is live, with a link to mark it sold, change it or take it down.</li>
+              <li><strong>Three months.</strong> We ask once. One confirmation keeps it up for another three months. If we hear nothing within 14 days, it ends.</li>
+            </ol>
+          </aside>
+        </div>
       )}
     </main>
   );

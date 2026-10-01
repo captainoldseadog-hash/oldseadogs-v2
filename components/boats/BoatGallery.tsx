@@ -14,12 +14,12 @@ type GalleryPhoto = {
 export function BoatGallery({ photos, title }: { photos: GalleryPhoto[]; title: string }) {
   const [index, setIndex] = useState(0);
   if (photos.length === 0) {
-    return <div className="boats-hero boats-hero-empty"><p>Photograph to follow</p></div>;
+    return <div className="boats-hero-shot boats-frame-empty"><p>Photograph to follow</p></div>;
   }
   const current = photos[Math.min(index, photos.length - 1)];
   return (
     <div className="boats-gallery">
-      <figure className="boats-hero">
+      <figure className="boats-hero-shot">
         <img alt={current.alt || title} height={current.height || 1000} src={current.src} width={current.width || 1600} />
         <figcaption>{current.alt}</figcaption>
       </figure>

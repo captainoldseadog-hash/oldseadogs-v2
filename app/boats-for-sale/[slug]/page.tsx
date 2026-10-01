@@ -62,44 +62,44 @@ export default async function BoatListingPage({ params, searchParams }: ListingP
   return (
     <main className="boats-wrap boats-feature">
       <JsonLd data={listingJsonLd(view)} />
-      <p className="boats-number">{view.publicNumber}</p>
-      <p className="boats-chart-label">{view.chartLabel}</p>
       <header className="boats-feature-heading">
+        <p className="boats-number">{view.publicNumber}</p>
+        <p className="boats-chart-label">{view.chartLabel}</p>
         <h1>{view.title}</h1>
-        <p>{view.listedLabel} · {view.confirmedLabel}</p>
+        <p>{[view.make, view.model, view.year].filter(Boolean).join(" · ")} · {view.listedLabel} · {view.confirmedLabel}</p>
       </header>
+      <BoatGallery photos={view.photos} title={view.title} />
+      {view.example ? <p className="boats-example">Example advertisement for layout only. Not a real boat.</p> : null}
       <div className="boats-feature-layout">
+        <table className="boats-specs">
+          <caption>Particulars</caption>
+          <tbody>
+            <Row label="Make" value={view.make} />
+            <Row label="Model" value={view.model || "Not stated"} />
+            <Row label="Year" value={view.year ? String(view.year) : "Not stated"} />
+            <Row label="Length" value={view.lengthLabel} />
+            <Row label="Type" value={view.boatTypeLabel} />
+            <Row label="Keel" value={view.keelLabel} />
+            <Row label="Engine" value={view.engine || "Not stated"} />
+            <Row label="Berths" value={view.berths === null ? "Not stated" : String(view.berths)} />
+            <Row label="Lying" value={view.location} />
+            <Row label="Cruising ground" value={view.cruisingGroundLabel} />
+            <Row label="Price" value={`${view.priceLabel}. ${view.vatLabel}.`} />
+            <Row label="Trailerable" value={view.trailerable ? "Yes" : "No"} />
+            <Row label="Liveaboard" value={view.liveaboard ? "Yes" : "No"} />
+          </tbody>
+        </table>
         <article>
-          <BoatGallery photos={view.photos} title={view.title} />
-          {view.example ? <p className="boats-example">Example advertisement for layout only. Not a real boat.</p> : null}
           <div className="boats-prose">
             {view.description.split(/\n+/).filter(Boolean).map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>)}
           </div>
-          <table className="boats-specs">
-            <caption>Particulars</caption>
-            <tbody>
-              <Row label="Make" value={view.make} />
-              <Row label="Model" value={view.model || "Not stated"} />
-              <Row label="Year" value={view.year ? String(view.year) : "Not stated"} />
-              <Row label="Length" value={view.lengthLabel} />
-              <Row label="Type" value={view.boatTypeLabel} />
-              <Row label="Keel" value={view.keelLabel} />
-              <Row label="Engine" value={view.engine || "Not stated"} />
-              <Row label="Berths" value={view.berths === null ? "Not stated" : String(view.berths)} />
-              <Row label="Lying" value={view.location} />
-              <Row label="Cruising ground" value={view.cruisingGroundLabel} />
-              <Row label="Price" value={`${view.priceLabel}. ${view.vatLabel}.`} />
-              <Row label="Trailerable" value={view.trailerable ? "Yes" : "No"} />
-              <Row label="Liveaboard" value={view.liveaboard ? "Yes" : "No"} />
-            </tbody>
-          </table>
           {view.marinaGuide ? (
             <p className="boats-guide-link">
               The mooring matches an Old Sea Dogs guide. <Link href={view.marinaGuide.href}>Read the {view.marinaGuide.title}</Link>.
             </p>
           ) : null}
           <section className="boats-safety" aria-labelledby="boats-safety-title">
-            <h3 id="boats-safety-title">Before you buy</h3>
+            <h2 id="boats-safety-title">Before you buy</h2>
             <ul>
               {buyerSafetyTips.map((tip) => <li key={tip}>{tip}</li>)}
             </ul>
@@ -107,7 +107,7 @@ export default async function BoatListingPage({ params, searchParams }: ListingP
         </article>
         <aside className="boats-contact" aria-labelledby="boats-contact-title">
           <p className="boats-kicker">Contact the seller</p>
-          <h3 id="boats-contact-title">{view.priceLabel}</h3>
+          <h2 id="boats-contact-title">{view.priceLabel}</h2>
           <p>{view.sellerName}{view.phone ? ` · ${view.phone}` : ""}</p>
           <p className="boats-contact-note">Your message is emailed to the seller. Their address is not shown.</p>
           {query.sent ? <p className="boats-note" role="status">Your message has been sent to the seller.</p> : null}

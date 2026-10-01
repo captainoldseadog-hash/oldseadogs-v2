@@ -18,7 +18,13 @@
     "liveaboard": false,
     "sellerName": "Example Seller",
     "sellerEmail": "example.seller.one@invalid.oldseadogs.test",
-    "status": "approved"
+    "status": "approved",
+    "photos": [
+      { "file": "westerly.jpg", "credit": "Gerard Versluis, CC BY-SA 3.0, via Wikimedia Commons" },
+      { "file": "hamble.jpg", "credit": "Paul Gillett, CC BY-SA 2.0, via Wikimedia Commons" },
+      { "file": "cockpit.jpg", "credit": "Kantorkel, CC BY 4.0, via Wikimedia Commons" },
+      { "file": "cabin.jpg", "credit": "Fparrel, CC BY-SA 3.0, via Wikimedia Commons" }
+    ]
   },
   {
     "title": "Example only — Chart Room",
@@ -39,7 +45,12 @@
     "liveaboard": true,
     "sellerName": "Example Seller Two",
     "sellerEmail": "example.seller.two@invalid.oldseadogs.test",
-    "status": "approved"
+    "status": "approved",
+    "photos": [
+      { "file": "yacht2.jpg", "credit": "Matti Blume, CC BY-SA 4.0, via Wikimedia Commons" },
+      { "file": "saloon.jpg", "credit": "Christoph Swoboda, CC BY-SA 3.0, via Wikimedia Commons" },
+      { "file": "deck.jpg", "credit": "Kritzolina, CC BY-SA 4.0, via Wikimedia Commons" }
+    ]
   },
   {
     "title": "Example only — Paper Compass",
@@ -60,7 +71,11 @@
     "liveaboard": false,
     "sellerName": "Example Seller Three",
     "sellerEmail": "example.seller.three@invalid.oldseadogs.test",
-    "status": "approved"
+    "status": "approved",
+    "photos": [
+      { "file": "rivercruiser.jpg", "credit": "Barry Lewis, CC BY 2.0, via Wikimedia Commons" },
+      { "file": "harbour.jpg", "credit": "Dietmar Rabich, CC BY-SA 4.0, via Wikimedia Commons" }
+    ]
   },
   {
     "title": "Example only — Brass Bound",
@@ -81,6 +96,9 @@
     "liveaboard": false,
     "sellerName": "Example Seller Four",
     "sellerEmail": "example.seller.four@invalid.oldseadogs.test",
-    "status": "pending"
+    "status": "pending",
+    "photos": [
+      { "file": "crabber.jpg", "credit": "Jean-Pierre Bazard, CC BY-SA 3.0, via Wikimedia Commons" }
+    ]
   }
 ]

@@ -76,14 +76,7 @@ export function ListYourBoatForm({ consentLabel, privacyNotice }: { consentLabel
       </p>
       {status ? <p className="boats-note boats-note-error" role="alert">{status}</p> : null}
       <fieldset>
-        <legend>You</legend>
-        <label>Name<input autoComplete="name" name="sellerName" required type="text" />{errors.sellerName ? <small>{errors.sellerName}</small> : null}</label>
-        <label>Email<input autoComplete="email" name="sellerEmail" required type="email" />{errors.sellerEmail ? <small>{errors.sellerEmail}</small> : null}</label>
-        <label>Telephone, if you wish<input autoComplete="tel" name="sellerPhone" type="tel" />{errors.sellerPhone ? <small>{errors.sellerPhone}</small> : null}</label>
-        <label className="boats-check"><input name="showPhone" type="checkbox" /> Show my telephone number on the advertisement</label>
-      </fieldset>
-      <fieldset>
-        <legend>The boat</legend>
+        <legend><b>I.</b> The vessel</legend>
         <label>Title<input name="title" required type="text" />{errors.title ? <small>{errors.title}</small> : null}</label>
         <label>Make<input name="make" required type="text" />{errors.make ? <small>{errors.make}</small> : null}</label>
         <label>Model<input name="model" type="text" /></label>
@@ -105,12 +98,12 @@ export function ListYourBoatForm({ consentLabel, privacyNotice }: { consentLabel
         <label>VAT
           <select name="vatStatus" defaultValue="unspecified">{VAT_STATUSES.map((status) => <option key={status} value={status}>{VAT_LABELS[status]}</option>)}</select>
         </label>
-        <label className="boats-wide">Description<textarea name="description" required rows={8} />{errors.description ? <small>{errors.description}</small> : null}</label>
+        <label className="boats-wide">Her story, in your words<textarea name="description" required rows={8} />{errors.description ? <small>{errors.description}</small> : null}</label>
         <label className="boats-check"><input name="trailerable" type="checkbox" /> Trailerable</label>
         <label className="boats-check"><input name="liveaboard" type="checkbox" /> Suitable as a liveaboard</label>
       </fieldset>
       <fieldset>
-        <legend>Photographs</legend>
+        <legend><b>II.</b> Photographs</legend>
         <div
           className={`boats-drop ${dragging ? "is-dragging" : ""}`}
           onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
@@ -130,6 +123,13 @@ export function ListYourBoatForm({ consentLabel, privacyNotice }: { consentLabel
             ))}
           </ul>
         ) : null}
+      </fieldset>
+      <fieldset>
+        <legend><b>III.</b> Correspondence</legend>
+        <label>Name<input autoComplete="name" name="sellerName" required type="text" />{errors.sellerName ? <small>{errors.sellerName}</small> : null}</label>
+        <label>Email<input autoComplete="email" name="sellerEmail" required type="email" />{errors.sellerEmail ? <small>{errors.sellerEmail}</small> : null}</label>
+        <label>Telephone, if you wish<input autoComplete="tel" name="sellerPhone" type="tel" />{errors.sellerPhone ? <small>{errors.sellerPhone}</small> : null}</label>
+        <label className="boats-check"><input name="showPhone" type="checkbox" /> Show my telephone number on the advertisement</label>
       </fieldset>
       <fieldset>
         <legend>Privacy notice</legend>

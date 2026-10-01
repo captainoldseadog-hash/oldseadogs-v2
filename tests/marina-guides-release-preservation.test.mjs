@@ -8,10 +8,9 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // Option C, the prefetched lead, the canonical desktop Marina Guide navigation,
-  // one homepage H1, the Substack signup, responsive image derivatives,
-  // and the Boats for Sale homepage teaser plus navigation link.
-  "app/page.tsx": "854107bc3d94030f75509edf47bf50ee0bb8f979d1ff6c5817c27b8e1da89154",
+  // Option C, the prefetched lead, one homepage H1, the Substack signup,
+  // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
+  "app/page.tsx": "5ad532741b671264d2479206bd58db464237ed340f341d61eda736e36a103ff3",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -20,8 +19,8 @@ const protectedFiles = {
   "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
-  // Discover audit, the canonical desktop Marina Guide navigation, and Boats for Sale.
-  "app/stories/[slug]/page.tsx": "a8027588927bf979a58a25c5f7cbf9579905c4b93787022c1a06d18b7a3aee9e",
+  // Discover audit, Boats for Sale, and the shared two-row site header.
+  "app/stories/[slug]/page.tsx": "732a293ea6cd207d3de499a5ced726e8c096c2b79a293e623ed1ba8e6a35bcab",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   "app/sitemap.ts": "d17eea8a5298a5737e831a9abecae487eacc9d15732e792d906b2dde4815fa69",

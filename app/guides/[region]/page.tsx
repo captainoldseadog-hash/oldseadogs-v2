@@ -8,7 +8,7 @@ import { JsonLd } from "../../../components/JsonLd.tsx";
 import { GuideBreadcrumbs } from "../../../components/GuideBreadcrumbs.tsx";
 import { GuideGoogleMap } from "../../../components/GuideGoogleMap.tsx";
 import { SiteFooter } from "../../../components/SiteFooter.tsx";
-import { publicNavigationLinks } from "../../../content/sections.ts";
+
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
@@ -21,6 +21,7 @@ import {
 import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../lib/structured-data.ts";
+import { SiteHeader } from "../../../components/SiteHeader";
 
 type RegionPageProps = { params: Promise<{ region: string }> };
 
@@ -57,22 +58,7 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
 }
 
 function PrimaryNavigation() {
-  return (
-    <nav className="article-nav" aria-label="Primary navigation">
-      <Link href="/" className="brand-lockup dark" aria-label="Old Sea Dogs home">
-        <span className="brand-mark" aria-hidden="true" />
-        <span>Old Sea Dogs</span>
-      </Link>
-      <div className="nav-links section-nav-links">
-        {publicNavigationLinks.map((section) => (
-          <Link className={section.slug === "guides" ? "active" : ""} href={section.href} key={section.slug}>
-            {section.label}
-          </Link>
-        ))}
-        <Link href="/search">Search</Link>
-      </div>
-    </nav>
-  );
+  return <SiteHeader current="guides" />;
 }
 
 export default async function RegionPage({ params }: RegionPageProps) {

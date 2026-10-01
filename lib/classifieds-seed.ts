@@ -1,6 +1,6 @@
 import { createSafeId } from "../lib/safe-id.ts";
-import { addDays, CLASSIFIEDS_TERM_DAYS, type ClassifiedListing } from "../lib/classifieds-types.ts";
-import { writeClassifiedPhotoFiles, type ProcessedPhoto } from "../lib/classifieds-photos.ts";
+import { addDays, CLASSIFIEDS_TERM_DAYS, type ClassifiedListing, type ClassifiedPhoto } from "../lib/classifieds-types.ts";
+import { processClassifiedPhoto, writeClassifiedPhotoFiles, type ProcessedPhoto } from "../lib/classifieds-photos.ts";
 import { updateClassifiedsStore } from "../lib/classifieds-store.ts";
 
 type ExampleRecord = {
@@ -23,6 +23,7 @@ type ExampleRecord = {
   sellerName: string;
   sellerEmail: string;
   status: "approved" | "pending";
+  photos?: Array<{ file: string; credit: string }>;
 };
 
 export function assertClassifiedsSeedAllowed() {
@@ -39,26 +40,15 @@ export function assertClassifiedsSeedAllowed() {
 export async function seedExampleBoats(examples: ExampleRecord[], now = new Date()) {
   assertClassifiedsSeedAllowed();
   const sharpModule = await import("sharp");
-  const sharp = sharpModule.default;
+  const sharp = sharpModule.default as SharpFactory;
   let number = 0;
   const listings: ClassifiedListing[] = [];
   for (const example of examples) {
     const id = createSafeId("boat");
     const approved = example.status === "approved";
     if (approved) number += 1;
-    const photoId = createSafeId("photo");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000">
-      <rect width="1600" height="1000" fill="#123944"/>
-      <rect y="640" width="1600" height="360" fill="#2f6f67"/>
-      <text x="72" y="160" fill="#f6f7f3" font-family="Georgia" font-size="64">EXAMPLE ONLY</text>
-      <text x="72" y="230" fill="#b98945" font-family="Georgia" font-size="28">Not a real boat</text>
-      <text x="72" y="820" fill="#f6f7f3" font-family="Georgia" font-size="42">${escapeXml(example.title)}</text>
-    </svg>`;
-    const webp = new Uint8Array(await sharp(Buffer.from(svg)).webp({ quality: 76 }).toBuffer());
-    const thumb = new Uint8Array(await sharp(Buffer.from(svg)).resize({ width: 640, height: 400, fit: "inside" }).webp({ quality: 70 }).toBuffer());
-    const processed: ProcessedPhoto = { webp, thumb, width: 1600, height: 1000, sourceFormat: "svg" };
-    await writeClassifiedPhotoFiles(id, photoId, processed);
     const stamp = now.toISOString();
+    const photos = await seedPhotos(id, example, sharp, stamp);
     listings.push({
       id,
       slug: example.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
@@ -85,7 +75,7 @@ export async function seedExampleBoats(examples: ExampleRecord[], now = new Date
       description: example.description,
       trailerable: example.trailerable,
       liveaboard: example.liveaboard,
-      photos: [{ id: photoId, alt: `${example.title} — example photograph, not a real boat`, width: 1600, height: 1000, bytes: webp.byteLength, createdAt: stamp }],
+      photos,
       consentAt: stamp,
       createdAt: stamp,
       updatedAt: stamp,
@@ -116,6 +106,43 @@ export async function seedExampleBoats(examples: ExampleRecord[], now = new Date
     listings: [...store.listings.filter((listing) => !listing.example), ...listings],
   }));
   return listings;
+}
+
+type SharpFactory = (input: Buffer, options?: { failOn?: string }) => {
+  resize: (options: { width: number; height: number; fit: "cover" }) => {
+    webp: (options: { quality: number }) => { toBuffer: () => Promise<Buffer> };
+  };
+};
+
+async function seedPhotos(listingId: string, example: ExampleRecord, sharp: SharpFactory, stamp: string): Promise<ClassifiedPhoto[]> {
+  if (example.photos?.length) {
+    const { readFile } = await import("node:fs/promises");
+    const path = await import("node:path");
+    const photos: ClassifiedPhoto[] = [];
+    for (const source of example.photos) {
+      const bytes = new Uint8Array(await readFile(path.join(process.cwd(), "tests/fixtures/boats-photos", source.file)));
+      const processed = await processClassifiedPhoto(bytes, "image/jpeg");
+      photos.push(await storeSeedPhoto(listingId, processed, `${example.title} — example photograph, not a real boat. Photograph: ${source.credit}`, stamp));
+    }
+    return photos;
+  }
+  const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000"><rect width="1600" height="1000" fill="#123944"/><text x="80" y="480" fill="#f6f7f3" font-family="Georgia, serif" font-size="64">${escapeXml(example.title)}</text><text x="80" y="560" fill="#f3d2c6" font-family="Georgia, serif" font-size="32">Example photograph, not a real boat</text></svg>`);
+  const webp = new Uint8Array(await sharp(svg).resize({ width: 1600, height: 1000, fit: "cover" }).webp({ quality: 70 }).toBuffer());
+  const thumb = new Uint8Array(await sharp(svg).resize({ width: 640, height: 400, fit: "cover" }).webp({ quality: 60 }).toBuffer());
+  return [await storeSeedPhoto(listingId, { webp, thumb, width: 1600, height: 1000, sourceFormat: "svg" }, `${example.title} — example photograph, not a real boat`, stamp)];
+}
+
+async function storeSeedPhoto(listingId: string, photo: ProcessedPhoto, alt: string, stamp: string): Promise<ClassifiedPhoto> {
+  const photoId = createSafeId("photo");
+  await writeClassifiedPhotoFiles(listingId, photoId, photo);
+  return {
+    id: photoId,
+    alt,
+    width: photo.width,
+    height: photo.height,
+    bytes: photo.webp.byteLength,
+    createdAt: stamp,
+  };
 }
 
 function escapeXml(value: string) {

@@ -10,15 +10,13 @@ import {
   getOldSeaDogsSection,
   displayCategoryLabel,
   getSectionHeroArtwork,
-  boatsForSaleNavigationLink,
-  marinaGuideNavigationLink,
-  oldSeaDogsSections,
   storyMatchesSection,
 } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { isLogoLikeStoryImage } from "../../content/story-images";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -91,26 +89,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
 
   return (
     <main className="article-shell section-shell">
-      <nav className="article-nav" aria-label="Section navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((item) => (
-            <Link
-              className={item.slug === section.slug ? "active" : ""}
-              href={`/${item.slug}`}
-              key={item.slug}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
-          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
+      <SiteHeader current={section.slug} label="Section navigation" />
 
       <header
         className={`section-page-hero ${
