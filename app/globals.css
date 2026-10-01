@@ -13177,13 +13177,10 @@ a {
 .boats-sell p { color: rgba(246,247,243,.86); font-family: Georgia, "Times New Roman", serif; font-size: 1.1rem; line-height: 1.55; }
 .boats-sell .boats-kicker { color: #f3d2c6; }
 .boats-sell .boats-button { background: #f6f7f3; color: var(--harbour); }
-.boats-sell .boats-button-quiet { background: transparent; color: #f6f7f3; }
-.boats-plot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.boats-sell .boats-button { background: #f6f7f3; color: var(--harbour); }
-.boats-sell .boats-button-quiet { background: transparent; color: #f6f7f3; }
 .boats-plot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .boats-sell-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.boats-button-quiet { background: transparent; color: #f6f7f3; box-shadow: inset 0 0 0 1.5px #f6f7f3; }
+.boats-button-quiet { background: #ffffff; color: var(--harbour); box-shadow: inset 0 0 0 1.5px var(--harbour); }
+.boats-sell .boats-button-quiet { background: transparent; color: #f6f7f3; box-shadow: inset 0 0 0 1.5px #f6f7f3; }
 .boats-course { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-content: center; }
 .boats-course li { list-style: none; border-top: 1px solid rgba(246,247,243,.4); padding-top: 8px; }
 .boats-course span { display: block; color: #f3d2c6; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -13224,7 +13221,32 @@ a {
 .boats-logbook legend b, .boats-part-label b { color: var(--signal); font-weight: 500; }
 .boats-logbook legend b { color: var(--signal); font-weight: 500; margin-right: 8px; }
 .boats-wide, .boats-check { grid-column: 1 / -1; }
-.boats-check { display: flex; align-items: center; gap: 8px; color: var(--ink); letter-spacing: 0; text-transform: none; font-size: 1rem; font-weight: 500; }
+.boats-logbook label.boats-check,
+.boats-more label.boats-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.boats-logbook label.boats-check input[type="checkbox"],
+.boats-more label.boats-check input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 1.15rem;
+  border: 0;
+  border-bottom: 0;
+  background: transparent;
+  accent-color: var(--harbour);
+}
 .boats-logbook small { color: var(--signal-ink); letter-spacing: 0; text-transform: none; font-weight: 650; }
 .boats-drop { grid-column: 1 / -1; display: grid; gap: 8px; justify-items: center; min-height: 140px; padding: 22px; border: 1.5px dashed #9fb0ad; text-align: center; background: repeating-linear-gradient(45deg, #fbfbf8 0 10px, #f4f4ee 10px 20px); }
 .boats-drop.is-dragging { border-color: var(--harbour); background: #fff; }
@@ -13250,6 +13272,25 @@ a {
 .boats-teaser { width: min(1180px, calc(100% - 40px)); margin: 28px auto; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 28px; border-top: 1px solid var(--line); border-bottom: 3px double var(--harbour); padding: 32px 0; }
 .boats-teaser h2 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 500; }
 .boats-teaser-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.boats-teaser .button-primary {
+  background: var(--harbour);
+  color: #f6f7f3;
+  border: 1.5px solid var(--harbour);
+}
+.boats-teaser .button-secondary,
+.boats-teaser .button-secondary:hover,
+.boats-teaser .button-secondary:focus-visible,
+.boats-teaser .button-secondary:active {
+  border: 1.5px solid var(--harbour);
+  background: #ffffff;
+  color: var(--harbour);
+}
+.boats-teaser .button-secondary:hover,
+.boats-teaser .button-secondary:focus-visible,
+.boats-teaser .button-secondary:active {
+  background: var(--harbour);
+  color: #f6f7f3;
+}
 .boats-teaser-list { display: grid; gap: 10px; }
 .boats-teaser-list a, .boats-teaser-empty { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
 .boats-teaser-list span, .boats-teaser-list small { color: var(--signal-ink); letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.72rem; }
