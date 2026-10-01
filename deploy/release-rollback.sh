@@ -9,13 +9,19 @@ source "$SCRIPT_DIR/release-common.sh"
 
 TARGET_RELEASE=""
 
+DRY_RUN=0
+
 usage() {
   cat <<'EOF'
-Usage: release-rollback.sh [--release RELEASE_ID]
+Usage: release-rollback.sh [--release RELEASE_ID] [--dry-run]
 
 Atomically switches to an already-installed, independently runnable release.
 No package installation, build, data restore, or network download is performed.
 Without --release, the recorded previous release is selected.
+--dry-run checks that the target can already start, then exits without changing current.
+
+The 30 September 2026 production release (git 6ce0718) is rolled back by its
+folder name under releases/. Rollback does not run npm to repair a missing install.
 EOF
 }
 
@@ -27,6 +33,10 @@ while (($#)); do
       TARGET_RELEASE="${RELEASES_DIR}/$2"
       shift 2
       ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -35,9 +45,15 @@ while (($#)); do
   esac
 done
 
-for command_name in node curl pm2 readlink flock; do
-  require_command "$command_name"
-done
+if [[ "$DRY_RUN" == "1" ]]; then
+  for command_name in node readlink flock; do
+    require_command "$command_name"
+  done
+else
+  for command_name in node curl pm2 readlink flock; do
+    require_command "$command_name"
+  done
+fi
 mkdir -p "$SHARED_DIR"
 exec 9>"$SHARED_DIR/deployment.lock"
 flock -n 9 || die "Another deployment or rollback is already running"
@@ -52,6 +68,12 @@ fi
 TARGET_RELEASE="$(assert_release_path "$TARGET_RELEASE")"
 validate_runnable_release "$TARGET_RELEASE"
 [[ "$TARGET_RELEASE" != "$CURRENT_RELEASE" ]] || die "Requested rollback release is already current"
+log "Rollback will not run npm ci, npm install, or a build."
+if [[ "$DRY_RUN" == "1" ]]; then
+  log "Dry run: would switch current from $CURRENT_RELEASE to $TARGET_RELEASE"
+  log "Dry run: no symlink was changed and no dependencies were installed."
+  exit 0
+fi
 
 restore_current_after_failure() {
   log "Rollback target failed; restoring the release that was current at invocation"

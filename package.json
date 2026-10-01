@@ -44,6 +44,8 @@
     "rollback": "node scripts/oldseadogs-ops.mjs rollback",
     "deploy:history": "node scripts/oldseadogs-ops.mjs deploy:history",
     "deploy:safe": "node scripts/oldseadogs-ops.mjs deploy:safe",
+    "package:release": "bash deploy/release-package.sh",
+    "package:release:linux": "bash deploy/release-package-docker.sh",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern outputs --ignore-pattern .ga4-release-work",
     "db:generate": "drizzle-kit generate"
   },
