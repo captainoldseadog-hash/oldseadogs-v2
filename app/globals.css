@@ -4170,6 +4170,29 @@ a {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* Pale guide panels cannot use the homepage hero's white ghost button. */
+.guide-feedback .button-secondary,
+.guide-verified-facilities .button-secondary,
+.guide-card .button-secondary {
+  border-color: var(--harbour);
+  background: #ffffff;
+  color: var(--harbour);
+}
+
+.guide-feedback .button-secondary:hover,
+.guide-feedback .button-secondary:focus-visible,
+.guide-feedback .button-secondary:active,
+.guide-verified-facilities .button-secondary:hover,
+.guide-verified-facilities .button-secondary:focus-visible,
+.guide-verified-facilities .button-secondary:active,
+.guide-card .button-secondary:hover,
+.guide-card .button-secondary:focus-visible,
+.guide-card .button-secondary:active {
+  border-color: var(--harbour);
+  background: var(--harbour);
+  color: #ffffff;
+}
+
 .ticker-band {
   display: flex;
   flex-wrap: wrap;
