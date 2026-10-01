@@ -114,6 +114,12 @@ export const marinaGuideNavigationLink = {
   slug: "marina-guide",
 } as const;
 
+export const boatsForSaleNavigationLink = {
+  href: "/boats-for-sale",
+  label: "Boats for Sale",
+  slug: "boats-for-sale",
+} as const;
+
 export const publicNavigationLinks = [
   ...oldSeaDogsSections.map((section) => ({
     href: `/${section.slug}`,
@@ -126,6 +132,7 @@ export const publicNavigationLinks = [
     slug: "guides",
   },
   marinaGuideNavigationLink,
+  boatsForSaleNavigationLink,
 ] as const;
 
 function categoryKey(category: string) {

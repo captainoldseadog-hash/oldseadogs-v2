@@ -5,7 +5,7 @@ import { ArticlePreviewContent } from "../../../components/ArticlePreviewContent
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SocialShare } from "../../../components/SocialShare";
 import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
-import { displayCategoryLabel, marinaGuideNavigationLink, sectionPathForCategory } from "../../../content/sections";
+import { displayCategoryLabel, boatsForSaleNavigationLink, marinaGuideNavigationLink, sectionPathForCategory } from "../../../content/sections";
 import {
   getClubProfileArticleBody,
   getClubProfileForStory,
@@ -379,6 +379,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
         <div className="nav-links section-nav-links">
           <Link href="/#latest">Latest dispatches</Link>
           <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
         </div>
       </nav>
 

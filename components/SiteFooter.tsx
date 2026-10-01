@@ -19,6 +19,7 @@ type SiteFooterProps = {
 };
 
 const policyLinks: FooterLink[] = [
+  { href: "/boats-for-sale", label: "Boats for Sale" },
   { href: "/search", label: "Search" },
   { href: "/guides", label: "Guides" },
   { href: "/social", label: "Social" },

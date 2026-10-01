@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../../components/JsonLd";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialFollowBlock } from "../../components/SocialFollowBlock";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { contactEmail, createPageMetadata } from "../../lib/seo";
 import { contactPageJsonLd } from "../../lib/structured-data";
 
@@ -30,6 +30,7 @@ export default function ContactPage() {
             </Link>
           ))}
           <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
         </div>
       </nav>
 

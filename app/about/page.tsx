@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialFollowBlock } from "../../components/SocialFollowBlock";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { createPageMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -33,6 +33,7 @@ export default function AboutPage() {
             </Link>
           ))}
           <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
         </div>
       </nav>
 

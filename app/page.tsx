@@ -3,12 +3,14 @@ import Link from "next/link";
 import { AdBlock, isOffTopicInvestorAdvert, pickAdvertForPlacement } from "../components/AdBlock";
 import { NewsletterSignup } from "../components/NewsletterSignup";
 import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
+import { BoatsForSaleTeaser } from "../components/BoatsForSaleTeaser";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import {
   categoryMatchesLabel,
   displayCategoryLabel,
+  boatsForSaleNavigationLink,
   marinaGuideNavigationLink,
   oldSeaDogsSections,
 } from "../content/sections";
@@ -48,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const sections = oldSeaDogsSections.map((section) => ({
   href: `/${section.slug}`,
   label: section.label,
-})).concat(marinaGuideNavigationLink);
+})).concat(marinaGuideNavigationLink).concat(boatsForSaleNavigationLink);
 
 function GuidePromoBand({
   guides,
@@ -316,6 +318,8 @@ export default async function Home() {
       ) : null}
 
       <GuidePromoBand guides={homepageGuides} />
+
+      <BoatsForSaleTeaser />
 
       <EditorCredibilityBand />
 

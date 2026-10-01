@@ -35,6 +35,7 @@ const sections = new Set<BridgeCmsSection>([
   "backups",
   "settings",
   "health",
+  "boats",
 ]);
 
 export const metadata: Metadata = createPageMetadata({

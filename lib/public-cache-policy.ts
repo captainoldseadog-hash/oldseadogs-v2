@@ -30,6 +30,7 @@ const OMIT_PREFIXES = [
   "/section-heroes/",
   "/ads/",
   "/uploads/",
+  "/boats-media/",
 ];
 
 const STATIC_EXTENSION = /\.(?:png|jpe?g|webp|avif|gif|svg|ico|css|js|map|woff2?)$/i;
@@ -95,6 +96,11 @@ function isPrivatePath(pathname: string) {
   if (pathname === "/api" || pathname.startsWith("/api/")) return true;
   if (pathname === "/preview" || pathname.startsWith("/preview/") || pathname.includes("/preview/")) return true;
   if (pathname.endsWith(".rsc")) return true;
+  if (pathname === "/boats-for-sale/list-your-boat" || pathname.startsWith("/boats-for-sale/list-your-boat/")) return true;
+  if (pathname === "/boats-for-sale/manage" || pathname.startsWith("/boats-for-sale/manage/")) return true;
+  if (pathname === "/boats-for-sale/verify" || pathname.startsWith("/boats-for-sale/verify/")) return true;
+  if (pathname === "/boats-for-sale/keep" || pathname.startsWith("/boats-for-sale/keep/")) return true;
+  if (pathname === "/boats-for-sale/relist" || pathname.startsWith("/boats-for-sale/relist/")) return true;
   return false;
 }
 

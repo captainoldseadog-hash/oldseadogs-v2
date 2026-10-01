@@ -9,19 +9,22 @@ const hash = (contents) => crypto.createHash("sha256").update(contents).digest("
 
 const protectedFiles = {
   // Option C, the prefetched lead, the canonical desktop Marina Guide navigation,
-  // one homepage H1, the Substack signup, and responsive image derivatives.
-  "app/page.tsx": "d2ae0344698b9a97b4c86d10e2b2232941e574e221a23313d708793d7af11aa1",
+  // one homepage H1, the Substack signup, responsive image derivatives,
+  // and the Boats for Sale homepage teaser plus navigation link.
+  "app/page.tsx": "854107bc3d94030f75509edf47bf50ee0bb8f979d1ff6c5817c27b8e1da89154",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
   "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
-  "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
-  // Discover audit plus the canonical desktop Marina Guide navigation.
-  "app/stories/[slug]/page.tsx": "fe5aadc1390a6864698cc1703f7dadc48b8bc7e847dd5093e7010a5772534cc7",
+  // Story publication plus the Boats for Sale lifecycle tick.
+  "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
+  // Discover audit, the canonical desktop Marina Guide navigation, and Boats for Sale.
+  "app/stories/[slug]/page.tsx": "a8027588927bf979a58a25c5f7cbf9579905c4b93787022c1a06d18b7a3aee9e",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
-  "app/sitemap.ts": "b27526b586863be7ae4b82ef26b0c2465bc7f14958f662ed4bd6673d8dd28418",
+  // Boats for Sale browse, list-your-boat, and live listing URLs are included.
+  "app/sitemap.ts": "d17eea8a5298a5737e831a9abecae487eacc9d15732e792d906b2dde4815fa69",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

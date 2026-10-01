@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../content/sections";
+import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../content/sections";
 
 const guideLinks = [
   { href: "/guides", label: "All Guides" },
@@ -69,6 +69,11 @@ export function MobileSiteHeader() {
         <div>
           <p>Guides</p>
           {guideLinks.map((link) => <Link href={link.href} key={link.href} onClick={closeMenu}>{link.label}</Link>)}
+        </div>
+        <div>
+          <p>Classifieds</p>
+          <Link href={boatsForSaleNavigationLink.href} onClick={closeMenu}>{boatsForSaleNavigationLink.label}</Link>
+          <Link href="/boats-for-sale/list-your-boat" onClick={closeMenu}>List your boat free</Link>
         </div>
         <Link className="mobile-menu-search" href="/search" onClick={closeMenu}>Search Old Sea Dogs</Link>
       </nav>

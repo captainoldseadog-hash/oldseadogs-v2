@@ -8,7 +8,7 @@ import {
   oldSeaDogsLatestVideos,
   oldSeaDogsSocialPlatforms,
 } from "../../content/social-links";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { createPageMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -33,6 +33,7 @@ export default function SocialPage() {
             </Link>
           ))}
           <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
         </div>
       </nav>
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
+import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../../content/sections";
 import { createPageMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -26,6 +26,7 @@ export default function PrivacyPage() {
             </Link>
           ))}
           <Link href={marinaGuideNavigationLink.href}>{marinaGuideNavigationLink.label}</Link>
+          <Link href={boatsForSaleNavigationLink.href}>{boatsForSaleNavigationLink.label}</Link>
         </div>
       </nav>
 
@@ -72,6 +73,19 @@ export default function PrivacyPage() {
             We use information to run the website, reply to messages, review
             submissions, publish agreed credits, correct articles, protect the
             site, understand what readers use, and support advertising.
+          </p>
+
+          <h2 id="boats-for-sale">Boats for Sale</h2>
+          <p>
+            If you list a boat, we keep your name, email address and any
+            telephone number you choose to give us so we can confirm the
+            advertisement, pass on enquiries, and send the fortnightly and
+            three-month notes. Your email address is not shown on the public
+            page. A telephone number is shown only if you ask us to show it.
+            You can take the advertisement down or delete these details from
+            the link in those emails. If you do not delete them yourself, we
+            remove the advertisement, photographs and contact details 183 days
+            after the advertisement ends.
           </p>
 
           <h2>Cookies, Analytics And Advertising</h2>
