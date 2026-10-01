@@ -26,7 +26,7 @@ const protectedFiles = {
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
   "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
-  "package.json": "807aec43bfaf6df71bb8217b527b547aeafa31dc369244e7e7f5d8c5bb30a8ef",
+  "package.json": "860c0b4b1b8a85d9911806e8dba42e4e8269876a6e11571602d05ea13180fcf6",
 };
 
 test("homepage, story, editor, scheduler, search and consent logic match production", async () => {

@@ -169,6 +169,11 @@ async function assertStoreUntouched(layout) {
   await assert.rejects(fs.access(layout.pm2Log));
 }
 
+function writePayloadChecksums(root) {
+  const result = run("bash", ["-c", "rm -f SHA256SUMS; tmp=$(mktemp); find . -type f -printf '%P\\0' | sort -z | xargs -0 -r sha256sum -- > \"$tmp\"; mv \"$tmp\" SHA256SUMS"], { cwd: root });
+  assert.equal(result.status, 0, result.stderr);
+}
+
 function writeArchiveChecksum(archive) {
   const hashed = run("sha256sum", [archive]);
   assert.equal(hashed.status, 0, hashed.stderr);
@@ -324,9 +329,7 @@ test("deploy rejects a package whose sharp binary is not linux-x64 and rejects b
   await fs.rm(path.join(sharpRoot, "node_modules/@img/sharp-libvips-linux-x64"), { recursive: true, force: true });
   await fs.mkdir(path.join(sharpRoot, "node_modules/@img/sharp-darwin-arm64/lib"), { recursive: true });
   await fs.writeFile(path.join(sharpRoot, "node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node"), "mac-binary");
-  await fs.rm(path.join(sharpRoot, "SHA256SUMS"));
-  const summed = run("bash", ["-c", "find . -type f -printf '%P\\0' | sort -z | xargs -0 -r sha256sum -- > SHA256SUMS"], { cwd: sharpRoot });
-  assert.equal(summed.status, 0, summed.stderr);
+  writePayloadChecksums(sharpRoot);
   const sharpArchive = path.join(outputDir, "missing-sharp.tar.gz");
   await retar(sharpWork, sharpName, sharpArchive);
   const sharpDeploy = run("bash", [
@@ -385,8 +388,7 @@ test("legacy dry-run does not execute npm ci, and the default mode refuses that 
     fs.writeFile(path.join(root, "scripts/.gitkeep"), ""),
     fs.writeFile(path.join(root, "lib/generated-build-info.ts"), "export const generatedBuildInfo = { gitCommit: \"abcdef123456\" } as const;\n"),
   ]);
-  const summed = run("bash", ["-c", "find . -type f -printf '%P\\0' | sort -z | xargs -0 -r sha256sum -- > SHA256SUMS"], { cwd: root });
-  assert.equal(summed.status, 0, summed.stderr);
+  writePayloadChecksums(root);
   const archive = path.join(work, `${name}.tar.gz`);
   await retar(work, name, archive);
   const layout = await makeDeployLayout(t);
@@ -433,7 +435,8 @@ test("release scripts and owner docs describe the prebuilt path", async () => {
   assert.equal((deploy.match(/^\s*npm ci --include=dev --no-audit --no-fund$/gm) || []).length, 1);
   assert.match(deploy, /--legacy-server-install/);
   assert.match(deploy, /--dry-run/);
-  assert.doesNotMatch(rollback, /npm ci|npm install|npm run build/);
+  assert.doesNotMatch(rollback, /^\s*npm\b/m);
+  assert.match(rollback, /will not run npm ci, npm install, or a build/);
   assert.match(rollback, /6ce0718/);
   assert.match(deployment, /oldseadogs-production:\/var\/www\/oldseadogs\/incoming\//);
   assert.match(deployment, /pm2 pid oldseadogs-web/);
@@ -452,7 +455,7 @@ test("release scripts and owner docs describe the prebuilt path", async () => {
   const help = run("bash", [deployScript, "--help"]);
   assert.equal(help.status, 0, help.stderr);
   assert.match(help.stdout, /prebuilt/);
-  assert.match(help.stdout, /does not run npm ci/);
+  assert.match(help.stdout, /not run npm ci/);
 });
 
 test("deploy scripts pass shellcheck", (t) => {

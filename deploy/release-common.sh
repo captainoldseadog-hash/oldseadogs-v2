@@ -70,7 +70,7 @@ find_forbidden_runtime_file() {
       -name '*.log' -o \
       -name '*.tar.gz' -o \
       -name '*.tgz' \
-    \) -print -quit
+    \) -print
 }
 
 validate_prebuilt_runtime() {

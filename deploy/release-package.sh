@@ -153,12 +153,6 @@ tar -C "$SOURCE" \
   --exclude=oldseadogs-data \
   --exclude=.DS_Store \
   --exclude=node_modules/.cache \
-  --exclude=.env \
-  --exclude='.env.*' \
-  --exclude=editor-store.json \
-  --exclude='*.log' \
-  --exclude='*.tar.gz' \
-  --exclude='*.tgz' \
   -cf - . | tar -C "$package_dir" -xf -
 
 if [[ -e "$package_dir/.git" ]]; then
