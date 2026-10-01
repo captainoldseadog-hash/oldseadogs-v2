@@ -120,6 +120,13 @@ test("submission validation rejects an incomplete advertisement and accepts a bi
   assert.equal(honeypot.ok, false);
 });
 
+test("sending an advertisement before a photograph asks for a photograph", async () => {
+  await assert.rejects(
+    () => submitBoatAdvertisement(validInput(), { token: "", ip: "203.0.113.40" }),
+    (error) => error instanceof ClassifiedsError && error.status === 400 && error.errors.photos === "Add at least one photograph.",
+  );
+});
+
 test("email verification, moderation and the public view hide the seller email", async () => {
   await resetStore();
   const created = await listingReadyForReview();

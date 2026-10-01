@@ -47,6 +47,12 @@ export function ListYourBoatForm({ consentLabel, privacyNotice }: { consentLabel
     setBusy(true);
     setErrors({});
     setStatus("");
+    if (!draftToken) {
+      setBusy(false);
+      setErrors({ photos: "Add at least one photograph." });
+      setStatus("Add at least one photograph.");
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const record = Object.fromEntries(form.entries());
     record.draftToken = draftToken;

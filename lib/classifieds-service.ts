@@ -115,6 +115,7 @@ export async function submitBoatAdvertisement(input: unknown, options: { token: 
   if (honeypotFilled(source)) return { ok: true as const, accepted: false };
   const parsed = validateListingSubmission(input);
   if (!parsed.ok) throw new ClassifiedsError("Please check the advertisement and try again.", 400, parsed.errors);
+  if (!options.token) throw new ClassifiedsError("Add at least one photograph.", 400, { photos: "Add at least one photograph." });
   const payload = await readClassifiedsToken(options.token, "draft", now);
   if (!payload) throw new ClassifiedsError("The listing session has expired. Please start again.", 403);
   await assertRateLimit(`submit:${await clientHash(options.ip || "unknown")}`, SUBMIT_LIMIT, HOUR_MS, now);
