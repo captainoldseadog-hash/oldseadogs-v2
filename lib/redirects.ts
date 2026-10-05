@@ -1,4 +1,4 @@
-import legacyStories from "../content/legacy-stories.json";
+import legacyStories from "../content/legacy-stories.json" with { type: "json" };
 
 type LegacyRedirectStory = {
   slug: string;
@@ -91,20 +91,45 @@ function stripKnownPrefix(slug: string) {
   return slug;
 }
 
+// These two archive stories were saved through the editor, which truncates
+// slugs to 80 characters. Their live pages use that shorter slug (verified
+// 5 Oct 2026). Other long archive slugs still resolve in full, so this is
+// not a general truncation rule.
+const liveSlugByLegacySlug = new Map<string, string>([
+  [
+    "racing-championship-victory-at-coniston-sailing-clubs-osprey-scottish-and-northern-2026",
+    "racing-championship-victory-at-coniston-sailing-clubs-osprey-scottish-and-northe",
+  ],
+  [
+    "boat-reviews-sea-ray-sundancer-455-the-ultimate-45foot-cruiser-for-comfort-performance",
+    "boat-reviews-sea-ray-sundancer-455-the-ultimate-45foot-cruiser-for-comfort-perfo",
+  ],
+]);
+
+function storyRedirectPath(slug: string) {
+  return `/stories/${liveSlugByLegacySlug.get(slug) ?? slug}`;
+}
+
 for (const [oldPath, newPath] of sectionRedirects) {
   addRedirect(oldPath, newPath);
 }
 
 for (const story of legacyStories as LegacyRedirectStory[]) {
+  const storyPath = storyRedirectPath(story.slug);
+
   if (story.sourceUrl) {
-    addRedirect(pathFromUrl(story.sourceUrl), `/stories/${story.slug}`);
+    addRedirect(pathFromUrl(story.sourceUrl), storyPath);
   }
 
   const legacySection = legacySectionForStory(story);
   if (legacySection) {
-    addRedirect(`/${legacySection}/${story.slug}`, `/stories/${story.slug}`);
-    addRedirect(`/${legacySection}/${stripKnownPrefix(story.slug)}`, `/stories/${story.slug}`);
+    addRedirect(`/${legacySection}/${story.slug}`, storyPath);
+    addRedirect(`/${legacySection}/${stripKnownPrefix(story.slug)}`, storyPath);
   }
+}
+
+for (const [legacySlug, liveSlug] of liveSlugByLegacySlug) {
+  addRedirect(`/stories/${legacySlug}`, `/stories/${liveSlug}`);
 }
 
 export function getLegacyRedirectPath(pathname: string) {
