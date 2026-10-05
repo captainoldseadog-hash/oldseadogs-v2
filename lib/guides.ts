@@ -50,6 +50,15 @@ export function guideCruisingArea(regionKey: string, guides: readonly EditableGu
   return candidates.find((guide) => guide.slug === regionKey) || candidates[0] || null;
 }
 
+/** Cruising-area record for a collection hub, including one that still has a parent slug. */
+export function guideCollectionLead(regionKey: string, guides: readonly EditableGuide[]) {
+  return guideCruisingArea(regionKey, guides) ?? guides.find((guide) =>
+    guide.regionKey === regionKey
+    && guide.guideType === "Cruising Area"
+    && (guide.slug === regionKey || guide.canonicalPath === guideRegionPath(regionKey))
+  ) ?? null;
+}
+
 export function guideAreaChildren(area: EditableGuide, guides: readonly EditableGuide[]) {
   return guides.filter((guide) =>
     guide.slug !== area.slug
@@ -97,7 +106,7 @@ export function guideDiscoveryAreas(guides: readonly EditableGuide[], options: {
   }
 
   return [...regions.entries()].flatMap(([key, regional]) => {
-    const areaGuide = guideCruisingArea(key, regional);
+    const areaGuide = guideCollectionLead(key, regional);
     if (!areaGuide) return [];
     const areaChildren = regional.filter((guide) => isGuideChildOf(areaGuide, guide));
     const nodes = regional.flatMap((guide) => {
