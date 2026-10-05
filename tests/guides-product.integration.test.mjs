@@ -97,7 +97,7 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Southampton Water/);
   assert.match(landingHtml, /Beaulieu River/);
   assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise/);
-  assert.match(landingHtml, /href="\/guides\/solent-marina-guide"/);
+  assert.doesNotMatch(landingHtml, /solent-marina-guide|Read the Solent Marina Guide/);
   assert.match(landingHtml, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(landingHtml, /The Solent/);
 
@@ -107,7 +107,7 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(regionHtml, /Guide relationships/);
   assert.match(regionHtml, /In this collection/);
   assert.match(regionHtml, /Explore The Solent/);
-  assert.match(regionHtml, /href="\/guides\/solent-marina-guide"/);
+  assert.doesNotMatch(regionHtml, /solent-marina-guide|Read the Solent Marina Guide/);
   assert.match(regionHtml, /River Hamble/);
 
   for (const record of solentMarinaGuideRecords) {
@@ -368,13 +368,11 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(beaulieuHtml, /Information checked against official sources/);
   assert.doesNotMatch(beaulieuHtml, /To be verified|do not claim|should be claimed|do not infer|according to the record|before relying on it|internal editorial/i);
 
-  const legacy = await request("/guides/solent-marina-guide");
-  assert.equal(legacy.status, 200);
-  const legacyHtml = await legacy.text();
-  assert.match(legacyHtml, /Legacy overview/);
-  assert.match(legacyHtml, /Hamble Point Marina Guide/);
-  assert.match(legacyHtml, /guides\?type=Marina#guide-library/);
-  assert.match(legacyHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent-marina-guide"/);
+  for (const pathname of ["/guides/solent-marina-guide", "/guides/solent-marina-guide/", "/marina-guide", "/marina-guide/"]) {
+    const legacy = await request(pathname);
+    assert.equal(legacy.status, 301, pathname);
+    assert.match(legacy.headers.get("location") || "", /^(?:https?:\/\/[^/]+)?\/guides\?type=Marina#guide-library$/, pathname);
+  }
 });
 
 test("invalid and draft Guides are protected while authenticated preview remains accurate", async () => {

@@ -26,7 +26,8 @@ const protectedFiles = {
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
-  "app/sitemap.ts": "cc67dc65c4fac5d17ea84fc0b31993478c319cd6c33e4a90ebe642eae7b5082f",
+  // Retired Solent Marina Guide overview URLs are omitted; they 301 to the marina library.
+  "app/sitemap.ts": "e5f22ea24aa50c83e2280bc1898d1c1f47d99c9fece14b41d249a9a239c4bf49",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

@@ -5,6 +5,7 @@ import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { getIndexedGuides, getPublishedStories, isStorySearchIndexable } from "../lib/site-content";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
+import { retiredMarinaGuideRedirect } from "../lib/marina-library-redirect";
 import { absoluteUrl } from "../lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(indexedGuides.length ? [{ url: absoluteUrl("/guides"), lastModified: now, changeFrequency: "monthly" as const, priority: 0.68 }] : []),
     ...guideRegions.map((region) => ({ url: absoluteUrl(`/guides/${region}`), lastModified: lastModifiedDate(...productGuides.filter((guide) => guide.regionKey === region).map((guide) => guide.updatedAt)), changeFrequency: "monthly" as const, priority: 0.66 })),
     ...indexedGuides
-      .filter((guide) => guidePublicPath(guide) !== guideRegionPath(guide.regionKey))
+      .filter((guide) => {
+        const path = guidePublicPath(guide);
+        return path !== guideRegionPath(guide.regionKey) && !retiredMarinaGuideRedirect(path);
+      })
       .map((guide) => ({ url: absoluteUrl(guidePublicPath(guide)), lastModified: lastModifiedDate(guide.updatedAt), changeFrequency: "monthly" as const, priority: guide.showOnHomepage ? 0.72 : 0.62 })),
     ...manufacturers.filter((manufacturer, index, list) => list.findIndex((item) => item.slug === manufacturer.slug) === index).filter((manufacturer) => stories.some((story) => storyMatchesManufacturer(story, manufacturer))).map((manufacturer) => ({ url: absoluteUrl(`/manufacturers/${manufacturer.slug}`), lastModified: now, changeFrequency: "weekly" as const, priority: 0.62 })),
     ...stories.map((story) => ({ url: absoluteUrl(`/stories/${story.slug}`), lastModified: lastModifiedDate(story.updatedAt, story.createdAt, story.date), changeFrequency: "monthly" as const, priority: story.isFeatured ? 0.9 : 0.65 })),

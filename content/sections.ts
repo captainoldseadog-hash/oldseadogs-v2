@@ -108,12 +108,6 @@ export const oldSeaDogsSections: OldSeaDogsSection[] = [
   },
 ];
 
-export const marinaGuideNavigationLink = {
-  href: "/guides/solent-marina-guide",
-  label: "Marina Guide",
-  slug: "marina-guide",
-} as const;
-
 export const boatsForSaleNavigationLink = {
   href: "/boats-for-sale",
   label: "Boats for Sale",
@@ -131,7 +125,6 @@ export const publicNavigationLinks = [
     label: "Guides",
     slug: "guides",
   },
-  marinaGuideNavigationLink,
   boatsForSaleNavigationLink,
 ] as const;
 
