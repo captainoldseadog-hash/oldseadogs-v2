@@ -47,7 +47,7 @@ export default async function SocialPage() {
         <SocialIconLinks links={oldSeaDogsSocialPlatforms} />
         {galleryLive ? (
           <p>
-            <Link href="/through-the-lens">See Through the Lens</Link> for approved photographs from the same beat.
+            <Link href="/through-the-lens">See Through the Lens</Link> for photographs from the waterfront.
           </p>
         ) : null}
       </header>

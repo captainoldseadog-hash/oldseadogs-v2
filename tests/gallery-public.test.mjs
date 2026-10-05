@@ -64,7 +64,11 @@ test("public gallery, sitemap and TikTok embed stay behind rollout and a click",
 
   assert.match(page, /if \(!\(await galleryIsPublic\(\)\)\) notFound\(\)/);
   assert.match(page, /getApprovedPublicGalleryPhotos\(\)/);
+  assert.match(page, /Photographs from the Old Sea Dogs waterfront/);
+  assert.match(page, /Pictures from the waterfront will appear here/);
+  assert.doesNotMatch(page, /newsroom|waiting for review|pending review|Approved photographs|Approved pictures/i);
   assert.match(page, /<TikTokProfileEmbed \/>/);
+  assert.doesNotMatch(social, /newsroom|waiting for review|pending review|approved photographs/i);
   assert.match(sitemap, /isGalleryPublicRolloutEnabled\(settings\.galleryPublicRollout\)/);
   assert.match(sitemap, /\/through-the-lens/);
   assert.match(social, /<TikTokProfileEmbed \/>/);

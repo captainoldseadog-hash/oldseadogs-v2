@@ -10,7 +10,7 @@ import { createPageMetadata } from "../../lib/seo";
 import { getApprovedPublicGalleryPhotos, getSiteSettings } from "../../lib/site-content";
 
 const title = "Through the Lens";
-const description = "Approved photographs from the Old Sea Dogs waterfront, published in the Through the Lens gallery.";
+const description = "Photographs from the Old Sea Dogs waterfront.";
 
 const galleryIsPublic = cache(async () => {
   const settings = await getSiteSettings();
@@ -40,10 +40,7 @@ export default async function ThroughTheLensPage() {
       <header className="social-hero">
         <p className="eyebrow">Gallery</p>
         <h1>Through the Lens</h1>
-        <p>
-          Approved photographs from the Old Sea Dogs collection. Pictures still
-          waiting for review stay in the newsroom.
-        </p>
+        <p>Photographs from the Old Sea Dogs waterfront.</p>
         <p>
           <Link href="/social">Follow Old Sea Dogs on social</Link>
         </p>
@@ -51,11 +48,11 @@ export default async function ThroughTheLensPage() {
 
       {photos.length === 0 ? (
         <section className="lens-empty" aria-label="Through the Lens">
-          <h2>No photographs published yet</h2>
-          <p>Approved pictures will appear here when the newsroom publishes them.</p>
+          <h2>No photographs yet</h2>
+          <p>Pictures from the waterfront will appear here.</p>
         </section>
       ) : (
-        <section className="lens-grid" aria-label="Approved photographs">
+        <section className="lens-grid" aria-label="Photographs">
           {photos.map((photo) => (
             <figure className="lens-card" key={photo.id}>
               <img alt={photo.alt} src={photo.imageUrl} />
