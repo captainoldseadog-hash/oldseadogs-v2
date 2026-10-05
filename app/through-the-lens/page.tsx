@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
-import { TikTokProfileEmbed } from "../../components/TikTokProfileEmbed";
+import { TikTokVideoGrid } from "../../components/TikTokVideoGrid";
 import { isGalleryPublicRolloutEnabled } from "../../lib/gallery-public.js";
 import { createPageMetadata } from "../../lib/seo";
 import { getApprovedPublicGalleryPhotos, getSiteSettings } from "../../lib/site-content";
@@ -72,9 +72,9 @@ export default async function ThroughTheLensPage() {
         <div className="section-heading">
           <p className="eyebrow">TikTok</p>
           <h2>@oldseadogs8</h2>
-          <p>The creator profile stays unloaded until you choose to open it.</p>
+          <p>Videos stay unloaded until you choose to show them.</p>
         </div>
-        <TikTokProfileEmbed />
+        <TikTokVideoGrid />
       </section>
 
       <SiteFooter

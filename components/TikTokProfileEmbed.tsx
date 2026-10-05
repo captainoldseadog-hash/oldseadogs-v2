@@ -16,8 +16,8 @@ type TikTokEmbedWindow = Window & {
   };
 };
 
-export function TikTokProfileEmbed() {
-  const [loaded, setLoaded] = useState(false);
+export function TikTokProfileEmbed({ startLoaded = false }: { startLoaded?: boolean }) {
+  const [loaded, setLoaded] = useState(startLoaded);
 
   useEffect(() => {
     if (!loaded) return;

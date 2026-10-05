@@ -82,11 +82,14 @@ export default function CookiePolicyPage() {
 
           <h2>Social Embeds</h2>
           <p>
-            The TikTok creator profile on Social and Through the Lens stays
-            unloaded until a visitor chooses Load TikTok profile. That click
-            loads TikTok&apos;s embed script, which may set cookies or receive
-            technical information. The link to open TikTok in a new tab does
-            not load the embed.
+            TikTok videos on Social and Through the Lens stay unloaded until
+            a visitor chooses Show TikTok videos. That click loads a thumbnail
+            grid from this website when the video list can be shown. Opening a
+            thumbnail then loads TikTok&apos;s player. If the video list cannot
+            be shown, the same click loads TikTok&apos;s official creator
+            profile instead. Either TikTok load may set cookies or receive
+            technical information. The link that opens TikTok in a new tab does
+            not load the player.
           </p>
 
           <h2>Your Choices</h2>

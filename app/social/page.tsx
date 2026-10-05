@@ -4,7 +4,7 @@ import { cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialIconLinks } from "../../components/SocialIconLinks";
 import { SocialVideoEmbed } from "../../components/SocialVideoEmbed";
-import { TikTokProfileEmbed } from "../../components/TikTokProfileEmbed";
+import { TikTokVideoGrid } from "../../components/TikTokVideoGrid";
 import { TrackedExternalLink } from "../../components/TrackedExternalLink";
 import {
   oldSeaDogsLatestVideos,
@@ -79,7 +79,7 @@ export default async function SocialPage() {
             them, keeping the first page view light and privacy friendly.
           </p>
         </div>
-        <TikTokProfileEmbed />
+        <TikTokVideoGrid />
         <div className="social-video-grid">
           {channelVideos.map((video) => (
             <SocialVideoEmbed key={video.id} video={video} />

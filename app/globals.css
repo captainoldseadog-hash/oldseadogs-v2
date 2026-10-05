@@ -5149,15 +5149,128 @@ a {
   padding: 0 18px 18px;
 }
 
+.tiktok-video-block {
+  margin: 8px 0 18px;
+}
+
+.tiktok-video-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.tiktok-grid-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  background: #10242a;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.tiktok-grid-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tiktok-grid-views {
+  position: absolute;
+  right: auto;
+  bottom: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+.tiktok-grid-play {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.tiktok-grid-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.tiktok-player-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 20, 24, 0.72);
+}
+
+.tiktok-player-dialog {
+  display: grid;
+  gap: 12px;
+  width: min(400px, 100%);
+  justify-items: center;
+}
+
+.tiktok-player-frame {
+  width: min(380px, calc(100vw - 48px));
+  height: min(78vh, 680px);
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000000;
+}
+
+.tiktok-player-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.tiktok-player-actions {
+  justify-content: center;
+}
+
+.tiktok-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 920px) {
   .lens-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tiktok-video-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .lens-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tiktok-video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
