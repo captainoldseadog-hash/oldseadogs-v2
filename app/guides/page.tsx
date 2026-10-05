@@ -7,6 +7,7 @@ import type { GuideType } from "../../content/flagship-guides.ts";
 
 import { guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
 import { getIndexedGuides, getPublishedGuides } from "../../lib/site-content.ts";
+import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, needlesHeroImageUrl } from "../../lib/responsive-image.ts";
 import { createPageMetadata } from "../../lib/seo.ts";
 import { SiteHeader } from "../../components/SiteHeader";
 
@@ -83,7 +84,10 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
                   decoding="async"
                   loading="lazy"
                   sizes="(max-width: 760px) calc(100vw - 28px), 560px"
-                  src={area.guide.imageUrl}
+                  src={isNeedlesHeroImage(area.guide.imageUrl)
+                    ? needlesHeroImageUrl(area.guide.imageUrl)
+                    : derivativeImageUrl(area.guide.imageUrl, 1200)}
+                  srcSet={derivativeSrcSet(area.guide.imageUrl, [480, 768, 1200]) || undefined}
                 /> : null}
               </Link>
               <div className="guide-area-card-copy">

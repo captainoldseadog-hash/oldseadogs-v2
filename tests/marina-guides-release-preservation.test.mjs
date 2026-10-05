@@ -19,8 +19,9 @@ const protectedFiles = {
   "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
-  // Discover audit, Boats for Sale, and the shared two-row site header.
-  "app/stories/[slug]/page.tsx": "732a293ea6cd207d3de499a5ced726e8c096c2b79a293e623ed1ba8e6a35bcab",
+  // Discover audit, Boats for Sale, the shared two-row site header,
+  // and story share images pointed at the 1,200px derivative.
+  "app/stories/[slug]/page.tsx": "1f0ca0b33bdfe9cb8a4d7548d3b3f4e7a163eca4d12fa7e2d0de0bdf1d43094d",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   "app/sitemap.ts": "d17eea8a5298a5737e831a9abecae487eacc9d15732e792d906b2dde4815fa69",

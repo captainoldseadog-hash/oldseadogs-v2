@@ -207,15 +207,18 @@ test("a normal future published story is automatically indexable, server rendere
   assert.ok(article, "Article or NewsArticle JSON-LD must be present");
   assert.equal(article.headline, "Future published story SEO proof");
   assert.equal(article.description, "A representative future Old Sea Dogs story proving automatic search indexing, metadata and sitemap inclusion.");
+  const shareImage = `/img/1200/media/${mediaId}`;
   assert.deepEqual(article.image, [{
     "@type": "ImageObject",
-    url: `https://oldseadogs.com${leadImage}?variant=original`,
-    width: 1600,
-    height: 900,
+    url: `https://oldseadogs.com${shareImage}`,
+    width: 1200,
+    height: 675,
   }]);
-  assert.match(html, new RegExp(`property=["']og:image["'] content=["']https://oldseadogs\\.com${leadImage.replaceAll("/", "\\/")}\\?variant=original["']`));
-  assert.match(html, /property=["']og:image:width["'] content=["']1600["']/);
-  assert.match(html, /property=["']og:image:height["'] content=["']900["']/);
+  assert.match(html, new RegExp(`property=["']og:image["'] content=["']https://oldseadogs\\.com${shareImage.replaceAll("/", "\\/")}["']`));
+  assert.match(html, new RegExp(`name=["']twitter:image["'] content=["']https://oldseadogs\\.com${shareImage.replaceAll("/", "\\/")}["']`));
+  assert.match(html, /property=["']og:image:width["'] content=["']1200["']/);
+  assert.match(html, /property=["']og:image:height["'] content=["']675["']/);
+  assert.doesNotMatch(html, /variant=original/);
   assert.equal(article.datePublished, publishedAt);
   assert.equal(article.dateModified, updatedAt);
   assert.equal(article.author?.name, "Michael Hodges");

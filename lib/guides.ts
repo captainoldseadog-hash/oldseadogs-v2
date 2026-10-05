@@ -1,4 +1,5 @@
 import type { EditableGuide } from "./site-content.ts";
+import { shareImageUrl } from "./responsive-image.ts";
 import { absoluteUrl } from "./seo.ts";
 
 export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug">) {
@@ -186,7 +187,7 @@ export function guideArticleJsonLd(guide: EditableGuide) {
       name: "Old Sea Dogs",
       url: absoluteUrl("/"),
     },
-    image: guide.imageUrl ? [absoluteUrl(guide.imageUrl)] : undefined,
+    image: guide.imageUrl ? [absoluteUrl(shareImageUrl(guide.imageUrl))] : undefined,
     about: guide.regionName ? {
       "@type": "Place",
       name: guide.regionName,

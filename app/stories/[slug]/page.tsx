@@ -33,7 +33,7 @@ import {
   hasStoryPhoto,
   isStorySearchIndexable,
 } from "../../../lib/site-content";
-import { publicMediaVariantUrl } from "../../../lib/public-media";
+import { shareImageDimensions, shareImageUrl } from "../../../lib/responsive-image";
 import {
   adsenseClientId,
   adsenseEnabled,
@@ -66,10 +66,14 @@ async function storyImageDetails(imageUrl: string) {
   if (!imageUrl) return null;
   const mediaId = mediaIdFromPublicUrl(imageUrl);
   const media = mediaId ? await getMediaAsset(mediaId) : null;
+  const size = shareImageDimensions(
+    media && media.width > 0 ? media.width : undefined,
+    media && media.height > 0 ? media.height : undefined,
+  );
   return {
-    url: publicMediaVariantUrl(imageUrl, "original"),
-    width: media && media.width > 0 ? media.width : undefined,
-    height: media && media.height > 0 ? media.height : undefined,
+    url: shareImageUrl(imageUrl),
+    width: size.width,
+    height: size.height,
   };
 }
 

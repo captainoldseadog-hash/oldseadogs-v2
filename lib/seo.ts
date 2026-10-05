@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareImageDimensions, shareImageUrl } from "./responsive-image.ts";
 
 export const siteName = "Old Sea Dogs";
 export const contactEmail = "captainoldseadog@gmail.com";
@@ -145,7 +146,11 @@ export function createPageMetadata({
   noIndexFollow?: boolean;
 }): Metadata {
   const fullTitle = pageTitle(title);
-  const imageUrl = absoluteUrl(image.url);
+  const sharedUrl = shareImageUrl(image.url);
+  const sharedSize = sharedUrl === image.url
+    ? { width: image.width, height: image.height }
+    : shareImageDimensions(image.width, image.height);
+  const imageUrl = absoluteUrl(sharedUrl);
 
   return {
     title: fullTitle,
@@ -162,8 +167,8 @@ export function createPageMetadata({
       images: [
         {
           url: imageUrl,
-          width: image.width,
-          height: image.height,
+          width: sharedSize.width,
+          height: sharedSize.height,
           alt: image.alt ?? fullTitle,
         },
       ],

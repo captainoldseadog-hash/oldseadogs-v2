@@ -4,7 +4,7 @@ import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { DerivativeImage } from "./DerivativeImage.tsx";
 import { readImageSize } from "../lib/image-derivatives.ts";
-import { mobileSourceSrcSet } from "../lib/responsive-image.ts";
+import { isNeedlesHeroImage, mobileSourceSrcSet } from "../lib/responsive-image.ts";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
@@ -299,6 +299,7 @@ function HamblePointPracticalReference() {
 async function GuideHeroPicture({ guide }: { guide: EditableGuide }) {
   const size = await readImageSize(guide.imageUrl).catch(() => null);
   const dedicatedMobile = publicMediaVariantUrl(guide.imageUrl, "mobile");
+  const needlesHero = isNeedlesHeroImage(guide.imageUrl);
   return (
     <picture>
       <source
@@ -312,12 +313,14 @@ async function GuideHeroPicture({ guide }: { guide: EditableGuide }) {
           caption: guide.imageCaption,
           title: guide.title,
         })}
+        displayWidth={needlesHero ? 1200 : undefined}
         eager
         height={size?.height}
         sizes="(max-width: 1024px) 100vw, 1200px"
         src={guide.imageUrl}
         style={{ objectPosition: guide.imageFocalPoint }}
         width={size?.width}
+        widths={needlesHero ? [768, 1200] : undefined}
       />
     </picture>
   );
