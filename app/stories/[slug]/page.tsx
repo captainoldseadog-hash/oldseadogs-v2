@@ -18,6 +18,10 @@ import {
   type VenueDetails,
 } from "../../../content/venue-details";
 import { isLogoLikeStoryImage } from "../../../content/story-images";
+import {
+  portStoryGuideLink,
+  type PortStoryGuideLink,
+} from "../../../content/port-story-guides";
 import { JsonLd } from "../../../components/JsonLd";
 import {
   findRelatedStories,
@@ -237,6 +241,16 @@ function ClubProfilePanel({ profile }: { profile: ClubProfile }) {
   );
 }
 
+function PortStoryGuideNotice({ link }: { link: PortStoryGuideLink }) {
+  return (
+    <aside className="story-guide-notice" aria-label={`${link.guideTitle} guide`}>
+      <p className="eyebrow">Updated guide</p>
+      <p>{link.notice}</p>
+      <Link href={link.href}>{link.linkLabel}</Link>
+    </aside>
+  );
+}
+
 function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
   if (groups.length === 0) return null;
 
@@ -325,11 +339,12 @@ export async function generateMetadata({
   }
 
   const image = hasStoryPhoto(story) ? await storyImageDetails(story.imageUrl) : null;
+  const guideLink = portStoryGuideLink(story.slug);
 
   return createPageMetadata({
     title: story.title,
     description: story.summary,
-    path: `/stories/${story.slug}`,
+    path: guideLink?.canonicalPath || `/stories/${story.slug}`,
     noIndex: !isStorySearchIndexable(story),
     noIndexFollow: true,
     image: hasStoryPhoto(story)
@@ -361,18 +376,21 @@ export default async function StoryPage({ params }: StoryPageProps) {
   const clubProfile = getClubProfileForStory(story);
   const articleBody = clubProfile ? getClubProfileArticleBody(clubProfile) : story.body;
   const venueDetails = getVenueDetails(story);
-  const storyUrl = absoluteUrl(`/stories/${story.slug}`);
+  const guideLink = portStoryGuideLink(story.slug);
+  const storyPath = `/stories/${story.slug}`;
+  const canonicalPath = guideLink?.canonicalPath || storyPath;
+  const storyUrl = absoluteUrl(storyPath);
 
   return (
     <main className="article-shell">
       <JsonLd
         data={[
-          articleJsonLd(story, storyImage || undefined),
+          articleJsonLd(story, storyImage || undefined, canonicalPath),
           michaelHodgesPersonJsonLd,
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: displayCategoryLabel(story.category), path: sectionPathForCategory(story.category) },
-            { name: story.title, path: `/stories/${story.slug}` },
+            { name: story.title, path: storyPath },
           ]),
         ]}
       />
@@ -389,6 +407,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
         }}
         beforeBody={
           <>
+            {guideLink ? <PortStoryGuideNotice link={guideLink} /> : null}
             {clubProfile ? <ClubProfilePanel profile={clubProfile} /> : null}
             {venueDetails ? <VenuePracticalPanel details={venueDetails} /> : null}
           </>

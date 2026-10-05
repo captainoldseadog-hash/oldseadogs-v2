@@ -5183,6 +5183,25 @@ a {
   font-weight: 900;
 }
 
+.story-guide-notice {
+  margin: 0 0 28px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brass);
+  border-radius: 8px;
+  padding: 18px 20px;
+  background: #ffffff;
+}
+
+.story-guide-notice p {
+  margin: 8px 0 12px;
+  line-height: 1.65;
+}
+
+.story-guide-notice a {
+  color: var(--sea);
+  font-weight: 900;
+}
+
 .venue-panel {
   margin-top: 34px;
   border: 1px solid var(--line);

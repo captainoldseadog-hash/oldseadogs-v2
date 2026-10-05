@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { manufacturers, storyMatchesManufacturer } from "../content/manufacturers";
+import { storyPrefersGuideCanonical } from "../content/port-story-guides.ts";
 import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { getIndexedGuides, getPublishedStories, isStorySearchIndexable } from "../lib/site-content";
@@ -22,7 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getIndexedGuides(),
     listPublicBoatListings().catch(() => []),
   ]);
-  const stories = publishedStories.filter(isStorySearchIndexable);
+  const stories = publishedStories.filter(
+    (story) => isStorySearchIndexable(story) && !storyPrefersGuideCanonical(story.slug),
+  );
   const now = new Date();
   const productGuides = guideRegionRecords(indexedGuides);
   const guideRegions = [...new Set(productGuides.map((guide) => guide.regionKey))];
