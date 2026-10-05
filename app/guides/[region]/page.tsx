@@ -12,12 +12,14 @@ import { SiteFooter } from "../../../components/SiteFooter.tsx";
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
+  guideCollectionLead,
   guideCruisingArea,
   guidePlaceJsonLd,
   guideCollectionJsonLd,
   guidePublicPath,
   guideRegionRecords,
 } from "../../../lib/guides.ts";
+import { publicImageAlt } from "../../../lib/public-image-alt.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../lib/structured-data.ts";
@@ -34,13 +36,13 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
   if (regional.length) {
     const regionName = regional[0].regionName;
     const areaGuide = guideCruisingArea(region, regional);
+    const lead = guideCollectionLead(region, regional) || regional[0];
+    const hubGuide = areaGuide || lead;
     return createPageMetadata({
       title: areaGuide?.seoTitle || `${regionName} Guides`,
       description: areaGuide?.seoDescription || `Explore Old Sea Dogs Guides to ${regionName}, including its harbours, rivers, anchorages and cruising character.`,
       path: `/guides/${region}`,
-      image: areaGuide?.imageUrl
-        ? { url: areaGuide.imageUrl, alt: areaGuide.imageAlt }
-        : { url: regional[0].imageUrl, alt: regional[0].imageAlt },
+      image: { url: hubGuide.imageUrl, alt: hubGuide.imageAlt },
     });
   }
   const legacyGuide = await getGuideBySlug(region);
@@ -124,7 +126,16 @@ export default async function RegionPage({ params }: RegionPageProps) {
       </main>
     );
   }
-  const lead = regional.find((guide) => guide.slug === "the-solent") || regional[0];
+  const lead = guideCollectionLead(region, regional)
+    || regional.find((guide) => guide.slug === "the-solent")
+    || regional[0];
+  const placeJsonLd = guidePlaceJsonLd(lead);
+  const heroAlt = publicImageAlt({
+    alt: lead.imageAlt,
+    caption: lead.imageCaption,
+    title: lead.title,
+    fallback: regionName,
+  }) || regionName;
   const browserItems = regional.map((guide) => ({
     slug: guide.slug,
     title: guide.title,
@@ -149,6 +160,8 @@ export default async function RegionPage({ params }: RegionPageProps) {
   return (
     <main className="article-shell guides-shell guide-product-shell">
       <JsonLd data={[
+        guideArticleJsonLd(lead),
+        ...(placeJsonLd ? [placeJsonLd] : []),
         guideCollectionJsonLd(regionName, regional),
         breadcrumbJsonLd([
           { name: "Home", path: "/" },
@@ -166,7 +179,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
       <header className="guide-region-hero">
         <figure>
           <DerivativeImage
-            alt=""
+            alt={heroAlt}
             eager
             sizes="100vw"
             src={lead.imageUrl}
@@ -178,21 +191,21 @@ export default async function RegionPage({ params }: RegionPageProps) {
           <h1>{regionName}</h1>
           <p>
             A clear route into the harbours, rivers, anchorages, history and cruising
-            character of Britain&apos;s most concentrated sailing waters.
+            character of {regionName}.
           </p>
         </div>
       </header>
 
       <nav className="guide-region-routes" aria-label={`${regionName} Guide routes`}>
         <a href="#browse-by-type"><span>Browse by type</span><strong>Choose the kind of place</strong></a>
-        <a href="#all-guides"><span>Browse all Guides</span><strong>See the full Solent collection</strong></a>
+        <a href="#all-guides"><span>Browse all Guides</span><strong>See the full {regionName} collection</strong></a>
         <a href="#map-section"><span>View on map</span><strong>Orientate yourself</strong></a>
       </nav>
 
       <div id="browse-by-type">
         <GuideCollectionBrowser
           guides={browserItems}
-          searchPlaceholder="Search Solent Guides"
+          searchPlaceholder={`Search ${regionName} Guides`}
           title={`Explore ${regionName}`}
         />
       </div>

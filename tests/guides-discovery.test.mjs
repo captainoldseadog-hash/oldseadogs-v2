@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { guideDiscoveryAreas, guideEditorialLinkMatches } from "../lib/guides.ts";
+import { guideCollectionLead, guideCruisingArea, guideDiscoveryAreas, guideEditorialLinkMatches } from "../lib/guides.ts";
 
 function guide({
   id,
@@ -49,6 +49,20 @@ test("Guide discovery is generated from area and parent relationships", () => {
   assert.deepEqual(areas[0].nodes.map((node) => node.guide.slug), ["portsmouth-harbour"]);
   assert.deepEqual(areas[0].nodes[0].children.map((child) => child.slug), ["haslar-marina", "gosport-marina"]);
   assert.deepEqual(areas[1].directGuides.map((child) => child.slug), ["brownsea-island"]);
+});
+
+test("a parented cruising area with the region slug still leads the collection", () => {
+  const records = [
+    guide({ id: "chichester", internalId: "OSD-G300", slug: "chichester-harbour", title: "Chichester Harbour", guideType: "Cruising Area", regionKey: "chichester-harbour", regionName: "Chichester Harbour", parentGuideSlug: "the-solent" }),
+    guide({ id: "itchenor", internalId: "OSD-G301", slug: "itchenor", title: "Itchenor", guideType: "Destination", regionKey: "chichester-harbour", regionName: "Chichester Harbour", parentGuideSlug: "chichester-harbour" }),
+  ];
+
+  assert.equal(guideCruisingArea("chichester-harbour", records), null);
+  assert.equal(guideCollectionLead("chichester-harbour", records)?.slug, "chichester-harbour");
+  const [area] = guideDiscoveryAreas(records);
+  assert.equal(area.key, "chichester-harbour");
+  assert.equal(area.path, "/guides/chichester-harbour");
+  assert.deepEqual(area.directGuides.map((item) => item.slug), ["itchenor"]);
 });
 
 test("a future cruising area appears without a named-area code path", () => {
