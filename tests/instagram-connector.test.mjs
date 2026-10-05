@@ -55,9 +55,17 @@ test("connector keeps tokens server-only, deduplicates IDs and forces pending re
   assert.match(gallery, /Existing imports were preserved/);
 });
 
-test("public rollout remains disabled", async () => {
-  const route = await fs.readFile(new URL("../app/api/editor/route.ts", import.meta.url), "utf8");
-  assert.match(route, /publicRollout: false/);
+test("public gallery rollout reads the site setting and defaults off", async () => {
+  const [route, settings, bridge] = await Promise.all([
+    fs.readFile(new URL("../app/api/editor/route.ts", import.meta.url), "utf8"),
+    fs.readFile(new URL("../lib/site-content.ts", import.meta.url), "utf8"),
+    fs.readFile(new URL("../app/editor/BridgeCms.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(route, /publicRollout: isGalleryPublicRolloutEnabled\(data\.settings\.galleryPublicRollout\)/);
+  assert.doesNotMatch(route, /publicRollout:\s*false/);
+  assert.match(settings, /galleryPublicRollout: "false"/);
+  assert.match(bridge, /galleryPublicRollout: enabled \? "true" : "false"/);
+  assert.match(bridge, /status: "pending"/);
 });
 
 test("safe deploy loads the private environment before PM2 reload", async () => {

@@ -3,7 +3,8 @@ import { manufacturers, storyMatchesManufacturer } from "../content/manufacturer
 import { storyPrefersGuideCanonical } from "../content/port-story-guides.ts";
 import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
-import { getIndexedGuides, getPublishedStories, isStorySearchIndexable } from "../lib/site-content";
+import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
+import { getApprovedPublicGalleryPhotos, getIndexedGuides, getPublishedStories, getSiteSettings, isStorySearchIndexable } from "../lib/site-content";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { absoluteUrl } from "../lib/seo";
 
@@ -18,11 +19,14 @@ function lastModifiedDate(...values: Array<string | undefined>) {
   return new Date();
 }
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [publishedStories, indexedGuides, boatListings] = await Promise.all([
+  const [publishedStories, indexedGuides, boatListings, settings] = await Promise.all([
     getPublishedStories(),
     getIndexedGuides(),
     listPublicBoatListings().catch(() => []),
+    getSiteSettings(),
   ]);
+  const galleryLive = isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
+  const galleryPhotos = galleryLive ? await getApprovedPublicGalleryPhotos() : [];
   const stories = publishedStories.filter(
     (story) => isStorySearchIndexable(story) && !storyPrefersGuideCanonical(story.slug),
   );
@@ -31,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guideRegions = [...new Set(productGuides.map((guide) => guide.regionKey))];
   return [
     ...staticRoutes.map((route) => ({ url: absoluteUrl(route.path), lastModified: now, changeFrequency: route.path === "/" ? "daily" as const : "monthly" as const, priority: route.priority })),
+    ...(galleryLive ? [{ url: absoluteUrl("/through-the-lens"), lastModified: lastModifiedDate(...galleryPhotos.map((photo) => photo.updatedAt)), changeFrequency: "weekly" as const, priority: 0.6 }] : []),
     { url: absoluteUrl("/boats-for-sale"), lastModified: now, changeFrequency: "daily" as const, priority: 0.8 },
     { url: absoluteUrl("/boats-for-sale/list-your-boat"), lastModified: now, changeFrequency: "monthly" as const, priority: 0.55 },
     ...boatListings.map((listing) => ({ url: absoluteUrl(`/boats-for-sale/${listing.slug}`), lastModified: now, changeFrequency: "weekly" as const, priority: 0.64 })),

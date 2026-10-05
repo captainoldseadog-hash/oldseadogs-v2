@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialIconLinks } from "../../components/SocialIconLinks";
 import { SocialVideoEmbed } from "../../components/SocialVideoEmbed";
+import { TikTokProfileEmbed } from "../../components/TikTokProfileEmbed";
 import { TrackedExternalLink } from "../../components/TrackedExternalLink";
 import {
   oldSeaDogsLatestVideos,
   oldSeaDogsSocialPlatforms,
 } from "../../content/social-links";
 
+import { isGalleryPublicRolloutEnabled } from "../../lib/gallery-public.js";
 import { createPageMetadata } from "../../lib/seo";
+import { getSiteSettings } from "../../lib/site-content";
 import { SiteHeader } from "../../components/SiteHeader";
+
+const galleryIsPublic = cache(async () => {
+  const settings = await getSiteSettings();
+  return isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
+});
 
 export const metadata: Metadata = createPageMetadata({
   title: "Social Media",
@@ -18,7 +28,10 @@ export const metadata: Metadata = createPageMetadata({
   path: "/social",
 });
 
-export default function SocialPage() {
+export default async function SocialPage() {
+  const galleryLive = await galleryIsPublic();
+  const channelVideos = oldSeaDogsLatestVideos.filter((video) => video.platform !== "TikTok");
+
   return (
     <main className="article-shell social-hub-shell">
       <SiteHeader />
@@ -32,6 +45,11 @@ export default function SocialPage() {
           from the Old Sea Dogs channels.
         </p>
         <SocialIconLinks links={oldSeaDogsSocialPlatforms} />
+        {galleryLive ? (
+          <p>
+            <Link href="/through-the-lens">See Through the Lens</Link> for approved photographs from the same beat.
+          </p>
+        ) : null}
       </header>
 
       <section className="social-channel-grid" aria-label="Old Sea Dogs social channels">
@@ -61,8 +79,9 @@ export default function SocialPage() {
             them, keeping the first page view light and privacy friendly.
           </p>
         </div>
+        <TikTokProfileEmbed />
         <div className="social-video-grid">
-          {oldSeaDogsLatestVideos.map((video) => (
+          {channelVideos.map((video) => (
             <SocialVideoEmbed key={video.id} video={video} />
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { getD1BindingOrNull, getDbOrNull } from "../db";
 import {
   ads,
@@ -15,6 +15,7 @@ import {
   stories as storyRows,
 } from "../db/schema";
 import { oldSeaDogsSocialLinks } from "../content/social-links";
+import { toPublicGalleryPhoto, type PublicGalleryPhoto } from "./gallery-public.js";
 import { sourceWatchSites } from "../content/source-watch";
 import { stories as seedStories } from "../content/stories";
 import {
@@ -318,6 +319,7 @@ export type SiteSettings = {
   defaultSocialImageMediaId: string;
   homepageSocialImageUrl: string;
   mediaCollectionsJson: string;
+  galleryPublicRollout: string;
 };
 
 export type SocialEvent = typeof socialEvents.$inferSelect;
@@ -358,6 +360,7 @@ export const defaultSettings: SiteSettings = {
   defaultSocialImageMediaId: "",
   homepageSocialImageUrl: "",
   mediaCollectionsJson: "[]",
+  galleryPublicRollout: "false",
 };
 
 const defaultGalleryCategoryNames = [
@@ -2935,6 +2938,44 @@ export async function getGuideBySlug(slug: string, options: { includeDrafts?: bo
 }
 
 const localSettingsCache = new WeakMap<LocalEditorStore, SiteSettings>();
+
+export async function getApprovedPublicGalleryPhotos(): Promise<PublicGalleryPhoto[]> {
+  const db = getDbOrNull();
+  const photosFrom = (
+    items: GalleryItem[],
+    mediaById: Map<string, { contentType: string }>,
+  ) => items.flatMap((item) => {
+    const photo = toPublicGalleryPhoto({
+      ...item,
+      contentType: mediaById.get(item.mediaId)?.contentType || "",
+    });
+    return photo ? [photo] : [];
+  });
+
+  if (!db) {
+    const store = await readLocalEditorStore();
+    const mediaById = new Map(store.media.map((asset) => [asset.id, asset]));
+    return photosFrom(
+      store.galleryItems
+        .filter((item) => item.status === "approved")
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id)),
+      mediaById,
+    );
+  }
+
+  await ensureContentSchema();
+  const rows = await db
+    .select()
+    .from(galleryItems)
+    .where(eq(galleryItems.status, "approved"))
+    .orderBy(desc(galleryItems.createdAt), desc(galleryItems.id));
+  if (rows.length === 0) return [];
+  const mediaRows = await db
+    .select({ id: mediaAssets.id, contentType: mediaAssets.contentType })
+    .from(mediaAssets)
+    .where(inArray(mediaAssets.id, [...new Set(rows.map((row) => row.mediaId))]));
+  return photosFrom(rows.map(rowToGalleryItem), new Map(mediaRows.map((asset) => [asset.id, asset])));
+}
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const db = getDbOrNull();
