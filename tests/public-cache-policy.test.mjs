@@ -95,6 +95,10 @@ test("image and media responses keep their own cache headers", () => {
     "/images/guides/guides-marina-hamble-point-hero-v1.png",
     "/legacy-photos/example.webp",
     "/_next/static/chunk.js",
+    "/favicon.png",
+    "/apple-touch-icon.png",
+    "/manifest.webmanifest",
+    "/ads.txt",
   ]) {
     assert.equal(publicCacheDisposition(request({ pathname })), "omit", pathname);
     assert.equal(cacheHeadersForPolicyRequest(request({ pathname })), null);
