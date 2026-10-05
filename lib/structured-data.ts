@@ -72,7 +72,7 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   };
 }
 
-export function articleJsonLd(story: StructuredStory, image?: StructuredImage) {
+export function articleJsonLd(story: StructuredStory, image?: StructuredImage, mainEntityPath?: string) {
   const authorName = story.author.trim() || "Michael Hodges";
   const author = authorName.toLowerCase() === siteName.toLowerCase()
     ? {
@@ -97,7 +97,7 @@ export function articleJsonLd(story: StructuredStory, image?: StructuredImage) {
     keywords: cleanStoryTags(story.tags),
     datePublished: story.publishedAt || story.date,
     dateModified: story.updatedAt || story.publishedAt || story.date,
-    mainEntityOfPage: absoluteUrl(`/stories/${story.slug}`),
+    mainEntityOfPage: absoluteUrl(mainEntityPath || `/stories/${story.slug}`),
     image: image ? [{
       "@type": "ImageObject",
       url: absoluteUrl(image.url),

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import { startEditorStoreWorker } from "./helpers/worker-fetch-client.mjs";
+import { portStoryGuideLinks } from "../content/port-story-guides.ts";
 
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const publishedAt = "2026-08-11T09:30:00.000Z";
@@ -237,9 +238,10 @@ test("sitemap automatically includes every eligible published story with actual 
   const xml = await response.text();
   const storyUrls = [...xml.matchAll(/<loc>https:\/\/oldseadogs\.com\/stories\/([^<]+)<\/loc>/g)].map((match) => match[1]);
   const legacyStories = JSON.parse(await fs.readFile(path.join(projectDir, "content/legacy-stories.json"), "utf8"));
+  const supersededPortStories = portStoryGuideLinks.map((link) => link.storySlug);
   const report = {
     totalPublishedStories: legacyStories.length + 2,
-    totalIndexablePublishedStories: legacyStories.length + 1,
+    totalIndexablePublishedStories: legacyStories.length + 1 - supersededPortStories.length,
     totalNoindexedPublishedStories: 1,
     totalSitemapStoryUrls: storyUrls.length,
   };
@@ -248,6 +250,9 @@ test("sitemap automatically includes every eligible published story with actual 
   assert.ok(!storyUrls.includes(excludedSlug));
   assert.ok(!storyUrls.includes(draftSlug));
   assert.ok(!storyUrls.includes(scheduledSlug));
+  for (const slug of supersededPortStories) {
+    assert.ok(!storyUrls.includes(slug), slug);
+  }
   assert.equal(report.totalSitemapStoryUrls, report.totalIndexablePublishedStories);
   assert.match(
     xml,

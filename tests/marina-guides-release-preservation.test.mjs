@@ -20,11 +20,13 @@ const protectedFiles = {
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
   // Discover audit, Boats for Sale, the shared two-row site header,
-  // and story share images pointed at the 1,200px derivative.
-  "app/stories/[slug]/page.tsx": "1f0ca0b33bdfe9cb8a4d7548d3b3f4e7a163eca4d12fa7e2d0de0bdf1d43094d",
+  // story share images pointed at the 1,200px derivative, and the
+  // Cowes Yacht Haven / Berthon Lymington guide notices.
+  "app/stories/[slug]/page.tsx": "f0db1356f804c8de070e6ab7edbe4fe0c523b6083b66556e766b5c5b7c3c0c02",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
-  "app/sitemap.ts": "d17eea8a5298a5737e831a9abecae487eacc9d15732e792d906b2dde4815fa69",
+  // Superseded port stories whose canonical URL is a Guide are omitted.
+  "app/sitemap.ts": "cc67dc65c4fac5d17ea84fc0b31993478c319cd6c33e4a90ebe642eae7b5082f",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
