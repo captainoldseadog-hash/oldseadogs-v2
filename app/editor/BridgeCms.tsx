@@ -443,7 +443,7 @@ type GalleryItem = {
 
 type GalleryPayload = {
   name: string;
-  publicRollout: false;
+  publicRollout: boolean;
   connector: {
     configured: boolean; connected: boolean; accountIdConfigured: boolean; tokenConfigured: boolean; mode: string; accountId: string; username: string;
     connectedAt: string; tokenExpiry: string; tokenExpiryStatus: { state: string; daysRemaining: number | null }; lastTokenRefresh: string;
@@ -4583,8 +4583,25 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
     catch (saveError) { setMessage(saveError instanceof Error ? saveError.message : "Gallery item could not be saved."); }
     finally { setBusy(false); }
   };
+  const setPublicRollout = async (enabled: boolean) => {
+    const confirmed = window.confirm(enabled
+      ? "Turn the public Through the Lens gallery on? Only photographs already marked approved will appear at /through-the-lens."
+      : "Turn the public gallery off? /through-the-lens will return not found until you turn it on again.");
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      await postBridgeAction({ action: "saveSettings", settings: { galleryPublicRollout: enabled ? "true" : "false" } });
+      setMessage(enabled
+        ? "Public gallery is on. Approved photographs are visible at /through-the-lens."
+        : "Public gallery is off. /through-the-lens returns not found.");
+      reload();
+    } catch (rolloutError) {
+      setMessage(rolloutError instanceof Error ? rolloutError.message : "Gallery settings could not be saved.");
+    } finally { setBusy(false); }
+  };
   return <>
-    <BridgeHeader section="gallery" eyebrow="CMS review only — no public rollout">
+    <BridgeHeader section="gallery" eyebrow={data.publicRollout ? "Public gallery is on — approved photographs only" : "Public gallery is off until rollout is enabled"}>
       <button type="button" disabled={busy || !data.connector.configured} onClick={() => void testInstagram()}>Test Connection</button>
     </BridgeHeader>
     <nav className="bridge-gallery-tabs" aria-label="Through the Lens sections">{galleryTabs.map((tab) => <Link className={view === tab.view ? "active" : ""} href={tab.href} key={tab.view}>{tab.label}</Link>)}</nav>
@@ -4621,7 +4638,7 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
       {message ? <p className="bridge-save-message">{message}</p> : null}
     </section> : null}
     {view === "dashboard" || view === "categories" ? <section className="bridge-panel"><div className="bridge-panel-heading"><h2>Gallery Categories</h2><span>Unlimited categories</span></div><div className="bridge-flag-list large">{data.categories.map((category) => <span key={category.id}>{category.name}</span>)}</div><div className="bridge-row-actions"><input value={categoryName} onChange={(event) => setCategoryName(event.target.value)} placeholder="New category" /><button type="button" onClick={() => void addCategory()}>Add Category</button></div></section> : null}
-    {view === "settings" ? <section className="bridge-dashboard-grid two"><article className="bridge-panel"><h2>Gallery Settings</h2><dl className="bridge-definition-list"><div><dt>Name</dt><dd>Through the Lens</dd></div><div><dt>Public rollout</dt><dd>Disabled — approval required</dd></div><div><dt>Default import status</dt><dd>Pending Review</dd></div></dl></article><article className="bridge-panel"><h2>Designed for future additions</h2><div className="bridge-flag-list large">{["Video", "360 images", "Drone video", "Boat walkthroughs", "Virtual marina tours", "Interactive maps", "Photographer profiles", "Reader uploads", "Competitions", "Photo of the Day"].map((item) => <span key={item}>{item}</span>)}</div></article></section> : null}
+    {view === "settings" ? <section className="bridge-dashboard-grid two"><article className="bridge-panel"><h2>Gallery Settings</h2><dl className="bridge-definition-list"><div><dt>Name</dt><dd>Through the Lens</dd></div><div><dt>Public page</dt><dd>/through-the-lens</dd></div><div><dt>Public rollout</dt><dd>{data.publicRollout ? "Enabled — approved photographs are public" : "Disabled — approval required"}</dd></div><div><dt>Default import status</dt><dd>Pending Review</dd></div></dl><div className="bridge-row-actions"><button className="bridge-primary-action" disabled={busy || data.publicRollout} type="button" onClick={() => void setPublicRollout(true)}>Turn public gallery on</button><button disabled={busy || !data.publicRollout} type="button" onClick={() => void setPublicRollout(false)}>Turn public gallery off</button></div><p className="bridge-muted">Pending and rejected photographs stay private. This switch is saved as the galleryPublicRollout site setting.</p></article><article className="bridge-panel"><h2>Designed for future additions</h2><div className="bridge-flag-list large">{["Video", "360 images", "Drone video", "Boat walkthroughs", "Virtual marina tours", "Interactive maps", "Photographer profiles", "Reader uploads", "Competitions", "Photo of the Day"].map((item) => <span key={item}>{item}</span>)}</div></article></section> : null}
     {message ? <p className="bridge-save-message">{message}</p> : null}
     {view !== "categories" && view !== "instagram" && view !== "settings" ? <section className="bridge-card-grid">
       {visibleItems.map((item) => <article className="bridge-queue-card" key={item.id}>
@@ -4634,7 +4651,7 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
       {visibleItems.length === 0 ? <div className="bridge-empty-state"><h2>No {view === "dashboard" ? "gallery" : view} items</h2><p>Upload photographs to the Media Library or connect Instagram, then add them for review.</p><Link className="bridge-primary-action" href="/editor/media">Upload Photos in Media Library</Link></div> : null}
     </section> : null}
     {editing ? <section className="bridge-panel bridge-gallery-editor"><div className="bridge-panel-heading"><h2>Edit gallery item</h2><button onClick={() => setEditing(null)} type="button">Close</button></div>
-      <div className="bridge-gallery-preview"><img src={editing.thumbnailUrl} alt={editing.alt || editing.title} /><div><p className="eyebrow">Eventual gallery preview — not public</p><h3>{editing.title || "Untitled photograph"}</h3><p>{editing.caption}</p><small>{editing.credit}{editing.location ? ` · ${editing.location}` : ""}</small></div></div><div className="bridge-field-row thirds">
+      <div className="bridge-gallery-preview"><img src={editing.thumbnailUrl} alt={editing.alt || editing.title} /><div><p className="eyebrow">{data.publicRollout && editing.status === "approved" ? "Approved — on the public gallery" : "Review preview — not on the public gallery"}</p><h3>{editing.title || "Untitled photograph"}</h3><p>{editing.caption}</p><small>{editing.credit}{editing.location ? ` · ${editing.location}` : ""}</small></div></div><div className="bridge-field-row thirds">
         <label><span>Title</span><input value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></label>
         <label><span>Caption</span><input value={editing.caption} onChange={(event) => setEditing({ ...editing, caption: event.target.value })} /></label>
         <label><span>Alt text</span><input value={editing.alt} onChange={(event) => setEditing({ ...editing, alt: event.target.value })} /></label>

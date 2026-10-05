@@ -8,6 +8,7 @@ import { compareStoriesNewestCreated, storyMatchesWorkflow } from "../../../lib/
 import { parseCmsIdList, validateDraftCleanup } from "../../../lib/story-cleanup";
 import { storyDeletionEligibility, storySourceCounts } from "../../../lib/story-management";
 import { getDeploymentInfo } from "../../../lib/deployment-info";
+import { isGalleryPublicRolloutEnabled } from "../../../lib/gallery-public.js";
 import { getInstagramConnectorStatus, syncInstagramGallery, testInstagramConnection } from "../../../lib/instagram-gallery";
 import { disconnectInstagram, refreshInstagramToken } from "../../../lib/instagram-oauth";
 import {
@@ -802,7 +803,7 @@ async function bridgeEditorView(request: Request) {
         thumbnailUrl: `/api/media/${item.mediaId}?variant=thumbnail`,
       })),
       stories: data.stories.map((story) => ({ id: story.id, title: story.title, status: story.status })),
-      publicRollout: false,
+      publicRollout: isGalleryPublicRolloutEnabled(data.settings.galleryPublicRollout),
     };
   }
 
