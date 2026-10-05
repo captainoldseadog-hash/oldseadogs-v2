@@ -111,6 +111,23 @@ test("public HTML serves the favicon, one homepage h1, and meaningful image alt 
   assert.equal(favicon.status, 200);
   assert.equal(decodeURIComponent(favicon.headers.get("x-vinext-static-file") || ""), "/favicon.ico");
 
+  const touchIconFile = await fs.readFile(path.join(projectDir, "dist/client/apple-touch-icon.png"));
+  assert.equal(touchIconFile.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(touchIconFile.readUInt32BE(16), 180);
+  assert.equal(touchIconFile.readUInt32BE(20), 180);
+  const touchIcon = await worker.fetch("http://localhost/apple-touch-icon.png");
+  assert.equal(touchIcon.status, 200);
+  assert.match(touchIcon.headers.get("content-type") || "", /^image\/png\b/);
+  assert.equal(decodeURIComponent(touchIcon.headers.get("x-vinext-static-file") || ""), "/apple-touch-icon.png");
+
+  const manifest = await worker.fetch("http://localhost/site.webmanifest");
+  assert.equal(manifest.status, 200);
+  assert.match(manifest.headers.get("content-type") || "", /application\/(manifest\+json|json)\b/);
+  const manifestBody = await manifest.json();
+  assert.equal(manifestBody.name, "Old Sea Dogs");
+  assert.equal(manifestBody.start_url, "/");
+  assert.ok(manifestBody.icons.some((icon) => icon.src === "/apple-touch-icon.png" && icon.sizes === "180x180"));
+
   const homepageResponse = await worker.fetch("http://localhost/", { headers: { accept: "text/html" } });
   assert.equal(homepageResponse.status, 200);
   const homepage = await homepageResponse.text();
@@ -122,6 +139,8 @@ test("public HTML serves the favicon, one homepage h1, and meaningful image alt 
   assert.match(homepage, /alt="boot Düsseldorf 2027"/);
   assert.doesNotMatch(homepage, /alt="Monaco 1\.png"|alt="boot26\.jpg"/);
   assert.match(homepage, /rel="icon"[^>]*href="[^"]*\/favicon\.ico"/);
+  assert.match(homepage, /rel="apple-touch-icon"[^>]*href="[^"]*\/apple-touch-icon\.png"/);
+  assert.match(homepage, /rel="manifest"[^>]*href="[^"]*\/site\.webmanifest"/);
 
   const storyResponse = await worker.fetch(`http://localhost/stories/${leadSlug}`, { headers: { accept: "text/html" } });
   assert.equal(storyResponse.status, 200);

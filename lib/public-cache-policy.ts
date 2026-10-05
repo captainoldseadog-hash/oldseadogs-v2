@@ -84,7 +84,14 @@ function normalizePathname(pathname: string) {
 }
 
 function shouldOmitCacheOverride(pathname: string) {
-  if (pathname === "/favicon.png" || pathname === "/ads.txt") return true;
+  if (
+    pathname === "/favicon.png" ||
+    pathname === "/apple-touch-icon.png" ||
+    pathname === "/site.webmanifest" ||
+    pathname === "/ads.txt"
+  ) {
+    return true;
+  }
   if (OMIT_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`) || pathname.startsWith(prefix))) {
     return true;
   }
