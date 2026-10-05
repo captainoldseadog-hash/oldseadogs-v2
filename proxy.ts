@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { retiredMarinaGuideRedirect } from "./lib/marina-library-redirect";
 import { cacheHeadersForPolicyRequest } from "./lib/public-cache-policy";
 
 const requestPathHeader = "x-oldseadogs-request-path";
@@ -15,16 +16,13 @@ function applyCacheHeaders(headers: Headers, request: NextRequest) {
 }
 
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/marina-guide") {
+  const marinaLibrary = retiredMarinaGuideRedirect(request.nextUrl.pathname);
+  if (marinaLibrary) {
     const headers = new Headers();
     applyCacheHeaders(headers, request);
-    const redirect = {
-      status: 301,
-      Location: "/guides/solent-marina-guide",
-    };
-    headers.set("Location", redirect.Location);
+    headers.set("Location", marinaLibrary);
     return new NextResponse(null, {
-      status: redirect.status,
+      status: 301,
       headers,
     });
   }

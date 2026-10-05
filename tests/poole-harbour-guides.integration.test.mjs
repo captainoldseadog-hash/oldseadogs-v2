@@ -244,7 +244,8 @@ test("Solent ordering, shared renderer, preview, sitemap and production integrat
   assert.match(detailRoute, /guideRegionPath/);
   assert.match(renderer, /Hero image pending/);
   assert.match(css, /\.guide-image-pending/);
-  assert.match(sitemap, /guidePublicPath\(guide\) !== guideRegionPath/);
+  assert.match(sitemap, /guidePublicPath\(guide\)/);
+  assert.match(sitemap, /path !== guideRegionPath\(guide\.regionKey\) && !retiredMarinaGuideRedirect\(path\)/);
   assert.match(editorRoute, /confirmGuideImport/);
   assert.match(guideManager, /GuideBulkImport/);
   assert.match(seo, /G-88HT8MHR7T/);
