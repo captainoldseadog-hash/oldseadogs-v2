@@ -28,7 +28,8 @@ const protectedFiles = {
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
-  "app/sitemap.ts": "4270ca7079d035b1a59556ae885aa54624df6cd8bbba99f9bdb261e7d7cdce98",
+  // Retired Solent Marina Guide overview URLs are omitted; they 301 to the marina library.
+  "app/sitemap.ts": "5af87a5168f72539a1a4e8198f34c249473011be015b5670b216b4c7aaad7933",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

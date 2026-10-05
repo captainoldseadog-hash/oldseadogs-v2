@@ -2,6 +2,8 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { setRuntimeBindings, type D1Binding, type MediaBucket } from "../db";
+import { retiredMarinaGuideRedirect } from "../lib/marina-library-redirect";
+import { cacheHeadersForPolicyRequest } from "../lib/public-cache-policy";
 import { getLegacyRedirectPath } from "../lib/redirects";
 
 type Fetcher = {
@@ -51,6 +53,25 @@ const worker = {
         `https://oldseadogs.com${url.pathname}${url.search}`,
         301
       );
+    }
+
+    const marinaLibrary = retiredMarinaGuideRedirect(url.pathname);
+    if (marinaLibrary) {
+      const headers = new Headers();
+      const cacheHeaders = cacheHeadersForPolicyRequest({
+        header: (name) => request.headers.get(name),
+        method: request.method,
+        pathname: url.pathname,
+        searchParams: url.searchParams,
+      });
+      if (cacheHeaders) {
+        for (const [key, value] of Object.entries(cacheHeaders)) headers.set(key, value);
+      }
+      headers.set("Location", marinaLibrary);
+      return new Response(null, {
+        status: 301,
+        headers,
+      });
     }
 
     if (url.pathname === "/_vinext/image") {

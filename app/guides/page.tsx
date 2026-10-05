@@ -62,7 +62,6 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
         </p>
         <div className="guide-directory-actions">
           <a className="guide-skip-to-search" href="#guide-library">Find a particular place</a>
-          <Link className="guide-skip-to-search" href="/guides/solent-marina-guide">Read the Solent Marina Guide</Link>
         </div>
       </header>
 

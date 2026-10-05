@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../content/sections";
+import { boatsForSaleNavigationLink, oldSeaDogsSections } from "../content/sections";
 
 const guideLinks = [
   { href: "/guides", label: "All Guides" },
   { href: "/guides/solent", label: "The Solent" },
   { href: "/guides/poole-harbour", label: "Poole Harbour" },
   { href: "/guides/chichester-harbour", label: "Chichester Harbour" },
-  marinaGuideNavigationLink,
 ];
 
 export function MobileSiteHeader() {

@@ -5,14 +5,16 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
+import { publicNavigationLinks } from "../content/sections.ts";
 import { guideCollectionPath, guideRegionRecords } from "../lib/guides.ts";
+import { marinaLibraryPath, retiredMarinaGuideRedirect } from "../lib/marina-library-redirect.ts";
 
 const execFileAsync = promisify(execFile);
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const read = (file) => readFile(path.join(projectDir, file), "utf8");
 
-test("Marina Guide navigation and the legacy URL use the canonical Guide route", async () => {
-  const [navigation, header, homepage, story, index, region, proxy] = await Promise.all([
+test("Marina Guide is absent from the menus and retired URLs redirect to the marina library", async () => {
+  const [navigation, header, homepage, story, index, region, proxy, worker, desktopHeader] = await Promise.all([
     read("content/sections.ts"),
     read("components/MobileSiteHeader.tsx"),
     read("app/page.tsx"),
@@ -20,19 +22,29 @@ test("Marina Guide navigation and the legacy URL use the canonical Guide route",
     read("app/guides/page.tsx"),
     read("app/guides/[region]/page.tsx"),
     read("proxy.ts"),
+    read("worker/index.ts"),
+    read("components/SiteHeader.tsx"),
   ]);
-  assert.doesNotMatch(header, /href: "\/marina-guide"/);
-  assert.match(navigation, /marinaGuideNavigationLink[\s\S]*?href: "\/guides\/solent-marina-guide"[\s\S]*?label: "Marina Guide"/);
-  assert.match(header, /marinaGuideNavigationLink/);
+  assert.doesNotMatch(navigation, /marinaGuideNavigationLink|Marina Guide|solent-marina-guide/);
+  assert.doesNotMatch(header, /marinaGuideNavigationLink|solent-marina-guide|\/marina-guide/);
+  assert.doesNotMatch(desktopHeader, /Marina Guide|solent-marina-guide|\/marina-guide/);
+  assert.equal(publicNavigationLinks.some((link) => link.label === "Marina Guide" || String(link.href).includes("marina-guide")), false);
   assert.match(homepage, /<SiteHeader/);
-  assert.match(await read("components/SiteHeader.tsx"), /publicNavigationLinks/);
+  assert.match(desktopHeader, /publicNavigationLinks/);
   assert.match(story, /<SiteHeader/);
-  assert.match(index, /href="\/guides\/solent-marina-guide"/);
-  assert.match(region, /region === "solent"[\s\S]*?href="\/guides\/solent-marina-guide"/);
-  assert.match(proxy, /pathname === "\/marina-guide"[\s\S]*?status: 301[\s\S]*?Location: "\/guides\/solent-marina-guide"/);
+  assert.doesNotMatch(index, /\/guides\/solent-marina-guide|Read the Solent Marina Guide/);
+  assert.doesNotMatch(region, /\/guides\/solent-marina-guide|Read the Solent Marina Guide/);
+  assert.match(proxy, /retiredMarinaGuideRedirect[\s\S]*status: 301/);
+  assert.match(worker, /retiredMarinaGuideRedirect[\s\S]*status: 301/);
+  for (const pathname of ["/marina-guide", "/marina-guide/", "/guides/solent-marina-guide", "/guides/solent-marina-guide/"]) {
+    assert.equal(retiredMarinaGuideRedirect(pathname), marinaLibraryPath, pathname);
+  }
+  assert.equal(marinaLibraryPath, "/guides?type=Marina#guide-library");
+  assert.equal(retiredMarinaGuideRedirect("/guides"), null);
+  assert.equal(retiredMarinaGuideRedirect("/guides/solent"), null);
 });
 
-test("every public desktop header uses the shared Marina Guide destination", async () => {
+test("every public desktop header uses the shared navigation", async () => {
   const desktopHeaderFiles = [
     "app/page.tsx",
     "app/[section]/page.tsx",

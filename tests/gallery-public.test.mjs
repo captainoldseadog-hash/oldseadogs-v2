@@ -76,10 +76,8 @@ test("public gallery, sitemap and TikTok embed stay behind rollout and a click",
   assert.match(tiktok, /https:\/\/www\.tiktok\.com\/embed\.js/);
   assert.match(tiktok, /oldseadogs8/);
   assert.doesNotMatch(tiktok, /<script/);
-  assert.match(sections, /href: "\/guides\/solent-marina-guide"/);
-  assert.match(sections, /label: "Marina Guide"/);
+  assert.doesNotMatch(sections, /marinaGuideNavigationLink|label: "Marina Guide"|solent-marina-guide/);
   assert.match(header, /publicNavigationLinks/);
-  assert.doesNotMatch(header, /through-the-lens/);
-  assert.match(mobile, /marinaGuideNavigationLink/);
-  assert.doesNotMatch(mobile, /through-the-lens/);
+  assert.doesNotMatch(header, /through-the-lens|Marina Guide|solent-marina-guide/);
+  assert.doesNotMatch(mobile, /marinaGuideNavigationLink|Marina Guide|solent-marina-guide|through-the-lens/);
 });
