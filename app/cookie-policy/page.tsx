@@ -80,6 +80,15 @@ export default function CookiePolicyPage() {
             information when they load.
           </p>
 
+          <h2>Social Embeds</h2>
+          <p>
+            The TikTok creator profile on Social and Through the Lens stays
+            unloaded until a visitor chooses Load TikTok profile. That click
+            loads TikTok&apos;s embed script, which may set cookies or receive
+            technical information. The link to open TikTok in a new tab does
+            not load the embed.
+          </p>
+
           <h2>Your Choices</h2>
           <p>
             You can control cookies through your browser settings. The Old Sea

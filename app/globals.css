@@ -5039,6 +5039,128 @@ a {
   cursor: pointer;
 }
 
+.lens-grid,
+.lens-empty {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.lens-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 8px 0 12px;
+}
+
+.lens-card,
+.lens-empty,
+.tiktok-profile-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 38px rgba(18, 57, 68, 0.08);
+}
+
+.lens-card {
+  overflow: hidden;
+  margin: 0;
+}
+
+.lens-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #e7eeeb;
+}
+
+.lens-card figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+
+.lens-card strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+}
+
+.lens-card p,
+.lens-empty p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.lens-card small {
+  color: var(--muted);
+}
+
+.lens-empty {
+  padding: 28px;
+  margin-bottom: 12px;
+}
+
+.lens-empty h2 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.tiktok-profile-card {
+  max-width: 780px;
+  overflow: hidden;
+  margin: 8px 0 18px;
+}
+
+.tiktok-profile-facade {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 36px 22px 28px;
+  background: linear-gradient(135deg, var(--harbour), #1b646f);
+  color: #ffffff;
+  text-align: center;
+}
+
+.tiktok-profile-facade span {
+  display: inline-flex;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 1.35rem;
+}
+
+.tiktok-profile-facade p {
+  max-width: 46rem;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.tiktok-profile-card .tiktok-embed {
+  margin: 0;
+}
+
+.tiktok-profile-actions {
+  padding: 0 18px 18px;
+}
+
+@media (max-width: 920px) {
+  .lens-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .lens-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .footer-links {
   display: flex;
   flex-wrap: wrap;
