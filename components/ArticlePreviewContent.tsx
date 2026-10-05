@@ -5,6 +5,7 @@ import { AdBlock, pickAdvertForPlacement } from "./AdBlock";
 import { SocialFollowBlock } from "./SocialFollowBlock";
 import { displayCategoryLabel, sectionPathForCategory } from "../content/sections";
 import type { Advert, EditableStory } from "../lib/site-content";
+import { storyHeaderDateLabel } from "../lib/story-header-date";
 import { cleanStoryTags } from "../lib/tags";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
@@ -18,6 +19,7 @@ type ArticlePreviewContentProps = {
     | "category"
     | "author"
     | "date"
+    | "publishedAt"
     | "readMinutes"
     | "imageUrl"
     | "imageAlt"
@@ -337,7 +339,7 @@ export function ArticlePreviewContent({
           <h1>{story.title || "Untitled story"}</h1>
           {story.summary ? <p className="article-summary">{story.summary}</p> : null}
           <div className="article-meta">
-            <span>{formatArticleDate(story.date)}</span>
+            <span>{storyHeaderDateLabel(story)}</span>
             <span>{story.readMinutes || 3} min read</span>
           </div>
           <div className="article-share-desktop">{socialShare}</div>
