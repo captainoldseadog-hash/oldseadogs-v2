@@ -87,7 +87,7 @@ function shouldOmitCacheOverride(pathname: string) {
   if (
     pathname === "/favicon.png" ||
     pathname === "/apple-touch-icon.png" ||
-    pathname === "/site.webmanifest" ||
+    pathname === "/manifest.webmanifest" ||
     pathname === "/ads.txt"
   ) {
     return true;

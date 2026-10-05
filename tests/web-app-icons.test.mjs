@@ -13,26 +13,24 @@ test("apple touch icon is an opaque 180px brand mark and the web manifest points
   assert.equal(touchIcon[24], 8);
   assert.equal(touchIcon[25], 2);
 
-  const manifest = JSON.parse(await fs.readFile(path.join(projectDir, "public/site.webmanifest"), "utf8"));
-  assert.equal(manifest.name, "Old Sea Dogs");
-  assert.equal(manifest.short_name, "Old Sea Dogs");
-  assert.equal(manifest.start_url, "/");
-  assert.equal(manifest.display, "browser");
-  assert.equal(manifest.background_color, "#f6f7f3");
-  assert.equal(manifest.theme_color, "#123944");
-  assert.deepEqual(
-    manifest.icons.map((icon) => [icon.src, icon.sizes, icon.type]),
-    [
-      ["/apple-touch-icon.png", "180x180", "image/png"],
-      ["/favicon.png", "256x256", "image/png"],
-    ],
-  );
+  const manifest = await fs.readFile(path.join(projectDir, "app/manifest.ts"), "utf8");
+  assert.match(manifest, /name: siteName/);
+  assert.match(manifest, /short_name: siteName/);
+  assert.match(manifest, /description: defaultDescription/);
+  assert.match(manifest, /start_url: "\/"/);
+  assert.match(manifest, /display: "browser"/);
+  assert.match(manifest, /background_color: "#f6f7f3"/);
+  assert.match(manifest, /theme_color: "#123944"/);
+  assert.match(manifest, /src: "\/apple-touch-icon\.png"/);
+  assert.match(manifest, /sizes: "180x180"/);
+  assert.match(manifest, /src: "\/favicon\.png"/);
+  assert.match(manifest, /sizes: "256x256"/);
 
   const layout = await fs.readFile(path.join(projectDir, "app/layout.tsx"), "utf8");
   assert.match(layout, /url:\s*"\/apple-touch-icon\.png",\s*sizes:\s*"180x180"/);
-  assert.match(layout, /manifest:\s*"\/site\.webmanifest"/);
+  assert.match(layout, /manifest:\s*"\/manifest\.webmanifest"/);
 
   const proxy = await fs.readFile(path.join(projectDir, "proxy.ts"), "utf8");
   assert.match(proxy, /apple-touch-icon\.png/);
-  assert.match(proxy, /site\.webmanifest/);
+  assert.match(proxy, /manifest\.webmanifest/);
 });

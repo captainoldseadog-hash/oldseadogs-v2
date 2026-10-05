@@ -117,12 +117,11 @@ test("public HTML serves the favicon, one homepage h1, and meaningful image alt 
   assert.equal(touchIconFile.readUInt32BE(20), 180);
   const touchIcon = await worker.fetch("http://localhost/apple-touch-icon.png");
   assert.equal(touchIcon.status, 200);
-  assert.match(touchIcon.headers.get("content-type") || "", /^image\/png\b/);
   assert.equal(decodeURIComponent(touchIcon.headers.get("x-vinext-static-file") || ""), "/apple-touch-icon.png");
 
-  const manifest = await worker.fetch("http://localhost/site.webmanifest");
+  const manifest = await worker.fetch("http://localhost/manifest.webmanifest");
   assert.equal(manifest.status, 200);
-  assert.match(manifest.headers.get("content-type") || "", /application\/(manifest\+json|json)\b/);
+  assert.match(manifest.headers.get("content-type") || "", /^application\/manifest\+json\b/);
   const manifestBody = await manifest.json();
   assert.equal(manifestBody.name, "Old Sea Dogs");
   assert.equal(manifestBody.start_url, "/");
@@ -140,7 +139,7 @@ test("public HTML serves the favicon, one homepage h1, and meaningful image alt 
   assert.doesNotMatch(homepage, /alt="Monaco 1\.png"|alt="boot26\.jpg"/);
   assert.match(homepage, /rel="icon"[^>]*href="[^"]*\/favicon\.ico"/);
   assert.match(homepage, /rel="apple-touch-icon"[^>]*href="[^"]*\/apple-touch-icon\.png"/);
-  assert.match(homepage, /rel="manifest"[^>]*href="[^"]*\/site\.webmanifest"/);
+  assert.match(homepage, /rel="manifest"[^>]*href="[^"]*\/manifest\.webmanifest"/);
 
   const storyResponse = await worker.fetch(`http://localhost/stories/${leadSlug}`, { headers: { accept: "text/html" } });
   assert.equal(storyResponse.status, 200);

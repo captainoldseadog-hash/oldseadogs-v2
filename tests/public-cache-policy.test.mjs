@@ -97,7 +97,7 @@ test("image and media responses keep their own cache headers", () => {
     "/_next/static/chunk.js",
     "/favicon.png",
     "/apple-touch-icon.png",
-    "/site.webmanifest",
+    "/manifest.webmanifest",
     "/ads.txt",
   ]) {
     assert.equal(publicCacheDisposition(request({ pathname })), "omit", pathname);
