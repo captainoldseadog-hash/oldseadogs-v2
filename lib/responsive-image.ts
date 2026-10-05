@@ -1,6 +1,12 @@
 /** Widths the derivative route will encode. Keep this list small. */
 export const RESPONSIVE_IMAGE_WIDTHS = [480, 768, 1200, 1600] as const;
 
+/** Social cards and the Needles hero use this existing derivative width. */
+export const SHARE_IMAGE_WIDTH = 1200;
+
+const NEEDLES_HERO_PATH = "/images/guides/guides-solent-needles-hero-v1.png";
+const DEFAULT_SOCIAL_LOGO_PATH = "/images/old-sea-dogs-logo.png";
+
 export type ResponsiveImageWidth = (typeof RESPONSIVE_IMAGE_WIDTHS)[number];
 
 const LOCAL_PUBLIC_IMAGE = /^\/(?:images|legacy-photos|section-heroes|ads)\/.+\.(?:png|jpe?g|webp|gif|avif)$/i;
@@ -49,4 +55,36 @@ export function derivativeSrcSet(url: string, widths: readonly number[] = RESPON
 export function mobileSourceSrcSet(url: string, dedicatedMobileUrl = "") {
   if (dedicatedMobileUrl && dedicatedMobileUrl !== url) return dedicatedMobileUrl;
   return derivativeSrcSet(url, [480, 768, 1200]) || url;
+}
+
+function pathOnly(url: string) {
+  return url.split(/[?#]/, 1)[0] || "";
+}
+
+export function isNeedlesHeroImage(url: string) {
+  return pathOnly(url) === NEEDLES_HERO_PATH;
+}
+
+/**
+ * Open Graph and Twitter image for a public photo. Local artwork and CMS
+ * media use the existing 1,200px derivative. The brand logo and remote URLs
+ * stay as stored.
+ */
+export function shareImageUrl(url: string) {
+  if (!url || pathOnly(url) === DEFAULT_SOCIAL_LOGO_PATH || !isDerivativeSource(url)) return url;
+  return derivativeImageUrl(url, SHARE_IMAGE_WIDTH);
+}
+
+export function shareImageDimensions(width?: number, height?: number) {
+  if (!width || !height || width <= SHARE_IMAGE_WIDTH) return { width, height };
+  return {
+    width: SHARE_IMAGE_WIDTH,
+    height: Math.max(1, Math.round((height * SHARE_IMAGE_WIDTH) / width)),
+  };
+}
+
+/** Desktop src for the Needles hero. Other heroes keep their existing display width. */
+export function needlesHeroImageUrl(url: string) {
+  if (!isNeedlesHeroImage(url)) return url;
+  return derivativeImageUrl(url, SHARE_IMAGE_WIDTH);
 }

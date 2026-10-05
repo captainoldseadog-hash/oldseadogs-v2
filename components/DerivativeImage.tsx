@@ -3,6 +3,7 @@ import { derivativeImageUrl, derivativeSrcSet, type ResponsiveImageWidth } from 
 type DerivativeImageProps = {
   alt: string;
   className?: string;
+  displayWidth?: number;
   eager?: boolean;
   height?: number;
   sizes: string;
@@ -15,6 +16,7 @@ type DerivativeImageProps = {
 export function DerivativeImage({
   alt,
   className,
+  displayWidth,
   eager = false,
   height,
   sizes,
@@ -23,7 +25,7 @@ export function DerivativeImage({
   width,
   widths,
 }: DerivativeImageProps) {
-  const displayWidth: ResponsiveImageWidth | number = eager ? 1600 : 768;
+  const resolvedDisplayWidth: ResponsiveImageWidth | number = displayWidth ?? (eager ? 1600 : 768);
   const srcSet = derivativeSrcSet(src, widths || (eager ? [768, 1200, 1600] : [480, 768, 1200]));
 
   return (
@@ -35,7 +37,7 @@ export function DerivativeImage({
       height={height || undefined}
       loading={eager ? "eager" : "lazy"}
       sizes={sizes}
-      src={derivativeImageUrl(src, displayWidth)}
+      src={derivativeImageUrl(src, resolvedDisplayWidth)}
       srcSet={srcSet || undefined}
       style={style}
       width={width || undefined}
