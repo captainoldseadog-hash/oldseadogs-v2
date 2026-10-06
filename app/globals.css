@@ -5174,6 +5174,15 @@ a {
   cursor: pointer;
 }
 
+.tiktok-grid-tile[hidden] {
+  display: none;
+}
+
+.tiktok-grid-tile:focus-visible {
+  outline: 3px solid #fffdf8;
+  outline-offset: 2px;
+}
+
 .tiktok-grid-tile img {
   display: block;
   width: 100%;
@@ -5205,41 +5214,6 @@ a {
 .tiktok-grid-note {
   margin: 12px 0 0;
   color: var(--muted);
-}
-
-.tiktok-player-backdrop {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(8, 20, 24, 0.72);
-}
-
-.tiktok-player-dialog {
-  display: grid;
-  gap: 12px;
-  width: min(400px, 100%);
-  justify-items: center;
-}
-
-.tiktok-player-frame {
-  width: min(380px, calc(100vw - 48px));
-  height: min(78vh, 680px);
-  overflow: hidden;
-  border-radius: 12px;
-  background: #000000;
-}
-
-.tiktok-player-frame iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.tiktok-player-actions {
-  justify-content: center;
 }
 
 .tiktok-sr-only {

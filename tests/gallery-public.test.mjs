@@ -50,13 +50,15 @@ test("public gallery photos keep approved image fields only", () => {
   assert.equal(toPublicGalleryPhoto({ ...approved, title: "Same", caption: "Same" }).caption, "");
 });
 
-test("public gallery, sitemap and TikTok embed stay behind rollout and a click", async () => {
-  const [page, sitemap, social, tiktok, grid, displayApi, footer, sections, header, mobile] = await Promise.all([
+test("public gallery and sitemap stay behind rollout, and the TikTok grid renders without the creator embed", async () => {
+  const [page, sitemap, social, tiktok, grid, tiles, cookie, displayApi, footer, sections, header, mobile] = await Promise.all([
     fs.readFile(new URL("../app/through-the-lens/page.tsx", import.meta.url), "utf8"),
     fs.readFile(new URL("../app/sitemap.ts", import.meta.url), "utf8"),
     fs.readFile(new URL("../app/social/page.tsx", import.meta.url), "utf8"),
     fs.readFile(new URL("../components/TikTokProfileEmbed.tsx", import.meta.url), "utf8"),
     fs.readFile(new URL("../components/TikTokVideoGrid.tsx", import.meta.url), "utf8"),
+    fs.readFile(new URL("../components/TikTokVideoTiles.tsx", import.meta.url), "utf8"),
+    fs.readFile(new URL("../app/cookie-policy/page.tsx", import.meta.url), "utf8"),
     fs.readFile(new URL("../lib/tiktok-display-api.js", import.meta.url), "utf8"),
     fs.readFile(new URL("../components/SiteFooter.tsx", import.meta.url), "utf8"),
     fs.readFile(new URL("../content/sections.ts", import.meta.url), "utf8"),
@@ -69,17 +71,27 @@ test("public gallery, sitemap and TikTok embed stay behind rollout and a click",
   assert.match(page, /Photographs from the Old Sea Dogs waterfront/);
   assert.match(page, /Pictures from the waterfront will appear here/);
   assert.doesNotMatch(page, /newsroom|waiting for review|pending review|Approved photographs|Approved pictures/i);
-  assert.match(page, /<TikTokVideoGrid \/>/);
+  assert.match(page, /<Suspense fallback=\{<TikTokVideoGridFallback \/>\}>\s*<TikTokVideoGrid \/>/);
+  assert.doesNotMatch(page, /Show TikTok videos|Videos stay unloaded/);
   assert.doesNotMatch(page, /newsroom|waiting for review|pending review/i);
   assert.doesNotMatch(social, /newsroom|waiting for review|pending review|approved photographs/i);
   assert.match(sitemap, /isGalleryPublicRolloutEnabled\(settings\.galleryPublicRollout\)/);
   assert.match(sitemap, /\/through-the-lens/);
-  assert.match(social, /<TikTokVideoGrid \/>/);
-  assert.match(grid, /Show TikTok videos/);
-  assert.match(grid, /fetch\("\/api\/social\/tiktok"\)/);
-  assert.match(grid, /\{active \? \(/);
-  assert.match(grid, /src=\{active\.embedUrl\}/);
-  assert.doesNotMatch(grid, /embed\.js|open\.tiktokapis\.com|newsroom|waiting for review|pending review/i);
+  assert.match(social, /<Suspense fallback=\{<TikTokVideoGridFallback \/>\}>\s*<TikTokVideoGrid \/>/);
+  assert.match(grid, /await connection\(\)/);
+  assert.match(grid, /loadPublicTikTokCatalog\(\)/);
+  assert.match(grid, /<TikTokVideoTiles complete=\{complete\} videos=\{videos\} \/>/);
+  assert.match(grid, /No videos to show yet/);
+  assert.match(grid, /<TikTokProfileEmbed \/>/);
+  assert.doesNotMatch(grid, /startLoaded|Show TikTok videos|fetch\("\/api\/social\/tiktok"\)/);
+  assert.doesNotMatch(grid, /embed\.js|embedUrl|open\.tiktokapis\.com|newsroom|waiting for review|pending review/i);
+  assert.match(tiles, /export const TIKTOK_GRID_PAGE_SIZE = 12/);
+  assert.match(tiles, /href=\{video\.watchUrl\}/);
+  assert.match(tiles, /loading="lazy"/);
+  assert.match(tiles, /Show \{nextCount\} more videos/);
+  assert.doesNotMatch(tiles, /embed\.js|embedUrl|tiktok\.com\/embed/i);
+  assert.doesNotMatch(cookie, /Show TikTok videos/);
+  assert.match(cookie, /Load TikTok profile/);
   assert.match(displayApi, /https:\/\/open\.tiktokapis\.com\/v2\/video\/list\//);
   assert.doesNotMatch(displayApi, /www\.tiktok\.com\/@|oembed|cheerio|scrape/i);
   assert.match(social, /galleryIsPublic/);
@@ -88,6 +100,7 @@ test("public gallery, sitemap and TikTok embed stay behind rollout and a click",
   assert.match(tiktok, /data-embed-type="creator"/);
   assert.match(tiktok, /data-unique-id=\{uniqueId\}/);
   assert.match(tiktok, /https:\/\/www\.tiktok\.com\/embed\.js/);
+  assert.match(tiktok, /Load TikTok profile/);
   assert.match(tiktok, /oldseadogs8/);
   assert.doesNotMatch(tiktok, /<script/);
   assert.doesNotMatch(sections, /marinaGuideNavigationLink|label: "Marina Guide"|solent-marina-guide/);
