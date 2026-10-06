@@ -35,7 +35,7 @@ export default async function ThroughTheLensPage() {
 
   return (
     <main className="article-shell social-hub-shell">
-      <SiteHeader />
+      <SiteHeader current="through-the-lens" />
 
       <header className="social-hero">
         <p className="eyebrow">Gallery</p>

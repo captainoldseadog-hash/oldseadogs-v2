@@ -12310,11 +12310,11 @@ a {
 
   .mobile-header-bar {
     display: flex;
-    min-height: 64px;
+    height: 64px;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 8px 18px;
+    gap: 12px;
+    padding: 0 12px 0 16px;
   }
 
   .mobile-brand {
@@ -12325,6 +12325,8 @@ a {
     font-family: Georgia, "Times New Roman", serif;
     font-size: 1.02rem;
     font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .mobile-brand .brand-mark {
@@ -12339,21 +12341,59 @@ a {
 
   .mobile-header-actions {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 14px;
-    font-size: .78rem;
-    font-weight: 900;
+    align-self: center;
+    gap: 2px;
   }
 
   .mobile-search-link,
   .mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: 44px;
     min-height: 44px;
+    margin: 0;
     border: 0;
-    padding: 0 4px;
+    border-radius: 6px;
+    padding: 0 10px;
     background: transparent;
     color: inherit;
-    font: inherit;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .mobile-tool-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .mobile-search-link:hover,
+  .mobile-search-link:focus-visible,
+  .mobile-menu-toggle:hover,
+  .mobile-menu-toggle:focus-visible {
+    background: rgba(9, 43, 64, 0.06);
+  }
+
+  .mobile-site-header.is-open .mobile-search-link:hover,
+  .mobile-site-header.is-open .mobile-search-link:focus-visible,
+  .mobile-site-header.is-open .mobile-menu-toggle:hover,
+  .mobile-site-header.is-open .mobile-menu-toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .mobile-site-header.is-open {
@@ -12410,6 +12450,10 @@ a {
     font-size: .98rem;
   }
 
+  .mobile-menu-panel a.mobile-menu-span {
+    grid-column: 1 / -1;
+  }
+
   .mobile-menu-search {
     border: 1px solid rgba(255,255,255,.32) !important;
     border-radius: 4px;
@@ -12433,16 +12477,17 @@ a {
 
   .site-shell > .hero { order: 1; }
   .site-shell > .ticker-band { display: none; }
-  .site-shell > .ad-band:first-of-type { order: 2; }
+  .site-shell > .ad-band:not(.footer-ad-band) { order: 2; }
   .site-shell > .lead-section { order: 3; }
-  .site-shell > .homepage-guides-promo { order: 4; }
-  .site-shell > .editor-credibility-band { order: 5; }
-  .site-shell > .featured-port-club-band { order: 6; }
-  .site-shell > .editors-picks-band { order: 7; }
-  .site-shell > .feature-band:not(.editors-picks-band) { order: 8; }
-  .site-shell > .social-follow-block { order: 9; }
-  .site-shell > .footer-ad-band { order: 10; }
-  .site-shell > .site-footer { order: 11; }
+  .site-shell > .boats-teaser { order: 4; }
+  .site-shell > .homepage-guides-promo { order: 5; }
+  .site-shell > .editor-credibility-band { order: 6; }
+  .site-shell > .featured-port-club-band { order: 7; }
+  .site-shell > .editors-picks-band { order: 8; }
+  .site-shell > .feature-band:not(.editors-picks-band) { order: 9; }
+  .site-shell > .social-follow-block { order: 10; }
+  .site-shell > .footer-ad-band { order: 11; }
+  .site-shell > .site-footer { order: 12; }
 
   .hero {
     min-height: 560px;
@@ -12961,17 +13006,16 @@ a {
 
 @media (max-width: 640px) {
   .mobile-header-bar {
-    padding-right: 14px;
+    padding-right: 8px;
     padding-left: 14px;
   }
 
-  .mobile-search-link {
-    font-size: 0;
-  }
-
-  .mobile-search-link::after {
-    content: "Search";
-    font-size: .76rem;
+  .mobile-search-link,
+  .mobile-menu-toggle {
+    gap: 5px;
+    padding: 0 8px;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
   }
 
   .hero {
@@ -13156,7 +13200,7 @@ a {
 
 @media (max-width: 1024px) {
   .site-shell > .newsletter-band {
-    order: 10;
+    order: 11;
   }
 
   .newsletter-signup--guide {
@@ -13182,52 +13226,68 @@ a {
   }
 }
 
-/* Two-row site header. Row 1 is the wordmark and Search. Row 2 is the full nav. */
+/* Masthead, then two centred navigation rows. One squeezed line overflows once Through the Lens is included. */
 .site-mast {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 16px 0 0;
+  padding: 18px 0 0;
 }
 .site-mast-brand {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  min-height: 72px;
+  gap: 24px;
+  min-height: 76px;
 }
 .site-mast .brand-lockup {
   color: var(--harbour);
   font-size: clamp(1.7rem, 2.4vw, 2.4rem);
+  line-height: 1;
+  white-space: nowrap;
 }
 .site-mast .brand-mark {
   width: 58px;
   height: 58px;
 }
 .site-mast-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 2px;
   color: var(--harbour);
   font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.14em;
+  line-height: 1;
   text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
 }
 .site-mast-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 8px 0 0;
+  display: grid;
+  margin: 6px 0 0;
   border-top: 1px solid var(--harbour);
   border-bottom: 1px solid var(--harbour);
-  padding: 11px 0;
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+}
+.site-mast-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: clamp(14px, 1.7vw, 28px);
+  padding: 9px 4px;
+}
+.site-mast-nav-row + .site-mast-nav-row {
+  border-top: 1px solid rgba(18, 57, 68, 0.16);
 }
 .site-mast-nav a {
   color: var(--harbour);
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  line-height: 1.2;
+  text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -13254,8 +13314,9 @@ a {
 @media (max-width: 1280px) {
   .boats-frame .boats-compass { right: 8px; top: 8px; width: 88px; height: 88px; }
 }
-@media (max-width: 1180px) {
-  .site-mast-nav { font-size: 0.64rem; letter-spacing: 0.03em; gap: 6px; }
+@media (max-width: 1100px) {
+  .site-mast-nav a { font-size: 0.7rem; letter-spacing: 0.05em; }
+  .site-mast-nav-row { gap: clamp(10px, 1.3vw, 18px); }
 }
 @media (max-width: 1023px) {
   .site-mast { display: none; }
