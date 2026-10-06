@@ -16,7 +16,8 @@ const protectedFiles = {
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
   "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
-  "app/api/editor/route.ts": "0d8b53c3a9d979f569866b31e566692bc546d3fb6469deb944fbd0b6b5dd6f59",
+  // Through the Lens rollout reads galleryPublicRollout instead of a hardcoded false.
+  "app/api/editor/route.ts": "ba5a6a708cc74c17f3dac77dee7dbd54e3c3c697f8c8a0bdac409bf42ca4897b",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
   // Discover audit, Boats for Sale, the shared two-row site header,
@@ -26,7 +27,9 @@ const protectedFiles = {
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
-  "app/sitemap.ts": "cc67dc65c4fac5d17ea84fc0b31993478c319cd6c33e4a90ebe642eae7b5082f",
+  // /through-the-lens is listed only while galleryPublicRollout is true.
+  // Retired Solent Marina Guide overview URLs are omitted; they 301 to the marina library.
+  "app/sitemap.ts": "5af87a5168f72539a1a4e8198f34c249473011be015b5670b216b4c7aaad7933",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
@@ -49,8 +52,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
     .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
-  // Public alt fallback and the in-memory guide, settings, and advert caches are included.
-  assert.equal(hash(reconstructedBaseline), "d19dafd2d304165b75594a66ccb9d0762d110968344b0ad535cea6087d5053ef");
+  // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
+  assert.equal(hash(reconstructedBaseline), "360e723a1f34c402e6ac356a3385e39ff35d21ca91dc506c10d044cd071428f0");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

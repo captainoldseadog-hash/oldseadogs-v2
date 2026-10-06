@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
           How Old Sea Dogs may use cookies and similar technologies for site
           function, measurement, maps, and advertising.
         </p>
-        <span>Last updated: 3 August 2026</span>
+        <span>Last updated: 6 October 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Cookie policy">
@@ -78,6 +78,20 @@ export default function CookiePolicyPage() {
             Some Ports and Clubs articles may embed Google Maps or satellite
             views. Those embedded services may set cookies or receive technical
             information when they load.
+          </p>
+
+          <h2>Social Embeds</h2>
+          <p>
+            TikTok video covers on Social and Through the Lens load with the
+            page from this website. Choosing a cover opens that video on TikTok
+            and does not place TikTok&apos;s player or embed script on this
+            page. If the video list cannot be shown, the TikTok profile stays
+            unloaded until a visitor chooses Load TikTok profile. That click
+            loads TikTok&apos;s official creator embed, which may set cookies
+            or receive technical information. Opening TikTok in a new tab may
+            do the same on TikTok&apos;s site. YouTube and other video players
+            on the social page stay unloaded until a visitor chooses to load
+            them.
           </p>
 
           <h2>Your Choices</h2>

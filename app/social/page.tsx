@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense, cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialIconLinks } from "../../components/SocialIconLinks";
 import { SocialVideoEmbed } from "../../components/SocialVideoEmbed";
+import { TikTokVideoGrid, TikTokVideoGridFallback } from "../../components/TikTokVideoGrid";
 import { TrackedExternalLink } from "../../components/TrackedExternalLink";
 import {
   oldSeaDogsLatestVideos,
   oldSeaDogsSocialPlatforms,
 } from "../../content/social-links";
 
+import { isGalleryPublicRolloutEnabled } from "../../lib/gallery-public.js";
 import { createPageMetadata } from "../../lib/seo";
+import { getSiteSettings } from "../../lib/site-content";
 import { SiteHeader } from "../../components/SiteHeader";
+
+const galleryIsPublic = cache(async () => {
+  const settings = await getSiteSettings();
+  return isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
+});
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Social Media",
@@ -18,7 +30,10 @@ export const metadata: Metadata = createPageMetadata({
   path: "/social",
 });
 
-export default function SocialPage() {
+export default async function SocialPage() {
+  const galleryLive = await galleryIsPublic();
+  const channelVideos = oldSeaDogsLatestVideos.filter((video) => video.platform !== "TikTok");
+
   return (
     <main className="article-shell social-hub-shell">
       <SiteHeader />
@@ -32,6 +47,11 @@ export default function SocialPage() {
           from the Old Sea Dogs channels.
         </p>
         <SocialIconLinks links={oldSeaDogsSocialPlatforms} />
+        {galleryLive ? (
+          <p>
+            <Link href="/through-the-lens">See Through the Lens</Link> for photographs from the waterfront.
+          </p>
+        ) : null}
       </header>
 
       <section className="social-channel-grid" aria-label="Old Sea Dogs social channels">
@@ -57,12 +77,15 @@ export default function SocialPage() {
           <p className="eyebrow">Latest Videos</p>
           <h2>TikTok and YouTube Shorts</h2>
           <p>
-            Video embeds are lazy-loaded only after a visitor chooses to load
-            them, keeping the first page view light and privacy friendly.
+            TikTok covers load with this page and open on TikTok. YouTube
+            Shorts stay unloaded until a visitor chooses to play them.
           </p>
         </div>
+        <Suspense fallback={<TikTokVideoGridFallback />}>
+          <TikTokVideoGrid />
+        </Suspense>
         <div className="social-video-grid">
-          {oldSeaDogsLatestVideos.map((video) => (
+          {channelVideos.map((video) => (
             <SocialVideoEmbed key={video.id} video={video} />
           ))}
         </div>

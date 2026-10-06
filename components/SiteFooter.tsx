@@ -5,6 +5,7 @@ import {
   oldSeaDogsSocialPlatforms,
   type OldSeaDogsSocialPlatform,
 } from "../content/social-links";
+import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
 import { defaultSettings, getSiteSettings, type SiteSettings } from "../lib/site-content";
 
 type FooterLink = {
@@ -71,7 +72,10 @@ export async function SiteFooter({
   const footerBrandName = brandName ?? settings.brandName ?? defaultSettings.brandName;
   const footerCopy = footerText ?? settings.footerText ?? defaultSettings.footerText;
   const seen = new Set<string>();
-  const links = [...extraLinks, ...policyLinks].filter((link) => {
+  const galleryLink = isGalleryPublicRolloutEnabled(settings.galleryPublicRollout)
+    ? [{ href: "/through-the-lens", label: "Through the Lens" }]
+    : [];
+  const links = [...extraLinks, ...galleryLink, ...policyLinks].filter((link) => {
     if (seen.has(link.href)) return false;
     seen.add(link.href);
     return true;

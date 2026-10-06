@@ -111,11 +111,6 @@ export default async function RegionPage({ params }: RegionPageProps) {
           ]),
         ]} />
         <PrimaryNavigation />
-        {region === "solent" ? (
-          <p className="guide-back-link">
-            <Link href="/guides/solent-marina-guide">Read the Solent Marina Guide →</Link>
-          </p>
-        ) : null}
         <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} />
         <GuideCollectionBrowser
           guides={childItems}

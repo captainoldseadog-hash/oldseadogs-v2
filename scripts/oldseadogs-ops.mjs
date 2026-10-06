@@ -353,11 +353,13 @@ function mediaMetadataSnapshot(store) {
 }
 
 function galleryMetadataSnapshot(store) {
+  const rollout = String(store?.settings?.galleryPublicRollout || "false").trim().toLowerCase() === "true";
   return {
     name: "Through the Lens",
     settings: {
       name: "Through the Lens",
-      publicRollout: false,
+      publicRollout: rollout,
+      galleryPublicRollout: rollout ? "true" : "false",
       defaultApprovalStatus: "pending",
       instagramAutoPublish: false,
     },

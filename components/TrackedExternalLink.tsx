@@ -8,6 +8,7 @@ type TrackedExternalLinkProps = {
   platform: string;
   children: ReactNode;
   className?: string;
+  hidden?: boolean;
   rel?: string;
 };
 
@@ -16,11 +17,13 @@ export function TrackedExternalLink({
   platform,
   children,
   className,
+  hidden = false,
   rel = "noopener noreferrer",
 }: TrackedExternalLinkProps) {
   return (
     <a
       className={className}
+      hidden={hidden}
       href={href}
       rel={rel}
       target="_blank"

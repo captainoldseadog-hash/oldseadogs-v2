@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { boatsForSaleNavigationLink, marinaGuideNavigationLink, oldSeaDogsSections } from "../content/sections";
+import { boatsForSaleNavigationLink, oldSeaDogsSections, throughTheLensNavigationLink } from "../content/sections";
 
 const guideLinks = [
   { href: "/guides", label: "All Guides" },
   { href: "/guides/solent", label: "The Solent" },
   { href: "/guides/poole-harbour", label: "Poole Harbour" },
   { href: "/guides/chichester-harbour", label: "Chichester Harbour" },
-  marinaGuideNavigationLink,
 ];
 
 export function MobileSiteHeader() {
@@ -47,7 +46,10 @@ export function MobileSiteHeader() {
           <span>Old Sea Dogs</span>
         </Link>
         <div className="mobile-header-actions">
-          <Link className="mobile-search-link" href="/search" onClick={closeMenu}>Search</Link>
+          <Link className="mobile-search-link" href="/search" onClick={closeMenu}>
+            <SearchIcon />
+            <span>Search</span>
+          </Link>
           <button
             aria-controls={menuId}
             aria-expanded={open}
@@ -56,7 +58,8 @@ export function MobileSiteHeader() {
             ref={toggleRef}
             type="button"
           >
-            {open ? "Close" : "Menu"}
+            {open ? <CloseIcon /> : <MenuIcon />}
+            <span>{open ? "Close" : "Menu"}</span>
           </button>
         </div>
       </div>
@@ -67,6 +70,10 @@ export function MobileSiteHeader() {
           {oldSeaDogsSections.map((section) => (
             <Link href={`/${section.slug}`} key={section.slug} onClick={closeMenu}>{section.label}</Link>
           ))}
+        </div>
+        <div>
+          <p>Gallery</p>
+          <Link className="mobile-menu-span" href={throughTheLensNavigationLink.href} onClick={closeMenu}>{throughTheLensNavigationLink.label}</Link>
         </div>
         <div>
           <p>Guides</p>
@@ -80,5 +87,30 @@ export function MobileSiteHeader() {
         <Link className="mobile-menu-search" href="/search" onClick={closeMenu}>Search Old Sea Dogs</Link>
       </nav>
     </header>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" className="mobile-tool-icon" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" fill="none" r="6.25" stroke="currentColor" strokeWidth="2" />
+      <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg aria-hidden="true" className="mobile-tool-icon" viewBox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg aria-hidden="true" className="mobile-tool-icon" viewBox="0 0 24 24">
+      <path d="M6 6.5 18 18.5M18 6.5 6 18.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
   );
 }
