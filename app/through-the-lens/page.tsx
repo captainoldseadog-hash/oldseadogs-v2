@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { Suspense, cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
-import { TikTokVideoGrid } from "../../components/TikTokVideoGrid";
+import { TikTokVideoGrid, TikTokVideoGridFallback } from "../../components/TikTokVideoGrid";
 import { isGalleryPublicRolloutEnabled } from "../../lib/gallery-public.js";
 import { createPageMetadata } from "../../lib/seo";
 import { getApprovedPublicGalleryPhotos, getSiteSettings } from "../../lib/site-content";
@@ -72,9 +72,11 @@ export default async function ThroughTheLensPage() {
         <div className="section-heading">
           <p className="eyebrow">TikTok</p>
           <h2>@oldseadogs8</h2>
-          <p>Videos stay unloaded until you choose to show them.</p>
+          <p>Recent videos from the channel. Each one opens on TikTok.</p>
         </div>
-        <TikTokVideoGrid />
+        <Suspense fallback={<TikTokVideoGridFallback />}>
+          <TikTokVideoGrid />
+        </Suspense>
       </section>
 
       <SiteFooter

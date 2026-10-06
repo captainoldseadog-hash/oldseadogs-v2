@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cache } from "react";
+import { Suspense, cache } from "react";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SocialIconLinks } from "../../components/SocialIconLinks";
 import { SocialVideoEmbed } from "../../components/SocialVideoEmbed";
-import { TikTokVideoGrid } from "../../components/TikTokVideoGrid";
+import { TikTokVideoGrid, TikTokVideoGridFallback } from "../../components/TikTokVideoGrid";
 import { TrackedExternalLink } from "../../components/TrackedExternalLink";
 import {
   oldSeaDogsLatestVideos,
@@ -20,6 +20,8 @@ const galleryIsPublic = cache(async () => {
   const settings = await getSiteSettings();
   return isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
 });
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Social Media",
@@ -75,11 +77,13 @@ export default async function SocialPage() {
           <p className="eyebrow">Latest Videos</p>
           <h2>TikTok and YouTube Shorts</h2>
           <p>
-            Video embeds are lazy-loaded only after a visitor chooses to load
-            them, keeping the first page view light and privacy friendly.
+            TikTok covers load with this page and open on TikTok. YouTube
+            Shorts stay unloaded until a visitor chooses to play them.
           </p>
         </div>
-        <TikTokVideoGrid />
+        <Suspense fallback={<TikTokVideoGridFallback />}>
+          <TikTokVideoGrid />
+        </Suspense>
         <div className="social-video-grid">
           {channelVideos.map((video) => (
             <SocialVideoEmbed key={video.id} video={video} />
