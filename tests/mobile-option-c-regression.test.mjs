@@ -96,4 +96,8 @@ test("Option C remains a responsive layer over the existing content pipeline", a
     /@media \(min-width: 768px\) and \(max-width: 1024px\)[\s\S]*?\.site-shell > \.lead-section \{[\s\S]*?display: block/
   );
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(
+    css,
+    /\.site-shell > \.lead-section \{ order: 3; \}\s*\.site-shell > \.boats-teaser \{ order: 4; \}/,
+  );
 });

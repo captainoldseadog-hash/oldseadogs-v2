@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { boatsForSaleNavigationLink, publicNavigationLinks } from "../content/sections";
+import {
+  boatsForSaleNavigationLink,
+  desktopNavigationRowBreak,
+  publicNavigationLinks,
+} from "../content/sections";
+
+const desktopNavigationRows = [
+  publicNavigationLinks.slice(0, desktopNavigationRowBreak),
+  publicNavigationLinks.slice(desktopNavigationRowBreak),
+];
 
 export function SiteHeader({
   current = "",
@@ -18,19 +27,23 @@ export function SiteHeader({
         <Link className="site-mast-search" href="/search">Search</Link>
       </div>
       <nav aria-label={label} className="site-mast-nav">
-        {publicNavigationLinks.map((link) => {
-          const boats = link.slug === boatsForSaleNavigationLink.slug;
-          return (
-            <Link
-              aria-current={current === link.slug ? "page" : undefined}
-              className={boats ? "is-boats" : undefined}
-              href={link.href}
-              key={link.slug}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
+        {desktopNavigationRows.map((row) => (
+          <div className="site-mast-nav-row" key={row[0].slug}>
+            {row.map((link) => {
+              const boats = link.slug === boatsForSaleNavigationLink.slug;
+              return (
+                <Link
+                  aria-current={current === link.slug ? "page" : undefined}
+                  className={boats ? "is-boats" : undefined}
+                  href={link.href}
+                  key={link.slug}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </header>
   );

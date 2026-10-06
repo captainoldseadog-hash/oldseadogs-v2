@@ -105,7 +105,12 @@ test("public gallery and sitemap stay behind rollout, and the TikTok grid render
   assert.match(tiktok, /oldseadogs8/);
   assert.doesNotMatch(tiktok, /<script/);
   assert.doesNotMatch(sections, /marinaGuideNavigationLink|label: "Marina Guide"|solent-marina-guide/);
+  assert.match(sections, /throughTheLensNavigationLink/);
+  assert.match(sections, /href: "\/through-the-lens"/);
+  assert.match(sections, /label: "Through the Lens"/);
   assert.match(header, /publicNavigationLinks/);
-  assert.doesNotMatch(header, /through-the-lens|Marina Guide|solent-marina-guide/);
-  assert.doesNotMatch(mobile, /marinaGuideNavigationLink|Marina Guide|solent-marina-guide|through-the-lens/);
+  assert.match(header, /desktopNavigationRowBreak/);
+  assert.doesNotMatch(header, /Marina Guide|solent-marina-guide/);
+  assert.match(mobile, /throughTheLensNavigationLink/);
+  assert.doesNotMatch(mobile, /marinaGuideNavigationLink|Marina Guide|solent-marina-guide/);
 });

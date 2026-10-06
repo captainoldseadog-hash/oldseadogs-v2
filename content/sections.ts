@@ -114,12 +114,19 @@ export const boatsForSaleNavigationLink = {
   slug: "boats-for-sale",
 } as const;
 
+export const throughTheLensNavigationLink = {
+  href: "/through-the-lens",
+  label: "Through the Lens",
+  slug: "through-the-lens",
+} as const;
+
 export const publicNavigationLinks = [
   ...oldSeaDogsSections.map((section) => ({
     href: `/${section.slug}`,
     label: section.label,
     slug: section.slug,
   })),
+  throughTheLensNavigationLink,
   {
     href: "/guides",
     label: "Guides",
@@ -127,6 +134,14 @@ export const publicNavigationLinks = [
   },
   boatsForSaleNavigationLink,
 ] as const;
+
+/**
+ * Desktop mast rows. The first seven links are the news departments
+ * (News through Masterclass). The second row is places, the gallery,
+ * Guides and Boats for Sale. Splitting here keeps both rows a similar
+ * width so the menu stays one deliberate pair of lines from 1024px up.
+ */
+export const desktopNavigationRowBreak = 7;
 
 function categoryKey(category: string) {
   return category.trim().toLowerCase().replace(/\s+/g, " ");
