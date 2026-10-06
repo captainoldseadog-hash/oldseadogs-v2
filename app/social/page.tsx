@@ -21,6 +21,8 @@ const galleryIsPublic = cache(async () => {
   return isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = createPageMetadata({
   title: "Social Media",
   description:

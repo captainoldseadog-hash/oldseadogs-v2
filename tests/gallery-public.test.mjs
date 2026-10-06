@@ -77,6 +77,7 @@ test("public gallery and sitemap stay behind rollout, and the TikTok grid render
   assert.doesNotMatch(social, /newsroom|waiting for review|pending review|approved photographs/i);
   assert.match(sitemap, /isGalleryPublicRolloutEnabled\(settings\.galleryPublicRollout\)/);
   assert.match(sitemap, /\/through-the-lens/);
+  assert.match(social, /export const dynamic = "force-dynamic"/);
   assert.match(social, /<Suspense fallback=\{<TikTokVideoGridFallback \/>\}>\s*<TikTokVideoGrid \/>/);
   assert.match(grid, /await connection\(\)/);
   assert.match(grid, /loadPublicTikTokCatalog\(\)/);
