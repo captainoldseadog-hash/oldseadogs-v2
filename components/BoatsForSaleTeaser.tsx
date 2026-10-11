@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { boatsHomepageIntro } from "../lib/classifieds-copy";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 
 export async function BoatsForSaleTeaser() {
@@ -14,7 +15,7 @@ export async function BoatsForSaleTeaser() {
       <div className="boats-teaser-copy">
         <p className="eyebrow">Classifieds</p>
         <h2 id="boats-teaser-title">Boats for Sale</h2>
-        <p>Free advertisements from private sellers. Browse what is lying nearby, or list your own boat. It costs nothing.</p>
+        <p>{boatsHomepageIntro}</p>
         <div className="boats-teaser-actions">
           <Link className="button-primary" href="/boats-for-sale">Browse boats</Link>
           <Link className="button-secondary" href="/boats-for-sale/list-your-boat">List your boat free</Link>

@@ -4,6 +4,7 @@ import { AdBlock, isOffTopicInvestorAdvert, pickAdvertForPlacement } from "../co
 import { NewsletterSignup } from "../components/NewsletterSignup";
 import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
 import { BoatsForSaleTeaser } from "../components/BoatsForSaleTeaser";
+import { MobileAppHome } from "../components/MobileAppHome";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
@@ -16,10 +17,11 @@ import {
 import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { HomepageContentProvider } from "../lib/homepage-content-provider";
+import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
 import { guidePublicPath } from "../lib/guides";
 import { readImageSize } from "../lib/image-derivatives";
 import { publicMediaVariantUrl } from "../lib/public-media";
-import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet } from "../lib/responsive-image";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, viewportGatePixel } from "../lib/responsive-image";
 import {
   getActiveAds,
   getHomepageGuides,
@@ -223,6 +225,22 @@ export default async function Home() {
   return (
     <main className="site-shell">
       <SiteHeader />
+      <MobileAppHome
+        bannerAd={bannerAd}
+        bottomAd={visibleHomepageBottomAd}
+        content={{
+          featuredStory,
+          latestReviewedOrFallback,
+          editorPicks,
+          reviewStories,
+          practicalStories,
+          featuredPortClub,
+          sectionCards,
+        }}
+        galleryPublic={isGalleryPublicRolloutEnabled(settings.galleryPublicRollout)}
+        guides={homepageGuides}
+        heroSize={heroSize}
+      />
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
         <Link
           aria-label={`Read ${featuredStory.title}`}
@@ -232,6 +250,7 @@ export default async function Home() {
         />
         {featuredHasPhoto ? (
           <picture className="hero-image">
+            <source media="(max-width: 1023px)" srcSet={viewportGatePixel} />
             <source
               media="(max-width: 1024px)"
               sizes="100vw"

@@ -1,3 +1,10 @@
+/**
+ * 1×1 transparent GIF. A matching `<picture>` source can select it so the
+ * other art direction is not downloaded on that viewport.
+ */
+export const viewportGatePixel =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
 /** Widths the derivative route will encode. Keep this list small. */
 export const RESPONSIVE_IMAGE_WIDTHS = [480, 768, 1200, 1600] as const;
 
