@@ -19,5 +19,8 @@ export const buyerSafetyTips = [
   "Old Sea Dogs relays the message. We do not hold the money and we are not a party to the sale.",
 ];
 
+export const boatsHomepageIntro =
+  "Free advertisements. Browse what is lying nearby, or list your own boat. It costs nothing.";
+
 export const boatsTermSummary =
   "Free for private sellers. An advertisement runs for three months after we approve it. We send a short reminder every fortnight, and at three months we ask whether to keep it running for another three months. If there is no reply within 14 days, it ends.";

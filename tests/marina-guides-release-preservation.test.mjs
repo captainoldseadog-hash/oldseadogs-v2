@@ -8,9 +8,10 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // Option C, the prefetched lead, one homepage H1, the Substack signup,
+  // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
-  "app/page.tsx": "5ad532741b671264d2479206bd58db464237ed340f341d61eda736e36a103ff3",
+  // The app-style mobile homepage is an extra block, hidden from 1024px up.
+  "app/page.tsx": "f60214e624d4a6fec97fde428a45ea8cc241de3dcdf94061cac2da8c89c92c43",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
