@@ -11,7 +11,7 @@ const protectedFiles = {
   // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
-  "app/page.tsx": "f60214e624d4a6fec97fde428a45ea8cc241de3dcdf94061cac2da8c89c92c43",
+  "app/page.tsx": "707b35089b51a4a0140f9f06a10ed9211ac458c88362517d2da41da586717491",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -24,12 +24,12 @@ const protectedFiles = {
   // Discover audit, Boats for Sale, the shared two-row site header,
   // story share images pointed at the 1,200px derivative, and the
   // Cowes Yacht Haven / Berthon Lymington guide notices.
-  "app/stories/[slug]/page.tsx": "f0db1356f804c8de070e6ab7edbe4fe0c523b6083b66556e766b5c5b7c3c0c02",
+  "app/stories/[slug]/page.tsx": "e36c52c136473beff248fc6ea03b8a71d67978b187a66cd9410a4a953e0b6f89",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
-  // Retired Solent Marina Guide overview URLs are omitted; they 301 to the marina library.
+  // /marina-guide redirects to /guides/solent-marina-guide, so only the old address is omitted.
   "app/sitemap.ts": "5af87a5168f72539a1a4e8198f34c249473011be015b5670b216b4c7aaad7933",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
@@ -54,7 +54,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
-  assert.equal(hash(reconstructedBaseline), "360e723a1f34c402e6ac356a3385e39ff35d21ca91dc506c10d044cd071428f0");
+  assert.equal(hash(reconstructedBaseline), "1a91e879cb77c283c09eb80a9e2bd74375ac2c53aedfe49f4c3a6abebdceff60");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

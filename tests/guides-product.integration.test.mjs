@@ -97,7 +97,9 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Southampton Water/);
   assert.match(landingHtml, /Beaulieu River/);
   assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise/);
-  assert.doesNotMatch(landingHtml, /solent-marina-guide|Read the Solent Marina Guide/);
+  assert.match(landingHtml, /href="\/guides\/solent-marina-guide"/);
+  assert.match(landingHtml, /Read the Solent Marina Guide/);
+  assert.match(landingHtml, /eyebrow">22(?:<!-- -->)?\s*(?:<!-- -->)?Guides<\/p><h3><a href="\/guides\/solent">The Solent/);
   assert.match(landingHtml, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(landingHtml, /The Solent/);
 
@@ -107,7 +109,9 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(regionHtml, /Guide relationships/);
   assert.match(regionHtml, /In this collection/);
   assert.match(regionHtml, /Explore The Solent/);
-  assert.doesNotMatch(regionHtml, /solent-marina-guide|Read the Solent Marina Guide/);
+  assert.match(regionHtml, /href="\/guides\/solent-marina-guide"/);
+  assert.match(regionHtml, /Read the Solent Marina Guide/);
+  assert.match(regionHtml, /The published library(?:<!-- -->)? · (?:<!-- -->)?22(?:<!-- -->)? (?:<!-- -->)?Guides/);
   assert.match(regionHtml, /River Hamble/);
 
   for (const record of solentMarinaGuideRecords) {
@@ -368,10 +372,21 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(beaulieuHtml, /Information checked against official sources/);
   assert.doesNotMatch(beaulieuHtml, /To be verified|do not claim|should be claimed|do not infer|according to the record|before relying on it|internal editorial/i);
 
-  for (const pathname of ["/guides/solent-marina-guide", "/guides/solent-marina-guide/", "/marina-guide", "/marina-guide/"]) {
+  const hub = await request("/guides/solent-marina-guide");
+  assert.equal(hub.status, 200);
+  assert.match(await hub.text(), /Solent Marina Guide/);
+  const hubSlash = await request("/guides/solent-marina-guide/");
+  assert.equal(hubSlash.status, 308);
+  assert.match(hubSlash.headers.get("location") || "", /\/guides\/solent-marina-guide$/);
+  const sitemap = await request("/sitemap.xml");
+  assert.equal(sitemap.status, 200);
+  const sitemapXml = await sitemap.text();
+  assert.match(sitemapXml, /\/guides\/solent-marina-guide</);
+  assert.doesNotMatch(sitemapXml, /<loc>[^<]*\/marina-guide</);
+  for (const pathname of ["/marina-guide", "/marina-guide/"]) {
     const legacy = await request(pathname);
     assert.equal(legacy.status, 301, pathname);
-    assert.match(legacy.headers.get("location") || "", /^(?:https?:\/\/[^/]+)?\/guides\?type=Marina#guide-library$/, pathname);
+    assert.match(legacy.headers.get("location") || "", /^(?:https?:\/\/[^/]+)?\/guides\/solent-marina-guide$/, pathname);
   }
 });
 

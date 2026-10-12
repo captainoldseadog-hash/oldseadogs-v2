@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArticlePreviewContent } from "../../../../components/ArticlePreviewContent";
 import { canEditRequestHeaders } from "../../../../lib/editor-auth";
+import { publicOpenSourceUrl } from "../../../../lib/public-source-link";
+import { getLegacyRedirectPath } from "../../../../lib/redirects";
 import { getEditorData } from "../../../../lib/site-content";
 import { createPageMetadata } from "../../../../lib/seo";
 
@@ -52,7 +54,15 @@ export default async function EditorPreviewPage({ params }: EditorPreviewPagePro
         <Link href="/editor">Back to Editor</Link>
       </nav>
 
-      <ArticlePreviewContent ads={data.ads} previewOnly showAdditionalAds story={story} />
+      <ArticlePreviewContent
+        ads={data.ads}
+        previewOnly
+        showAdditionalAds
+        story={{
+          ...story,
+          sourceUrl: publicOpenSourceUrl(story.sourceUrl, `/stories/${story.slug}`, getLegacyRedirectPath),
+        }}
+      />
     </main>
   );
 }

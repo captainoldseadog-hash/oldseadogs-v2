@@ -92,17 +92,19 @@ export function GuideCollectionBrowser({
       {filtered.length ? (
         <>
           <div className="guide-card-grid">
-            {filtered.map((guide) => (
+            {filtered.map((guide) => {
+              const imageSrc = derivativeImageUrl(guide.imageUrl, 768);
+              return (
               <article className="guide-card" key={guide.slug}>
                 <Link className="guide-card-image" href={guide.path}>
-                  <img
+                  {imageSrc ? <img
                     alt={guide.imageAlt}
                     decoding="async"
                     loading="lazy"
                     sizes="(max-width: 640px) calc(100vw - 40px), 360px"
-                    src={derivativeImageUrl(guide.imageUrl, 768)}
+                    src={imageSrc}
                     srcSet={derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined}
-                  />
+                  /> : null}
                 </Link>
                 <div>
                   <p className="eyebrow">{guide.guideType}</p>
@@ -110,7 +112,8 @@ export function GuideCollectionBrowser({
                   <p>{guide.summary}</p>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
           {guideType !== "All" && filtered.length < 2 ? (
             <p className="guide-collection-growth">

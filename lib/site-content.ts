@@ -30,6 +30,7 @@ import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
 import { publicImageAlt } from "./public-image-alt";
+import { isRenderableImageReference } from "./responsive-image.ts";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
@@ -2328,7 +2329,8 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
 }
 
 export function hasStoryPhoto(story: Pick<EditableStory, "imageUrl">) {
-  return !placeholderStoryImages.has(story.imageUrl.trim());
+  const imageUrl = story.imageUrl.trim();
+  return isRenderableImageReference(imageUrl) && !placeholderStoryImages.has(imageUrl);
 }
 
 function storyBodyWordCount(story: Pick<EditableStory, "body">) {

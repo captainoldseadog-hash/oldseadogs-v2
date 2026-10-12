@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { shareImageDimensions, shareImageUrl } from "./responsive-image.ts";
+import { isRenderableImageReference, shareImageDimensions, shareImageUrl } from "./responsive-image.ts";
 
 export const siteName = "Old Sea Dogs";
 export const contactEmail = "captainoldseadog@gmail.com";
@@ -146,10 +146,11 @@ export function createPageMetadata({
   noIndexFollow?: boolean;
 }): Metadata {
   const fullTitle = pageTitle(title);
-  const sharedUrl = shareImageUrl(image.url);
-  const sharedSize = sharedUrl === image.url
-    ? { width: image.width, height: image.height }
-    : shareImageDimensions(image.width, image.height);
+  const usableImage = isRenderableImageReference(image.url) ? image : defaultOpenGraphImage;
+  const sharedUrl = shareImageUrl(usableImage.url) || defaultOpenGraphImage.url;
+  const sharedSize = sharedUrl === usableImage.url
+    ? { width: usableImage.width, height: usableImage.height }
+    : shareImageDimensions(usableImage.width, usableImage.height);
   const imageUrl = absoluteUrl(sharedUrl);
 
   return {
@@ -169,7 +170,7 @@ export function createPageMetadata({
           url: imageUrl,
           width: sharedSize.width,
           height: sharedSize.height,
-          alt: image.alt ?? fullTitle,
+          alt: usableImage.alt ?? fullTitle,
         },
       ],
     },

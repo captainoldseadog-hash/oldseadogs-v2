@@ -1,9 +1,4 @@
-/**
- * 1×1 transparent GIF. A matching `<picture>` source can select it so the
- * other art direction is not downloaded on that viewport.
- */
-export const viewportGatePixel =
-  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+import { publicMediaVariantUrl } from "./public-media.ts";
 
 /** Widths the derivative route will encode. Keep this list small. */
 export const RESPONSIVE_IMAGE_WIDTHS = [480, 768, 1200, 1600] as const;
@@ -27,6 +22,24 @@ export function isDerivativeSource(url: string) {
   return Boolean(mediaIdFromPublicUrl(url)) || LOCAL_PUBLIC_IMAGE.test(url.split(/[?#]/, 1)[0] || "");
 }
 
+/**
+ * A public image must be an http(s) URL or a root-relative path.
+ * Filenames, notes and other CMS text are not requested.
+ */
+export function isRenderableImageReference(value: string) {
+  const text = String(value || "").trim();
+  if (!text || text.length > 2000 || /[\s\\<>]/.test(text) || text.includes("..")) return false;
+  if (text.startsWith("/")) {
+    return text.startsWith("//") ? false : /^\/[A-Za-z0-9._~!$&'()*+,;=:@%/?#-]+$/.test(text);
+  }
+  try {
+    const url = new URL(text);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function nearestResponsiveWidth(width: number): ResponsiveImageWidth {
   const numeric = RESPONSIVE_IMAGE_WIDTHS.find((candidate) => candidate >= width);
   return numeric || RESPONSIVE_IMAGE_WIDTHS[RESPONSIVE_IMAGE_WIDTHS.length - 1];
@@ -37,7 +50,8 @@ export function nearestResponsiveWidth(width: number): ResponsiveImageWidth {
  * never the target of this URL.
  */
 export function derivativeImageUrl(url: string, width: number) {
-  if (!url || !isDerivativeSource(url)) return url;
+  if (!isRenderableImageReference(url)) return "";
+  if (!isDerivativeSource(url)) return url;
   const safeWidth = nearestResponsiveWidth(width);
   const mediaId = mediaIdFromPublicUrl(url);
   if (mediaId) {
@@ -50,7 +64,7 @@ export function derivativeImageUrl(url: string, width: number) {
 }
 
 export function derivativeSrcSet(url: string, widths: readonly number[] = RESPONSIVE_IMAGE_WIDTHS) {
-  if (!isDerivativeSource(url)) return "";
+  if (!isRenderableImageReference(url) || !isDerivativeSource(url)) return "";
   const unique: ResponsiveImageWidth[] = [];
   for (const width of widths) {
     const safeWidth = nearestResponsiveWidth(width);
@@ -60,8 +74,21 @@ export function derivativeSrcSet(url: string, widths: readonly number[] = RESPON
 }
 
 export function mobileSourceSrcSet(url: string, dedicatedMobileUrl = "") {
-  if (dedicatedMobileUrl && dedicatedMobileUrl !== url) return dedicatedMobileUrl;
-  return derivativeSrcSet(url, [480, 768, 1200]) || url;
+  if (dedicatedMobileUrl && dedicatedMobileUrl !== url && isRenderableImageReference(dedicatedMobileUrl)) return dedicatedMobileUrl;
+  return derivativeSrcSet(url, [480, 768, 1200]) || (isRenderableImageReference(url) ? url : "");
+}
+
+/**
+ * Homepage and card art. A prepared mobile/thumbnail file is used when one
+ * exists; other local photos become a resized WebP derivative.
+ */
+export function resizedPublicImageUrl(url: string, width = 768) {
+  if (!isRenderableImageReference(url)) return "";
+  const dedicated = publicMediaVariantUrl(url, "mobile");
+  if (dedicated && dedicated !== url && isRenderableImageReference(dedicated)) return dedicated;
+  const thumbnail = publicMediaVariantUrl(url, "thumbnail");
+  if (thumbnail && thumbnail !== url && isRenderableImageReference(thumbnail)) return thumbnail;
+  return derivativeImageUrl(url, width);
 }
 
 function pathOnly(url: string) {
@@ -78,7 +105,8 @@ export function isNeedlesHeroImage(url: string) {
  * stay as stored.
  */
 export function shareImageUrl(url: string) {
-  if (!url || pathOnly(url) === DEFAULT_SOCIAL_LOGO_PATH || !isDerivativeSource(url)) return url;
+  if (!isRenderableImageReference(url)) return "";
+  if (pathOnly(url) === DEFAULT_SOCIAL_LOGO_PATH || !isDerivativeSource(url)) return url;
   return derivativeImageUrl(url, SHARE_IMAGE_WIDTH);
 }
 
@@ -92,6 +120,7 @@ export function shareImageDimensions(width?: number, height?: number) {
 
 /** Desktop src for the Needles hero. Other heroes keep their existing display width. */
 export function needlesHeroImageUrl(url: string) {
+  if (!isRenderableImageReference(url)) return "";
   if (!isNeedlesHeroImage(url)) return url;
   return derivativeImageUrl(url, SHARE_IMAGE_WIDTH);
 }

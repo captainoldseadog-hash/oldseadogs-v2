@@ -31,6 +31,8 @@ test("the lead uses one responsive eager image rather than separate mobile and d
   const [homepage, css] = await Promise.all([read("app/page.tsx"), read("app/globals.css")]);
 
   assert.match(homepage, /<picture className="hero-image">[\s\S]*?media="\(max-width: 1024px\)"[\s\S]*?publicMediaVariantUrl\(featuredStory\.imageUrl, "mobile"\)[\s\S]*?<img/);
+  assert.doesNotMatch(homepage, /data:image\/gif|R0lGOD|viewportGatePixel/);
+  assert.doesNotMatch(await read("components/MobileAppHome.tsx"), /data:image\/gif|R0lGOD|viewportGatePixel/);
   assert.doesNotMatch(homepage, /className="mobile-hero-image"/);
   assert.match(homepage, /fetchPriority="high"[\s\S]*?loading="eager"/);
   assert.match(css, /@media \(max-width: 1024px\)[\s\S]*?\.hero-image \{\s*display: block;/);

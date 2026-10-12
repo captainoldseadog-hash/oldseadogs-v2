@@ -62,6 +62,7 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
         </p>
         <div className="guide-directory-actions">
           <a className="guide-skip-to-search" href="#guide-library">Find a particular place</a>
+          <Link href="/guides/solent-marina-guide">Read the Solent Marina Guide</Link>
         </div>
       </header>
 
@@ -75,17 +76,19 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
           </p>
         </div>
         <div className="guide-area-discovery-grid">
-          {discoveryAreas.map((area) => (
+          {discoveryAreas.map((area) => {
+            const imageSrc = isNeedlesHeroImage(area.guide.imageUrl)
+              ? needlesHeroImageUrl(area.guide.imageUrl)
+              : derivativeImageUrl(area.guide.imageUrl, 1200);
+            return (
             <article className="guide-area-card" key={area.key}>
               <Link className="guide-area-card-image" href={area.path}>
-                {area.guide.imageUrl ? <img
+                {imageSrc ? <img
                   alt={area.guide.imageAlt}
                   decoding="async"
                   loading="lazy"
                   sizes="(max-width: 760px) calc(100vw - 28px), 560px"
-                  src={isNeedlesHeroImage(area.guide.imageUrl)
-                    ? needlesHeroImageUrl(area.guide.imageUrl)
-                    : derivativeImageUrl(area.guide.imageUrl, 1200)}
+                  src={imageSrc}
                   srcSet={derivativeSrcSet(area.guide.imageUrl, [480, 768, 1200]) || undefined}
                 /> : null}
               </Link>
@@ -117,7 +120,8 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
                 ) : null}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 

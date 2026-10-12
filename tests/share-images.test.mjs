@@ -78,6 +78,17 @@ test("page metadata publishes the 1200px image on Open Graph and Twitter", () =>
     path: "/",
   });
   assert.equal(pathname(openGraphImage(home).url), "/images/old-sea-dogs-logo.png");
+
+  const pending = createPageMetadata({
+    title: "Pending photo",
+    description: "A story whose image is a filename, not a URL",
+    path: "/stories/pending-photo",
+    image: { url: "Monaco 1.png", alt: "filename" },
+    type: "article",
+  });
+  assert.equal(pathname(openGraphImage(pending).url), "/images/old-sea-dogs-logo.png");
+  assert.equal(shareImageUrl("pending"), "");
+  assert.equal(shareImageUrl("javascript:alert(1)"), "");
 });
 
 test("guide structured data uses the same 1200px share image", () => {
