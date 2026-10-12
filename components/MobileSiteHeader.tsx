@@ -8,7 +8,6 @@ import { boatsForSaleNavigationLink, oldSeaDogsSections, throughTheLensNavigatio
 const guideLinks = [
   { href: "/guides", label: "All Guides" },
   { href: "/guides/solent", label: "The Solent" },
-  { href: "/guides/solent-marina-guide", label: "Solent Marina Guide" },
   { href: "/guides/poole-harbour", label: "Poole Harbour" },
   { href: "/guides/chichester-harbour", label: "Chichester Harbour" },
 ];

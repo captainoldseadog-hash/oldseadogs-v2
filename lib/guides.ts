@@ -1,4 +1,5 @@
 import type { EditableGuide } from "./site-content.ts";
+import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
 import { shareImageUrl } from "./responsive-image.ts";
 import { absoluteUrl } from "./seo.ts";
 
@@ -150,7 +151,7 @@ function escapeRegExp(value: string) { return value.replace(/[.*+?^${}()|[\]\\]/
 
 export function guideEditorialLinkMatches(text: string, currentSlug: string, guides: readonly EditableGuide[], alreadyLinked: ReadonlySet<string> = new Set()): GuideEditorialLinkMatch[] {
   const candidates = guides
-    .filter((guide) => guide.status === "published" && guide.slug !== currentSlug && !alreadyLinked.has(guide.slug))
+    .filter((guide) => guide.status === "published" && guide.slug !== currentSlug && !alreadyLinked.has(guide.slug) && !isRetiredMarinaGuideHub(guide))
     .flatMap((guide) => guideEditorialAliases(guide).map((label) => ({ guide, label })));
   const aliasCounts = new Map<string, number>();
   for (const { label } of candidates) aliasCounts.set(label.toLowerCase(), (aliasCounts.get(label.toLowerCase()) || 0) + 1);
@@ -175,7 +176,7 @@ export function relatedGuides(
   guides: readonly EditableGuide[],
   relationship: "relatedGuideSlugs" | "cruiseOnGuideSlugs",
 ) {
-  const bySlug = new Map(guides.map((item) => [item.slug, item]));
+  const bySlug = new Map(guides.filter((item) => !isRetiredMarinaGuideHub(item)).map((item) => [item.slug, item]));
   return guide[relationship]
     .map((slug) => bySlug.get(slug))
     .filter((item): item is EditableGuide => Boolean(item))
