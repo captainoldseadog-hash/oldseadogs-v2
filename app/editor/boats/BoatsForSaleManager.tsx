@@ -9,6 +9,7 @@ type HelmListing = {
   sellerName: string;
   sellerEmail: string;
   sellerPhone: string;
+  sellerType?: string;
   location: string;
   priceGbp: number | null;
   make: string;
@@ -116,6 +117,7 @@ export default function BoatsForSaleManager() {
             <p>{selected.make} {selected.model} · {selected.location}</p>
             <dl className="bridge-definition-list">
               <div><dt>Seller</dt><dd>{selected.sellerName}</dd></div>
+              <div><dt>Seller type</dt><dd>{selected.sellerType === "trade" ? "Trade" : "Private"}</dd></div>
               <div><dt>Email</dt><dd><a href={`mailto:${selected.sellerEmail}`}>{selected.sellerEmail}</a></dd></div>
               <div><dt>Phone</dt><dd>{selected.sellerPhone || "Not given"}</dd></div>
               <div><dt>Price</dt><dd>{selected.priceGbp === null ? "POA" : `£${selected.priceGbp}`}</dd></div>

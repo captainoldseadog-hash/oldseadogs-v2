@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompassRose } from "../../components/boats/BoatsMasthead";
+import { TradeBadge } from "../../components/boats/TradeBadge";
 import { CRUISING_GROUNDS, KEEL_TYPES, KEEL_LABELS, BOAT_TYPES, BOAT_TYPE_LABELS } from "../../lib/classifieds-types.ts";
 import { filterPublicListings, type ListingQuery, type PublicListing } from "../../lib/classifieds-public.ts";
 import { listPublicBoatListings } from "../../lib/classifieds-service.ts";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Boats for Sale",
-  description: "Free private-seller boats for sale on Old Sea Dogs. Search by type, length, price, year, keel and cruising ground.",
+  description: "Free advertisements for private owners and brokers. Search by type, length, price, year, keel and cruising ground.",
   path: "/boats-for-sale",
 });
 
@@ -39,8 +40,8 @@ export default async function BoatsForSalePage({ searchParams }: BrowseProps) {
         <div className="boats-hero">
           <div>
             <p className="boats-kicker">The Boat Register</p>
-            <h1>Boats with a story, <em>sold by the people who sailed them.</em></h1>
-            <p className="boats-standfirst">Old Sea Dogs’ free classifieds for private owners: honest descriptions, real photographs and the berth she lies in. No brokers, and no commission.</p>
+            <h1>Boats with a story, <em>from private owners and brokers.</em></h1>
+            <p className="boats-standfirst">Free advertisements for private owners and brokers: honest descriptions, real photographs and the berth she lies in. No commission.</p>
             <form className="boats-plot" method="get">
               <div className="boats-plot-grid">
                 <label>Type
@@ -106,7 +107,7 @@ export default async function BoatsForSalePage({ searchParams }: BrowseProps) {
           <section className="boats-empty">
             <p className="boats-kicker">The board is clear</p>
             <h2>Be the first to list your boat free</h2>
-            <p>A private-seller advertisement runs for three months. It costs nothing. We email you every fortnight while it is up, and at three months we ask whether to keep it running.</p>
+            <p>A free advertisement for private owners and brokers runs for three months. It costs nothing. We email you every fortnight while it is up, and at three months we ask whether to keep it running.</p>
             <Link className="boats-button" href="/boats-for-sale/list-your-boat">List your boat free</Link>
           </section>
         ) : results.length === 0 ? (
@@ -162,7 +163,7 @@ function Lead({ listing }: { listing: PublicListing }) {
     <article className="boats-lead">
       {listing.photos[0] ? <img alt={listing.photos[0].alt} height={listing.photos[0].height || 1000} src={listing.photos[0].src} width={listing.photos[0].width || 1600} /> : <div className="boats-frame-empty">Photograph to follow</div>}
       <div>
-        <p className="boats-number">{listing.publicNumber}</p>
+        <p className="boats-number">{listing.publicNumber} <TradeBadge sellerType={listing.sellerType} /></p>
         <p className="boats-chart-label">{listing.chartLabel}</p>
         <h3>{listing.title.replace(/^Example only — /, "")}</h3>
         <p>{[listing.make, listing.model, listing.year, listing.location].filter(Boolean).join(" · ")}</p>
@@ -178,7 +179,7 @@ function Card({ listing }: { listing: PublicListing }) {
   return (
     <article className="boats-card">
       <Link href={`/boats-for-sale/${listing.slug}`}>
-        <p className="boats-number">{listing.publicNumber}</p>
+        <p className="boats-number">{listing.publicNumber} <TradeBadge sellerType={listing.sellerType} /></p>
         <p className="boats-chart-label">{listing.chartLabel}</p>
         <div className="boats-card-media">
           {listing.photos[0] ? <img alt="" height={listing.photos[0].height || 640} src={listing.photos[0].thumb} width={listing.photos[0].width || 960} /> : <span className="boats-card-placeholder">Photograph to follow</span>}
@@ -196,7 +197,7 @@ function RegisterBand() {
     <section className="boats-sell">
       <div className="boats-sell-inner">
         <div>
-          <p className="boats-kicker">For owners</p>
+          <p className="boats-kicker">Private owners and brokers</p>
           <h2>Enter your boat in the Register. It’s free.</h2>
           <p>Write her up in your own words, add your photographs and tell buyers where she lies. Your advertisement runs for three months. We send a short note every fortnight to say it is still running, and at three months we ask whether you would like to keep it going.</p>
           <div className="boats-sell-actions">

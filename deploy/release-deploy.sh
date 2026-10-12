@@ -36,11 +36,49 @@ The script never writes to the live CMS data directory.
 EOF
 }
 
-cleanup() {
-  if [[ -n "$SMOKE_PID" ]] && kill -0 "$SMOKE_PID" 2>/dev/null; then
-    kill "$SMOKE_PID" 2>/dev/null || true
-    wait "$SMOKE_PID" 2>/dev/null || true
+# npm keeps the smoke server alive after the wrapper shell exits. Walk the
+# process tree, children first, so the listener on the temp port stops too.
+kill_process_tree() {
+  local pid="$1"
+  local signal="${2:-TERM}"
+  local child
+  local children=""
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 0
+  if [[ -r "/proc/${pid}/task/${pid}/children" ]]; then
+    children="$(<"/proc/${pid}/task/${pid}/children")"
+  else
+    children="$(ps -o pid= --ppid "$pid" 2>/dev/null || true)"
   fi
+  # Word-splitting is the pid list from /proc or ps.
+  # shellcheck disable=SC2086
+  for child in $children; do
+    kill_process_tree "$child" "$signal"
+  done
+  kill "-${signal}" "$pid" 2>/dev/null || true
+}
+
+stop_smoke_server() {
+  local pid="${SMOKE_PID:-}"
+  local waited=0
+  [[ -n "$pid" ]] || return 0
+  SMOKE_PID=""
+  if ! kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+  kill_process_tree "$pid" TERM
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( waited >= 25 )); then
+      kill_process_tree "$pid" KILL
+      break
+    fi
+    sleep 0.1
+    waited=$((waited + 1))
+  done
+  wait "$pid" 2>/dev/null || true
+}
+
+cleanup() {
+  stop_smoke_server
   if [[ -n "$SMOKE_DATA_DIR" && -d "$SMOKE_DATA_DIR" ]]; then
     rm -rf "$SMOKE_DATA_DIR"
   fi
@@ -51,6 +89,10 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+if [[ "${OLDSEADOGS_DEPLOY_FUNCTIONS_ONLY:-}" == "1" ]]; then
+  return 0 2>/dev/null || exit 0
+fi
 
 while (($#)); do
   case "$1" in
@@ -270,9 +312,7 @@ if ! run_content_health_checks "$STAGED_RELEASE" "$SMOKE_BASE_URL" "$SMOKE_DATA_
   tail -n 100 "$STAGING_ROOT/smoke-server.log" >&2 || true
   die "Staged release failed content health checks"
 fi
-kill "$SMOKE_PID"
-wait "$SMOKE_PID" 2>/dev/null || true
-SMOKE_PID=""
+stop_smoke_server
 rm -rf "$SMOKE_DATA_DIR"
 SMOKE_DATA_DIR=""
 rm -f "$STAGING_ROOT/smoke-server.log"

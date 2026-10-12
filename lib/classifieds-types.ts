@@ -14,6 +14,7 @@ export const BOAT_TYPES = ["sail", "power", "other"] as const;
 export const KEEL_TYPES = ["fin", "bilge", "lifting", "long", "twin", "centreboard", "none", "other"] as const;
 export const VAT_STATUSES = ["included", "excluded", "not_applicable", "unspecified"] as const;
 export const LISTING_TIERS = ["free", "featured"] as const;
+export const SELLER_TYPES = ["private", "trade"] as const;
 export const LISTING_STATUSES = [
   "draft",
   "pending_email",
@@ -39,6 +40,12 @@ export type KeelType = (typeof KEEL_TYPES)[number];
 export type VatStatus = (typeof VAT_STATUSES)[number];
 export type ListingTier = (typeof LISTING_TIERS)[number];
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
+export type SellerType = (typeof SELLER_TYPES)[number];
+
+/** Missing means Private. Live rows saved before this field existed are left untouched. */
+export function publicSellerType(listing: { sellerType?: string | null } | null | undefined): SellerType {
+  return listing?.sellerType === "trade" ? "trade" : "private";
+}
 
 export type CruisingGround = {
   slug: string;
@@ -102,6 +109,8 @@ export type ClassifiedListing = {
   sellerEmail: string;
   sellerPhone: string;
   showPhone: boolean;
+  /** Omitted on advertisements saved before seller type existed. Omission means Private. */
+  sellerType?: SellerType;
   title: string;
   make: string;
   model: string;
@@ -175,6 +184,7 @@ export type ListingInput = {
   sellerEmail: string;
   sellerPhone: string;
   showPhone: boolean;
+  sellerType: SellerType;
   title: string;
   make: string;
   model: string;

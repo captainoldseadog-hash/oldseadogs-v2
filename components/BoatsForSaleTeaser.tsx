@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TradeBadge } from "./boats/TradeBadge";
 import { boatsHomepageIntro } from "../lib/classifieds-copy";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 
@@ -27,7 +28,7 @@ export async function BoatsForSaleTeaser() {
         ) : listings.map((listing) => (
           <Link href={`/boats-for-sale/${listing.slug}`} key={listing.id}>
             <span>{listing.publicNumber}</span>
-            <strong>{listing.title}</strong>
+            <strong>{listing.title} <TradeBadge sellerType={listing.sellerType} /></strong>
             <small>{listing.chartLabel}</small>
             <em>{listing.priceLabel}</em>
           </Link>

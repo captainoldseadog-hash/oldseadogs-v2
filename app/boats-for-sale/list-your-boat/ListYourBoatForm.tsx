@@ -132,6 +132,14 @@ export function ListYourBoatForm({ consentLabel, privacyNotice }: { consentLabel
       </fieldset>
       <fieldset>
         <legend><b>III.</b> Correspondence</legend>
+        <label>Seller type
+          <select defaultValue="private" name="sellerType">
+            <option value="private">Private</option>
+            <option value="trade">Trade</option>
+          </select>
+          {errors.sellerType ? <small>{errors.sellerType}</small> : null}
+        </label>
+        <p className="boats-field-note">Optional. Leave this as Private if you are the owner. Choose Trade if you are a broker.</p>
         <label>Name<input autoComplete="name" name="sellerName" required type="text" />{errors.sellerName ? <small>{errors.sellerName}</small> : null}</label>
         <label>Email<input autoComplete="email" name="sellerEmail" required type="email" />{errors.sellerEmail ? <small>{errors.sellerEmail}</small> : null}</label>
         <label>Telephone, if you wish<input autoComplete="tel" name="sellerPhone" type="tel" />{errors.sellerPhone ? <small>{errors.sellerPhone}</small> : null}</label>

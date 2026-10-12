@@ -9,6 +9,7 @@ import { oldSeaDogsSocialPlatforms } from "../content/social-links";
 import { categoryMatchesLabel, displayCategoryLabel, oldSeaDogsSections } from "../content/sections";
 import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
+import { TradeBadge } from "./boats/TradeBadge";
 import { boatsHomepageIntro } from "../lib/classifieds-copy";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { guidePublicPath } from "../lib/guides";
@@ -369,7 +370,7 @@ function BoatsCard({
         {listing ? (
           <Link className="app-boats-listing" href={`/boats-for-sale/${listing.slug}`}>
             <span>
-              <strong>{listing.title}</strong>
+              <strong>{listing.title} <TradeBadge sellerType={listing.sellerType} /></strong>
               <span>{listing.publicNumber} · {listing.cruisingGroundLabel}</span>
             </span>
             <em>{listing.priceLabel}</em>

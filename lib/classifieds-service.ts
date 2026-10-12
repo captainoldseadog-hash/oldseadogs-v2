@@ -586,6 +586,7 @@ function blankListing(id: string, now: Date): ClassifiedListing {
     sellerEmail: "",
     sellerPhone: "",
     showPhone: false,
+    sellerType: "private",
     title: "",
     make: "",
     model: "",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BoatGallery } from "../../../components/boats/BoatGallery";
+import { TradeBadge } from "../../../components/boats/TradeBadge";
 import { JsonLd } from "../../../components/JsonLd";
 import { buyerSafetyTips } from "../../../lib/classifieds-copy.ts";
 import { listingJsonLd, toPublicListing } from "../../../lib/classifieds-public.ts";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   const title = listing?.title || "Boat advertisement";
   return createPageMetadata({
     title,
-    description: isPublic ? listing?.description.slice(0, 180) || "A private-seller boat advertisement on Old Sea Dogs." : "This Old Sea Dogs boat advertisement is no longer running.",
+    description: isPublic ? listing?.description.slice(0, 180) || "A free boat advertisement from a private owner or broker on Old Sea Dogs." : "This Old Sea Dogs boat advertisement is no longer running.",
     path: `/boats-for-sale/${slug}`,
     noIndex: !isPublic,
     image: isPublic && listing?.photos[0] ? { url: `/boats-media/${listing.photos[0].id}`, alt: listing.photos[0].alt || title } : undefined,
@@ -63,7 +64,7 @@ export default async function BoatListingPage({ params, searchParams }: ListingP
     <main className="boats-wrap boats-feature">
       <JsonLd data={listingJsonLd(view)} />
       <header className="boats-feature-heading">
-        <p className="boats-number">{view.publicNumber}</p>
+        <p className="boats-number">{view.publicNumber} <TradeBadge sellerType={view.sellerType} /></p>
         <p className="boats-chart-label">{view.chartLabel}</p>
         <h1>{view.title}</h1>
         <p>{[view.make, view.model, view.year].filter(Boolean).join(" · ")} · {view.listedLabel} · {view.confirmedLabel}</p>

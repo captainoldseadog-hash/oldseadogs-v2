@@ -6,6 +6,7 @@ import {
   cruisingGroundBySlug,
   daysSince,
   listingIsPublic,
+  publicSellerType,
   type ClassifiedListing,
   type ClassifiedPhoto,
 } from "./classifieds-types.ts";
@@ -48,6 +49,7 @@ export type PublicListing = {
   liveaboard: boolean;
   photos: PublicPhoto[];
   sellerName: string;
+  sellerType: "private" | "trade";
   phone: string;
   tier: ClassifiedListing["tier"];
   listedDays: number | null;
@@ -115,6 +117,7 @@ export function toPublicListing(listing: ClassifiedListing, guides: readonly Gui
     liveaboard: listing.liveaboard,
     photos: listing.photos.map((photo) => publicPhoto(photo)),
     sellerName: listing.sellerName,
+    sellerType: publicSellerType(listing),
     phone,
     tier: listing.tier,
     listedDays,
