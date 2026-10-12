@@ -114,6 +114,8 @@ test("the Chichester collection hub has Article and Place data, a hero alt, and 
   assert.match(hero[0], new RegExp(`alt="${heroAlt}"`));
   assert.match(html, /See the full\s*(?:<!-- -->)?Chichester Harbour(?:<!-- -->)? collection/);
   assert.match(html, /Search Chichester Harbour Guides/);
+  assert.match(html, /The published library(?:<!-- -->)? · (?:<!-- -->)?1(?:<!-- -->)? (?:<!-- -->)?Guide/);
+  assert.match(html, /href="\/guides\/chichester-harbour\/itchenor"/);
   assert.doesNotMatch(html, /full Solent collection/);
   assert.doesNotMatch(html, /Search Solent Guides/);
 

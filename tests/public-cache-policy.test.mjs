@@ -30,7 +30,9 @@ test("anonymous public documents are shared-cacheable", () => {
     assert.equal(headers["Cache-Control"], PUBLIC_DOCUMENT_CACHE_CONTROL);
     assert.equal(headers["CDN-Cache-Control"], PUBLIC_SHARED_CACHE_CONTROL);
     assert.equal(headers["Cloudflare-CDN-Cache-Control"], PUBLIC_SHARED_CACHE_CONTROL);
-    assert.match(headers["Cache-Control"], /s-maxage=120/);
+    assert.match(headers["Cache-Control"], /s-maxage=60/);
+    assert.equal(headers["Cache-Control"], "public, s-maxage=60, stale-while-revalidate=300");
+    assert.equal(headers["CDN-Cache-Control"], "public, max-age=60, stale-while-revalidate=300");
     assert.match(headers["Cache-Control"], /stale-while-revalidate=300/);
     assert.doesNotMatch(headers["CDN-Cache-Control"], /s-maxage/);
   }

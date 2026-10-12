@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { derivativeImageUrl, derivativeSrcSet } from "../lib/responsive-image";
+import { derivativeImageUrl, derivativeSrcSet, isRenderableImageReference } from "../lib/responsive-image";
 
 type ResponsiveStoryImageProps = {
   alt: string;
@@ -27,6 +27,7 @@ export function ResponsiveStoryImage({
   sizes = "(max-width: 640px) 100vw, 50vw",
   src,
 }: ResponsiveStoryImageProps) {
+  if (!isRenderableImageReference(src)) return null;
   const thumbnail = thumbnailImageUrl(src);
   const srcSet = derivativeSrcSet(src, eager ? [768, 1200, 1600] : [480, 768]);
 

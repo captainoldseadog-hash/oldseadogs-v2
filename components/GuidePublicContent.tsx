@@ -4,7 +4,7 @@ import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { DerivativeImage } from "./DerivativeImage.tsx";
 import { readImageSize } from "../lib/image-derivatives.ts";
-import { isNeedlesHeroImage, mobileSourceSrcSet } from "../lib/responsive-image.ts";
+import { isNeedlesHeroImage, isRenderableImageReference, mobileSourceSrcSet } from "../lib/responsive-image.ts";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
@@ -488,7 +488,7 @@ export function GuidePublicContent({
       ) : null}
 
       <header className="guide-product-hero">
-        {guide.imageUrl ? <figure>
+        {isRenderableImageReference(guide.imageUrl) ? <figure>
           <GuideHeroPicture guide={guide} />
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (
             <figcaption>

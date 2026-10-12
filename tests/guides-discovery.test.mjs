@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { guideCollectionLead, guideCruisingArea, guideDiscoveryAreas, guideEditorialLinkMatches } from "../lib/guides.ts";
+import { guideCollectionLead, guideCollectionMembers, guideCruisingArea, guideDiscoveryAreas, guideEditorialLinkMatches } from "../lib/guides.ts";
 
 function guide({
   id,
@@ -45,7 +45,12 @@ test("Guide discovery is generated from area and parent relationships", () => {
 
   const areas = guideDiscoveryAreas(records);
   assert.deepEqual(areas.map((area) => area.key), ["solent", "poole-harbour"]);
-  assert.equal(areas[0].guideCount, 4, "draft Guides are excluded from public counts");
+  assert.equal(areas[0].guideCount, 3, "the hub record and draft Guides are excluded from the displayed count");
+  for (const area of areas) {
+    const listed = area.nodes.reduce((total, node) => total + 1 + node.children.length, 0) + area.directGuides.length;
+    assert.equal(area.guideCount, listed, area.key);
+    assert.equal(area.guideCount, guideCollectionMembers(area.key, records.filter((item) => item.status === "published")).length);
+  }
   assert.deepEqual(areas[0].nodes.map((node) => node.guide.slug), ["portsmouth-harbour"]);
   assert.deepEqual(areas[0].nodes[0].children.map((child) => child.slug), ["haslar-marina", "gosport-marina"]);
   assert.deepEqual(areas[1].directGuides.map((child) => child.slug), ["brownsea-island"]);
@@ -63,6 +68,8 @@ test("a parented cruising area with the region slug still leads the collection",
   assert.equal(area.key, "chichester-harbour");
   assert.equal(area.path, "/guides/chichester-harbour");
   assert.deepEqual(area.directGuides.map((item) => item.slug), ["itchenor"]);
+  assert.equal(area.guideCount, 1);
+  assert.equal(guideCollectionMembers("chichester-harbour", records).map((item) => item.slug).join(","), "itchenor");
 });
 
 test("a future cruising area appears without a named-area code path", () => {

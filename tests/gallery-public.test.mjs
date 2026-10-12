@@ -104,7 +104,9 @@ test("public gallery and sitemap stay behind rollout, and the TikTok grid render
   assert.match(tiktok, /Load TikTok profile/);
   assert.match(tiktok, /oldseadogs8/);
   assert.doesNotMatch(tiktok, /<script/);
-  assert.doesNotMatch(sections, /marinaGuideNavigationLink|label: "Marina Guide"|solent-marina-guide/);
+  assert.match(sections, /marinaGuideNavigationLink/);
+  assert.match(sections, /label: "Marina Guide"/);
+  assert.match(sections, /solent-marina-guide/);
   assert.match(sections, /throughTheLensNavigationLink/);
   assert.match(sections, /href: "\/through-the-lens"/);
   assert.match(sections, /label: "Through the Lens"/);
@@ -112,5 +114,6 @@ test("public gallery and sitemap stay behind rollout, and the TikTok grid render
   assert.match(header, /desktopNavigationRowBreak/);
   assert.doesNotMatch(header, /Marina Guide|solent-marina-guide/);
   assert.match(mobile, /throughTheLensNavigationLink/);
-  assert.doesNotMatch(mobile, /marinaGuideNavigationLink|Marina Guide|solent-marina-guide/);
+  assert.match(mobile, /href: "\/guides\/solent-marina-guide"/);
+  assert.match(mobile, /Solent Marina Guide/);
 });

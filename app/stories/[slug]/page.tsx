@@ -37,6 +37,8 @@ import {
   hasStoryPhoto,
   isStorySearchIndexable,
 } from "../../../lib/site-content";
+import { publicOpenSourceUrl } from "../../../lib/public-source-link";
+import { getLegacyRedirectPath } from "../../../lib/redirects";
 import { shareImageDimensions, shareImageUrl } from "../../../lib/responsive-image";
 import {
   adsenseClientId,
@@ -419,6 +421,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
           ...story,
           body: articleBody,
           imageUrl: storyHasPhoto ? story.imageUrl : "",
+          sourceUrl: publicOpenSourceUrl(story.sourceUrl, storyPath, getLegacyRedirectPath),
         }}
       />
 

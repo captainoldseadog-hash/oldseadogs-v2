@@ -21,7 +21,7 @@ import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
 import { guidePublicPath } from "../lib/guides";
 import { readImageSize } from "../lib/image-derivatives";
 import { publicMediaVariantUrl } from "../lib/public-media";
-import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, viewportGatePixel } from "../lib/responsive-image";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, resizedPublicImageUrl } from "../lib/responsive-image";
 import {
   getActiveAds,
   getHomepageGuides,
@@ -84,7 +84,7 @@ function GuidePromoBand({
                     alt={guide.imageAlt}
                     decoding="async"
                     loading="lazy"
-                    src={publicMediaVariantUrl(guide.imageUrl, "thumbnail")}
+                    src={resizedPublicImageUrl(guide.imageUrl, 768)}
                   />
                 </span>
                 <span className="mobile-guide-copy">
@@ -250,7 +250,6 @@ export default async function Home() {
         />
         {featuredHasPhoto ? (
           <picture className="hero-image">
-            <source media="(max-width: 1023px)" srcSet={viewportGatePixel} />
             <source
               media="(max-width: 1024px)"
               sizes="100vw"

@@ -9,7 +9,8 @@ import { storyHeaderDateLabel } from "../lib/story-header-date";
 import { cleanStoryTags } from "../lib/tags";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
-import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet } from "../lib/responsive-image";
+import { publicOpenSourceUrl } from "../lib/public-source-link";
+import { derivativeImageUrl, derivativeSrcSet, isRenderableImageReference, mobileSourceSrcSet } from "../lib/responsive-image";
 
 type ArticlePreviewContentProps = {
   story: Pick<
@@ -35,6 +36,7 @@ type ArticlePreviewContentProps = {
     | "sourceType"
     | "sourceName"
     | "sourceUrl"
+    | "slug"
     | "body"
     | "tags"
     | "updatedAt"
@@ -244,12 +246,7 @@ function isPlainArticleParagraph(paragraph: string) {
 }
 
 function isRenderableInlineImageUrl(value: string) {
-  return (
-    value.startsWith("/api/media/") ||
-    value.startsWith("/images/") ||
-    value.startsWith("/legacy-photos/") ||
-    value.startsWith("/section-heroes/")
-  );
+  return isRenderableImageReference(value);
 }
 
 function parseInlineImageFigure(paragraph: string) {
@@ -300,7 +297,8 @@ export function ArticlePreviewContent({
   const articleInlineAd = pickAdvertForPlacement(ads, "article-inline");
   const articleSidebarAd = showAdditionalAds ? pickAdvertForPlacement(ads, "article-sidebar") : null;
   const footerAd = showAdditionalAds ? pickAdvertForPlacement(ads, "footer") : null;
-  const hasPhoto = Boolean(story.imageUrl?.trim());
+  const hasPhoto = isRenderableImageReference(story.imageUrl || "");
+  const openSourceUrl = publicOpenSourceUrl(story.sourceUrl, story.slug ? `/stories/${story.slug}` : "");
   const visibleTags = cleanStoryTags(story.tags);
   const bodyBlocks = story.body.filter(Boolean);
   const plainParagraphCount = bodyBlocks.filter(isPlainArticleParagraph).length;
@@ -389,11 +387,13 @@ export function ArticlePreviewContent({
         <div className="article-body">
           {bodyBlocks.map((paragraph, index) => {
             const inlineImage = parseInlineImage(paragraph) || parseInlineImageFigure(paragraph);
+            const inlineImageSrc = inlineImage ? derivativeImageUrl(inlineImage.url, 1200) : "";
             if (inlineImage) {
+              if (!inlineImageSrc) return null;
               return (
                 <figure className="article-inline-figure article-inline-image" key={`${inlineImage.url}-${index}`}>
                   <img
-                    src={derivativeImageUrl(inlineImage.url, 1200)}
+                    src={inlineImageSrc}
                     srcSet={derivativeSrcSet(inlineImage.url, [480, 768, 1200]) || undefined}
                     alt={inlineImageAlt(inlineImage, story.title)}
                     decoding="async"
@@ -475,8 +475,8 @@ export function ArticlePreviewContent({
           <div>
             <h2>Sources</h2>
             <p>{sourceLabel(story)}</p>
-            {story.sourceUrl ? (
-              <a href={story.sourceUrl} rel="noreferrer" target="_blank">
+            {openSourceUrl ? (
+              <a href={openSourceUrl} rel="noreferrer" target="_blank">
                 Open source
               </a>
             ) : null}

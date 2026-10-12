@@ -14,7 +14,7 @@ import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { guidePublicPath } from "../lib/guides";
 import type { HomepageContent } from "../lib/homepage-content-provider";
 import { publicMediaVariantUrl } from "../lib/public-media";
-import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, viewportGatePixel } from "../lib/responsive-image";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, resizedPublicImageUrl } from "../lib/responsive-image";
 import {
   getApprovedPublicGalleryPhotos,
   hasStoryPhoto,
@@ -71,7 +71,6 @@ export async function MobileAppHome({
         <Link className="app-lead-card" href={`/stories/${featuredStory.slug}`} prefetch={true}>
           {featuredHasPhoto ? (
             <picture className="app-lead-photo">
-              <source media="(min-width: 1024px)" srcSet={viewportGatePixel} />
               <source
                 media="(max-width: 1023px)"
                 sizes="(max-width: 1023px) calc(100vw - 32px), 1px"
@@ -121,16 +120,19 @@ export async function MobileAppHome({
 
       <AppHeading action="All guides" href="/guides" id="app-guides-title" title="Guides" />
       <Carousel label="Guides">
-        {guides.map((guide) => (
+        {guides.map((guide) => {
+          const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
+          return (
           <Link className="app-card app-card-guide" href={guidePublicPath(guide)} key={guide.slug}>
-            {guide.imageUrl ? (
+            {imageSrc ? (
               <span className="app-card-media">
                 <img
                   alt={guide.imageAlt || guide.title}
                   decoding="async"
                   loading="lazy"
                   sizes="250px"
-                  src={publicMediaVariantUrl(guide.imageUrl, "mobile")}
+                  src={imageSrc}
+                  srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
                 />
               </span>
             ) : null}
@@ -140,7 +142,8 @@ export async function MobileAppHome({
               <span className="app-card-go">View guide</span>
             </span>
           </Link>
-        ))}
+          );
+        })}
       </Carousel>
 
       <AppHeading action="Gallery" href={lens.href} id="app-lens-title" title="Through the Lens" />

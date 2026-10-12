@@ -1,10 +1,5 @@
-/** Destination already recommended by the legacy Solent Marina Guide banner. */
-export const marinaLibraryPath = "/guides?type=Marina#guide-library";
-
-const retiredMarinaGuidePaths = new Set([
-  "/marina-guide",
-  "/guides/solent-marina-guide",
-]);
+/** Public hub for the Solent Marina Guide. `/marina-guide` is the old address. */
+export const solentMarinaGuidePath = "/guides/solent-marina-guide";
 
 function normalizePath(pathname: string) {
   if (!pathname || pathname === "/") return "/";
@@ -13,5 +8,5 @@ function normalizePath(pathname: string) {
 }
 
 export function retiredMarinaGuideRedirect(pathname: string) {
-  return retiredMarinaGuidePaths.has(normalizePath(pathname)) ? marinaLibraryPath : null;
+  return normalizePath(pathname) === "/marina-guide" ? solentMarinaGuidePath : null;
 }

@@ -1,4 +1,4 @@
-import { derivativeImageUrl, derivativeSrcSet, type ResponsiveImageWidth } from "../lib/responsive-image";
+import { derivativeImageUrl, derivativeSrcSet, isRenderableImageReference, type ResponsiveImageWidth } from "../lib/responsive-image";
 
 type DerivativeImageProps = {
   alt: string;
@@ -25,7 +25,10 @@ export function DerivativeImage({
   width,
   widths,
 }: DerivativeImageProps) {
+  if (!isRenderableImageReference(src)) return null;
   const resolvedDisplayWidth: ResponsiveImageWidth | number = displayWidth ?? (eager ? 1600 : 768);
+  const resolvedSrc = derivativeImageUrl(src, resolvedDisplayWidth);
+  if (!resolvedSrc) return null;
   const srcSet = derivativeSrcSet(src, widths || (eager ? [768, 1200, 1600] : [480, 768, 1200]));
 
   return (
@@ -37,7 +40,7 @@ export function DerivativeImage({
       height={height || undefined}
       loading={eager ? "eager" : "lazy"}
       sizes={sizes}
-      src={derivativeImageUrl(src, resolvedDisplayWidth)}
+      src={resolvedSrc}
       srcSet={srcSet || undefined}
       style={style}
       width={width || undefined}

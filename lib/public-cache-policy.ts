@@ -13,11 +13,11 @@
  */
 
 export const PUBLIC_DOCUMENT_CACHE_CONTROL =
-  "public, max-age=60, s-maxage=120, stale-while-revalidate=300";
+  "public, s-maxage=60, stale-while-revalidate=300";
 
 /** Shared caches only. Omits s-maxage so Cloudflare can honour stale-while-revalidate. */
 export const PUBLIC_SHARED_CACHE_CONTROL =
-  "public, max-age=120, stale-while-revalidate=300";
+  "public, max-age=60, stale-while-revalidate=300";
 
 export const PRIVATE_CACHE_CONTROL = "private, no-store";
 
