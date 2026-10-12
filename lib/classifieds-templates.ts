@@ -34,7 +34,7 @@ export function verifyEmail(listing: ClassifiedListing, token: string): MailMess
     [
       `Hello ${listing.sellerName},`,
       `Thank you for listing ${listing.title}. Please confirm this email address so we can pass the advertisement to the editor.`,
-      "Nothing is published until you confirm, and until we have read it. Listing is free.",
+      "Nothing is published until you confirm, and until we have read it. Listing is free for private owners and brokers.",
     ],
     { href, label: "Confirm my email" },
   );
@@ -46,6 +46,7 @@ export function pendingNotice(listing: ClassifiedListing): MailMessage {
     "A boat advertisement is waiting",
     [
       `${listing.sellerName} has confirmed an advertisement for ${listing.title}.`,
+      `Seller type: ${listing.sellerType === "trade" ? "Trade" : "Private"}.`,
       "It is waiting in The Helm under Boats for Sale. It is not on the public site until you approve it.",
     ],
     { href: pageUrl("/editor/boats"), label: "Open Boats for Sale" },

@@ -458,6 +458,34 @@ test("release scripts and owner docs describe the prebuilt path", async () => {
   assert.match(help.stdout, /not run npm ci/);
 });
 
+test("the deploy smoke trap stops the listener, not only its wrapper", async () => {
+  const port = 35000 + Math.floor(Math.random() * 15000);
+  const result = run("bash", ["-c", `
+    set -Eeuo pipefail
+    export OLDSEADOGS_DEPLOY_FUNCTIONS_ONLY=1
+    source "$1"
+    (
+      python3 -m http.server "$2" --bind 127.0.0.1
+    ) >/tmp/oldseadogs-smoke-trap.log 2>&1 &
+    SMOKE_PID=$!
+    ready=0
+    for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+      if curl --silent --max-time 1 "http://127.0.0.1:$2/" >/dev/null; then
+        ready=1
+        break
+      fi
+      sleep 0.1
+    done
+    [[ "$ready" == "1" ]]
+    echo READY
+    exit 1
+  `, "bash", deployScript, String(port)]);
+  assert.match(result.stdout, /READY/, `${result.stdout}\n${result.stderr}`);
+  assert.notEqual(result.status, 0, result.stderr);
+  const still = run("curl", ["--silent", "--max-time", "1", `http://127.0.0.1:${port}/`]);
+  assert.notEqual(still.status, 0, `smoke listener still serving ${port}\n${result.stdout}\n${result.stderr}\n${still.stdout}`);
+});
+
 test("deploy scripts pass shellcheck", (t) => {
   const probe = run("shellcheck", ["-V"]);
   if (probe.error || probe.status !== 0) {

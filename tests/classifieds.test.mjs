@@ -115,9 +115,63 @@ test("submission validation rejects an incomplete advertisement and accepts a bi
   }
   const accepted = validateListingSubmission(validInput());
   assert.equal(accepted.ok, true);
-  if (accepted.ok) assert.equal(accepted.value.keel, "bilge");
+  if (accepted.ok) {
+    assert.equal(accepted.value.keel, "bilge");
+    assert.equal(accepted.value.sellerType, "private");
+  }
+  const trade = validateListingSubmission(validInput({ sellerType: "Trade" }));
+  assert.equal(trade.ok, true);
+  if (trade.ok) assert.equal(trade.value.sellerType, "trade");
+  const junk = validateListingSubmission(validInput({ sellerType: "broker" }));
+  assert.equal(junk.ok, false);
+  if (!junk.ok) assert.match(junk.errors.sellerType, /Private or Trade/);
   const honeypot = validateListingSubmission(validInput({ companyWebsite: "https://spam.example" }));
   assert.equal(honeypot.ok, false);
+});
+
+test("seller type is stored for new advertisements and old rows stay Private without a rewrite", async () => {
+  await resetStore();
+  const draft = await createBoatDraft(started);
+  await saveBoatPhoto({ token: draft.draftToken, bytes: await tinyJpeg(), declaredType: "image/jpeg", now: started });
+  await submitBoatAdvertisement(validInput({ sellerType: "trade", title: "Broker Boat" }), { token: draft.draftToken, ip: "203.0.113.77", now: started });
+  const created = (await readClassifiedsStore()).listings[0];
+  assert.equal(created.sellerType, "trade");
+  assert.match(mailbox.at(-1).text, /free for private owners and brokers/);
+  const verify = mailbox.at(-1).text.match(/verify\/([^)\s]+)/)[1];
+  await verifyBoatEmail(decodeURIComponent(verify), started);
+  assert.match(mailbox.at(-1).text, /Seller type: Trade/);
+
+  const legacy = { ...created, id: "legacy-boat", slug: "legacy-boat", title: "Legacy Boat", status: "approved", publicNumber: 9, approvedAt: started.toISOString(), expiresAt: "2026-06-01T00:00:00.000Z", example: false };
+  delete legacy.sellerType;
+  const filePath = await classifiedsStorePath();
+  const raw = JSON.parse(await fs.readFile(filePath, "utf8"));
+  raw.listings = [legacy];
+  const text = `${JSON.stringify(raw)}\n`;
+  await fs.writeFile(filePath, text);
+  clearClassifiedsCaches();
+  const [pub] = await listPublicBoatListings(started);
+  assert.equal(pub.slug, "legacy-boat");
+  assert.equal(pub.sellerType, "private");
+  assert.equal(await fs.readFile(filePath, "utf8"), text);
+  assert.equal(Object.hasOwn((await readClassifiedsStore()).listings[0], "sellerType"), false);
+});
+
+test("public boats copy welcomes private owners and brokers", async () => {
+  const banned = /No brokers|private-seller|private sellers|sold by the people who sailed them|list your own boat|For owners/;
+  for (const relative of [
+    "app/boats-for-sale/page.tsx",
+    "app/boats-for-sale/list-your-boat/page.tsx",
+    "app/boats-for-sale/list-your-boat/ListYourBoatForm.tsx",
+    "app/boats-for-sale/[slug]/page.tsx",
+    "lib/classifieds-copy.ts",
+    "lib/classifieds-templates.ts",
+    "components/MobileAppHome.tsx",
+    "components/BoatsForSaleTeaser.tsx",
+  ]) {
+    const source = await fs.readFile(path.join(projectDir, relative), "utf8");
+    assert.doesNotMatch(source, banned, relative);
+    assert.match(source, /private owners and brokers|Private owners and brokers|sellerType/, relative);
+  }
 });
 
 test("sending an advertisement before a photograph asks for a photograph", async () => {

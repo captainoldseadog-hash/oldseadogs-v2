@@ -2,10 +2,12 @@ import {
   BOAT_TYPES,
   CRUISING_GROUNDS,
   KEEL_TYPES,
+  SELLER_TYPES,
   VAT_STATUSES,
   type BoatType,
   type KeelType,
   type ListingInput,
+  type SellerType,
   type VatStatus,
 } from "./classifieds-types.ts";
 
@@ -34,6 +36,7 @@ export function validateListingSubmission(input: unknown): { ok: true; value: Li
   const berths = optionalNumber(source.berths);
   const priceGbp = optionalNumber(source.priceGbp);
   const showPhone = booleanValue(source.showPhone);
+  const sellerType = sellerTypeValue(source.sellerType);
   const trailerable = booleanValue(source.trailerable);
   const liveaboard = booleanValue(source.liveaboard);
   const consent = booleanValue(source.consent);
@@ -44,6 +47,7 @@ export function validateListingSubmission(input: unknown): { ok: true; value: Li
   if (showPhone && !sellerPhone) errors.sellerPhone = "Enter a telephone number or leave “show my phone” unticked.";
   if (title.length < 3) errors.title = "Give the advertisement a title.";
   if (make.length < 2) errors.make = "Enter the boat’s make.";
+  if (sellerType === "invalid") errors.sellerType = "Choose Private or Trade, or leave seller type blank.";
   if (!BOAT_TYPES.includes(boatType)) errors.boatType = "Choose sail, power or other.";
   if (!KEEL_TYPES.includes(keel)) errors.keel = "Choose a keel type.";
   if (!VAT_STATUSES.includes(vatStatus)) errors.vatStatus = "Choose a VAT status.";
@@ -58,6 +62,7 @@ export function validateListingSubmission(input: unknown): { ok: true; value: Li
   if (honeypotFilled(source)) errors.form = "The advertisement could not be accepted.";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
+  const storedSellerType: SellerType = sellerType === "trade" ? "trade" : "private";
   return {
     ok: true,
     value: {
@@ -65,6 +70,7 @@ export function validateListingSubmission(input: unknown): { ok: true; value: Li
       sellerEmail,
       sellerPhone,
       showPhone,
+      sellerType: storedSellerType,
       title,
       make,
       model,
@@ -108,4 +114,12 @@ function optionalNumber(value: unknown) {
 
 function booleanValue(value: unknown) {
   return value === true || value === "true" || value === "on" || value === "yes" || value === "1";
+}
+
+function sellerTypeValue(value: unknown): SellerType | "invalid" {
+  const text = cleanText(value, 20).toLowerCase();
+  if (!text || text === "private") return "private";
+  if (text === "trade") return "trade";
+  if (SELLER_TYPES.includes(text as SellerType)) return text as SellerType;
+  return "invalid";
 }

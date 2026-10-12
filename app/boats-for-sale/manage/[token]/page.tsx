@@ -51,6 +51,12 @@ export default async function ManageBoatPage({
         <fieldset>
           <legend>Change the wording</legend>
           <label>Title<input defaultValue={listing.title} name="title" required type="text" /></label>
+          <label>Seller type
+            <select defaultValue={listing.sellerType === "trade" ? "trade" : "private"} name="sellerType">
+              <option value="private">Private</option>
+              <option value="trade">Trade</option>
+            </select>
+          </label>
           <label>Name<input defaultValue={listing.sellerName} name="sellerName" required type="text" /></label>
           <label>Email<input defaultValue={listing.sellerEmail} name="sellerEmail" required type="email" /></label>
           <label>Telephone<input defaultValue={listing.sellerPhone} name="sellerPhone" type="tel" /></label>

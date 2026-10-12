@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "List your boat free",
-  description: "List a boat for sale on Old Sea Dogs for nothing. The advertisement runs for three months, with a reminder every fortnight.",
+  description: "List a boat for sale on Old Sea Dogs for nothing. Free advertisements for private owners and brokers run for three months, with a reminder every fortnight.",
   path: "/boats-for-sale/list-your-boat",
 });
 
@@ -20,7 +20,7 @@ export default async function ListYourBoatPage({
   return (
     <main className="boats-wrap boats-logbook-page">
       <header className="boats-logbook-heading">
-        <p className="boats-kicker">Free for private owners</p>
+        <p className="boats-kicker">Free for private owners and brokers</p>
         <h1>Enter your boat in the Register</h1>
         <p>{boatsTermSummary}</p>
       </header>
