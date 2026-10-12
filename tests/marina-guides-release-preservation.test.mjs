@@ -29,7 +29,7 @@ const protectedFiles = {
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
-  // /marina-guide redirects to /guides/solent-marina-guide, so only the old address is omitted.
+  // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
   "app/sitemap.ts": "5af87a5168f72539a1a4e8198f34c249473011be015b5670b216b4c7aaad7933",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
@@ -54,7 +54,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
-  assert.equal(hash(reconstructedBaseline), "1a91e879cb77c283c09eb80a9e2bd74375ac2c53aedfe49f4c3a6abebdceff60");
+  assert.equal(hash(reconstructedBaseline), "a343ef9b1c5482076761ee230638fd932ce814b52fbf74262bda5afecb4652a3");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

@@ -1,5 +1,10 @@
-/** Public hub for the Solent Marina Guide. `/marina-guide` is the old address. */
-export const solentMarinaGuidePath = "/guides/solent-marina-guide";
+/** The Solent guides hub. Retired overview addresses send people here. */
+export const solentGuidesHubPath = "/guides/solent";
+
+const retiredMarinaGuidePaths = new Set([
+  "/marina-guide",
+  "/guides/solent-marina-guide",
+]);
 
 function normalizePath(pathname: string) {
   if (!pathname || pathname === "/") return "/";
@@ -7,6 +12,11 @@ function normalizePath(pathname: string) {
   return withSlash.replace(/\/+$/g, "");
 }
 
+/** Public overview that is no longer linked or listed. The CMS record stays. */
+export function isRetiredMarinaGuideHub(guide: { slug?: string } | null | undefined) {
+  return guide?.slug === "solent-marina-guide";
+}
+
 export function retiredMarinaGuideRedirect(pathname: string) {
-  return normalizePath(pathname) === "/marina-guide" ? solentMarinaGuidePath : null;
+  return retiredMarinaGuidePaths.has(normalizePath(pathname)) ? solentGuidesHubPath : null;
 }

@@ -30,6 +30,7 @@ import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
 import { publicImageAlt } from "./public-image-alt";
+import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
 import { isRenderableImageReference } from "./responsive-image.ts";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
@@ -2915,7 +2916,9 @@ export async function getAllGuides() {
 
 export async function getPublishedGuides() {
   const guides = await getAllGuides();
-  return guides.filter((guide) => guide.status === "published").map(presentPublicGuide);
+  return guides
+    .filter((guide) => guide.status === "published" && !isRetiredMarinaGuideHub(guide))
+    .map(presentPublicGuide);
 }
 
 export async function getIndexedGuides() {

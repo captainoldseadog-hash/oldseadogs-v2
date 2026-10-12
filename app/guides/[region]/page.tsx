@@ -64,15 +64,6 @@ function PrimaryNavigation() {
   return <SiteHeader current="guides" />;
 }
 
-function SolentMarinaGuideLink({ region }: { region: string }) {
-  if (region !== "solent") return null;
-  return (
-    <div className="guide-directory-actions">
-      <Link href="/guides/solent-marina-guide">Read the Solent Marina Guide</Link>
-    </div>
-  );
-}
-
 export default async function RegionPage({ params }: RegionPageProps) {
   const { region } = await params;
   const allPublished = await getPublishedGuides();
@@ -122,7 +113,6 @@ export default async function RegionPage({ params }: RegionPageProps) {
         ]} />
         <PrimaryNavigation />
         <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} />
-        <SolentMarinaGuideLink region={region} />
         <GuideCollectionBrowser
           guides={childItems}
           searchPlaceholder={`Search ${regionName} Guides`}
@@ -209,7 +199,6 @@ export default async function RegionPage({ params }: RegionPageProps) {
         <a href="#map-section"><span>View on map</span><strong>Orientate yourself</strong></a>
       </nav>
 
-      <SolentMarinaGuideLink region={region} />
       <div id="browse-by-type">
         <GuideCollectionBrowser
           guides={browserItems}
