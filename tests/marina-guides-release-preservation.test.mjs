@@ -54,7 +54,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
-  assert.equal(hash(reconstructedBaseline), "a343ef9b1c5482076761ee230638fd932ce814b52fbf74262bda5afecb4652a3");
+  // A section with only editorial links is kept so area-hub links are not dropped on read.
+  assert.equal(hash(reconstructedBaseline), "e5dd9c50e99c4b25473977969ab606edd3d424986004582a3aaa876d107a4f59");
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {
