@@ -14,7 +14,9 @@ import {
   siteUrl,
 } from "../lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "../lib/structured-data";
+import { mobileGuideMenuLinks } from "../lib/guides";
 import { isPublicPagePath } from "../lib/route-boundaries";
+import { getPublishedGuides } from "../lib/site-content";
 import "./globals.css";
 
 const adsensePublisherId = "ca-pub-7278382533036873";
@@ -59,6 +61,7 @@ export default async function RootLayout({
   const pathname = requestHeaders.get(requestPathHeader) || "/";
   const adsenseAccountId = adsenseClientId || adsensePublisherId;
   const isPublicPage = isPublicPagePath(pathname);
+  const guideLinks = isPublicPage ? mobileGuideMenuLinks(await getPublishedGuides()) : [];
   const shouldRenderAdsenseMeta = isPublicPage && Boolean(adsenseAccountId);
   const shouldRenderGoogleConsent = isPublicPage && Boolean(ga4MeasurementId);
 
@@ -80,7 +83,7 @@ export default async function RootLayout({
       ) : null}
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
-        {isPublicPage ? <MobileSiteHeader /> : null}
+        {isPublicPage ? <MobileSiteHeader guideLinks={guideLinks} /> : null}
         {children}
         <CookieConsent
           adsenseClientId={adsenseClientId}

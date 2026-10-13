@@ -15,11 +15,13 @@ import {
   guideCollectionLead,
   guideCollectionMembers,
   guideCruisingArea,
+  guideHubRelatedLinks,
   guidePlaceJsonLd,
   guideCollectionJsonLd,
   guidePublicPath,
   guideRegionRecords,
 } from "../../../lib/guides.ts";
+import type { EditableGuide } from "../../../lib/site-content.ts";
 import { publicImageAlt } from "../../../lib/public-image-alt.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
@@ -62,6 +64,29 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
 
 function PrimaryNavigation() {
   return <SiteHeader current="guides" />;
+}
+
+function GuideHubRelated({
+  guide,
+  guides,
+}: {
+  guide: EditableGuide;
+  guides: EditableGuide[];
+}) {
+  const links = guideHubRelatedLinks(guide, guides);
+  if (!links.length) return null;
+  return (
+    <nav className="guide-hub-related" aria-label="Related guides">
+      <p className="eyebrow">Related guides</p>
+      <ul>
+        {links.map((link) => (
+          <li key={link.slug}>
+            <Link href={guidePublicPath(link.guide)}>{link.label} <span aria-hidden="true">→</span></Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
 }
 
 export default async function RegionPage({ params }: RegionPageProps) {
@@ -198,6 +223,8 @@ export default async function RegionPage({ params }: RegionPageProps) {
         <a href="#all-guides"><span>Browse all Guides</span><strong>See the full {regionName} collection</strong></a>
         <a href="#map-section"><span>View on map</span><strong>Orientate yourself</strong></a>
       </nav>
+
+      <GuideHubRelated guide={lead} guides={allPublished} />
 
       <div id="browse-by-type">
         <GuideCollectionBrowser

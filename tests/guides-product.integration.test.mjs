@@ -73,11 +73,12 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.ok(promoStart >= 0 && promoEnd > promoStart);
   const promoHtml = homepageHtml.slice(promoStart, promoEnd);
   assert.match(promoHtml, /Discover Old Sea Dogs Guides/);
-  assert.match(promoHtml, /href="\/guides\/solent\/the-solent"/);
-  assert.match(promoHtml, /href="\/guides\/solent\/river-hamble"/);
-  assert.match(promoHtml, /href="\/guides\/solent\/hamble-point-marina"/);
+  assert.match(promoHtml, /href="\/guides\/solent"/);
+  assert.match(promoHtml, /22(?:<!-- -->)?\s*(?:<!-- -->)?Guides/);
+  assert.match(promoHtml, /Recently added/);
+  assert.match(promoHtml, /href="\/guides\/solent\//);
   assert.match(promoHtml, /Explore All Guides/);
-  assert.equal((promoHtml.match(/href="\/guides\/solent\//g) || []).length, 3);
+  assert.ok((promoHtml.match(/href="\/guides\/solent\//g) || []).length >= 1);
 
   const landing = await request("/guides");
   assert.equal(landing.status, 200);

@@ -5,14 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { boatsForSaleNavigationLink, oldSeaDogsSections, throughTheLensNavigationLink } from "../content/sections";
 
-const guideLinks = [
-  { href: "/guides", label: "All Guides" },
-  { href: "/guides/solent", label: "The Solent" },
-  { href: "/guides/poole-harbour", label: "Poole Harbour" },
-  { href: "/guides/chichester-harbour", label: "Chichester Harbour" },
-];
-
-export function MobileSiteHeader() {
+export function MobileSiteHeader({
+  guideLinks,
+}: {
+  guideLinks: Array<{ href: string; label: string }>;
+}) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);

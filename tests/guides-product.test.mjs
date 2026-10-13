@@ -444,8 +444,13 @@ test("the homepage and Guide pages use the compact practical presentation", asyn
   assert.match(homepage, /Discover Old Sea Dogs Guides/);
   assert.match(homepage, /homepage-guides-promo/);
   assert.match(homepage, /homepage-guides-list/);
-  assert.match(homepage, /const featuredSlugs = \["the-solent", "river-hamble", "hamble-point-marina"\]/);
+  assert.match(homepage, /homepageGuideHighlights\(guides\)/);
+  assert.match(homepage, /guideAreaCountLabel\(area\.guideCount\)/);
+  assert.match(homepage, /Recently added/);
+  assert.doesNotMatch(homepage, /featuredSlugs/);
   assert.match(homepage, /Explore All Guides/);
+  assert.match(css, /\.guide-facts strong,\s*\n\.guide-facts a \{[^}]*overflow-wrap:\s*anywhere/);
+  assert.match(css, /@media \(max-width: 400px\) \{[\s\S]*?\.guide-facts \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(homepage, /guidePublicPath\(guide\)/);
   assert.doesNotMatch(homepage, /Useful pages for real days afloat|flagship-guides-band/);
   assert.match(publicGuide, /Practical information/);

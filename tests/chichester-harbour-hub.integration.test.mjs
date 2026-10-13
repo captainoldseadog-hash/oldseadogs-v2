@@ -43,6 +43,21 @@ const editorStore = {
       regionName: "Chichester Harbour",
       parentGuideSlug: "the-solent",
       canonicalPath: "/guides/chichester-harbour",
+      relatedGuideSlugs: ["langstone-harbour"],
+      sections: [{
+        heading: "Overview",
+        body: [words],
+        links: [{ label: "Langstone Harbour", guideSlug: "langstone-harbour" }],
+      }],
+    }),
+    guide({
+      internalId: "OSD-G200",
+      slug: "langstone-harbour",
+      title: "Langstone Harbour",
+      guideType: "Cruising Area",
+      regionKey: "langstone-harbour",
+      regionName: "Langstone Harbour",
+      canonicalPath: "/guides/langstone-harbour",
     }),
     guide({
       internalId: "OSD-G301",
@@ -116,20 +131,26 @@ test("the Chichester collection hub has Article and Place data, a hero alt, and 
   assert.match(html, /Search Chichester Harbour Guides/);
   assert.match(html, /The published library(?:<!-- -->)? · (?:<!-- -->)?1(?:<!-- -->)? (?:<!-- -->)?Guide/);
   assert.match(html, /href="\/guides\/chichester-harbour\/itchenor"/);
+  assert.match(html, /class="guide-hub-related"[\s\S]*href="\/guides\/langstone-harbour"/);
+  assert.match(html, /Langstone Harbour/);
   assert.doesNotMatch(html, /full Solent collection/);
   assert.doesNotMatch(html, /Search Solent Guides/);
 
   const menu = html.match(/aria-label="Mobile navigation"[\s\S]*?<\/nav>/);
   assert.ok(menu);
+  assert.match(menu[0], /All Guides/);
   assert.match(menu[0], /href="\/guides\/solent"/);
-  assert.match(menu[0], /href="\/guides\/poole-harbour"/);
+  assert.match(menu[0], /href="\/guides\/langstone-harbour"/);
   assert.match(menu[0], /href="\/guides\/chichester-harbour"/);
   assert.match(menu[0], /Chichester Harbour/);
+  assert.doesNotMatch(menu[0], /href="\/guides\/poole-harbour"/);
 
   const index = await controller.fetch("http://localhost/guides");
   assert.equal(index.status, 200);
   const indexHtml = await index.text();
   assert.match(indexHtml, /guide-area-card[\s\S]*href="\/guides\/chichester-harbour"[\s\S]*Chichester Harbour/);
+  assert.match(indexHtml, /Area guide/);
+  assert.doesNotMatch(indexHtml, />0(?:<!-- -->)?\s*(?:<!-- -->)?Guides</);
 
   const solent = await controller.fetch("http://localhost/guides/solent");
   assert.equal(solent.status, 200);

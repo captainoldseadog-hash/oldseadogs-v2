@@ -1,6 +1,6 @@
 import type { EditableGuide } from "./site-content.ts";
 import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
-import { shareImageUrl } from "./responsive-image.ts";
+import { isRenderableImageReference, shareImageUrl } from "./responsive-image.ts";
 import { absoluteUrl } from "./seo.ts";
 
 export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug">) {
@@ -169,6 +169,72 @@ export function guideEditorialLinkMatches(text: string, currentSlug: string, gui
     matches.push(candidate); usedSlugs.add(candidate.guide.slug);
   }
   return matches.sort((left, right) => left.start - right.start);
+}
+
+export function guideAreaCountLabel(count: number) {
+  if (count <= 0) return "Area guide";
+  return `${count} ${count === 1 ? "Guide" : "Guides"}`;
+}
+
+export function mobileGuideMenuLinks(guides: readonly EditableGuide[]) {
+  return [
+    { href: "/guides", label: "All Guides" },
+    ...guideDiscoveryAreas(guides).map((area) => ({ href: area.path, label: area.name })),
+  ];
+}
+
+export type GuideHubLink = { slug: string; label: string; guide: EditableGuide };
+
+/** Published targets saved on an area hub: section links, then related guides. */
+export function guideHubRelatedLinks(guide: EditableGuide, guides: readonly EditableGuide[]): GuideHubLink[] {
+  const bySlug = new Map(
+    guides
+      .filter((item) => item.status === "published" && !isRetiredMarinaGuideHub(item))
+      .map((item) => [item.slug, item]),
+  );
+  const links: GuideHubLink[] = [];
+  const seen = new Set<string>([guide.slug]);
+  const add = (slug: string, label?: string) => {
+    const target = bySlug.get(slug);
+    if (!target || seen.has(target.slug)) return;
+    seen.add(target.slug);
+    links.push({ slug: target.slug, label: label?.trim() || target.title, guide: target });
+  };
+  for (const section of guide.sections || []) {
+    for (const link of section.links || []) add(link.guideSlug, link.label);
+  }
+  for (const slug of guide.relatedGuideSlugs || []) add(slug);
+  return links;
+}
+
+function guideAddedAt(guide: EditableGuide) {
+  const raw = guide.publication?.publishedAt || guide.publication?.createdAt || guide.updatedAt || "";
+  const time = Date.parse(raw);
+  return Number.isFinite(time) ? time : 0;
+}
+
+/** Child guides with paintings, newest publication or creation date first. Area hubs are omitted. */
+export function recentPublicGuides(guides: readonly EditableGuide[], limit = 4) {
+  const hubSlugs = new Set(guideDiscoveryAreas(guides).map((area) => area.guide.slug));
+  return guideProductRecords([...guides])
+    .filter((guide) =>
+      guide.status === "published"
+      && !hubSlugs.has(guide.slug)
+      && !isRetiredMarinaGuideHub(guide)
+      && isRenderableImageReference(guide.imageUrl)
+    )
+    .sort((left, right) =>
+      guideAddedAt(right) - guideAddedAt(left)
+      || left.title.localeCompare(right.title)
+    )
+    .slice(0, limit);
+}
+
+export function homepageGuideHighlights(guides: readonly EditableGuide[]) {
+  return {
+    areas: guideDiscoveryAreas(guides),
+    recent: recentPublicGuides(guides, 4),
+  };
 }
 
 export function relatedGuides(

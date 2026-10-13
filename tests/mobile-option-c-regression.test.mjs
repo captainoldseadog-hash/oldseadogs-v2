@@ -83,8 +83,10 @@ test("Option C remains a responsive layer over the existing content pipeline", a
   assert.match(homepage, /new HomepageContentProvider\(stories, settings\)\.getContent\(\)/);
   assert.match(homepage, /mobile-hero-content/);
   assert.match(homepage, /featuredStory\.title/);
-  assert.match(homepage, /mobile-guide-highlight/);
-  assert.match(layout, /<MobileSiteHeader \/>/);
+  assert.match(homepage, /MobileAppHome/);
+  assert.match(homepage, /homepage-guides-promo/);
+  assert.match(layout, /<MobileSiteHeader\b/);
+  assert.match(header, /guideLinks\.map/);
   assert.match(header, /oldSeaDogsSections\.map/);
   assert.match(header, /aria-expanded=\{open\}/);
   assert.match(header, /event\.key === "Escape"/);

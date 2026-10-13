@@ -1201,7 +1201,7 @@ function normalizeGuideSections(value: unknown): EditableGuide["sections"] {
           : [],
       };
     })
-    .filter((section) => section.heading && section.body.length > 0);
+    .filter((section) => section.heading && (section.body.length > 0 || section.links.length > 0 || section.listItems.length > 0));
 }
 
 function normalizeGuideFacts(value: unknown): EditableGuide["quickFacts"] {

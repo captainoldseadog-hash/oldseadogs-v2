@@ -5,7 +5,7 @@ import { JsonLd } from "../../components/JsonLd.tsx";
 import { SiteFooter } from "../../components/SiteFooter.tsx";
 import type { GuideType } from "../../content/flagship-guides.ts";
 
-import { guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
+import { guideAreaCountLabel, guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
 import { getIndexedGuides, getPublishedGuides } from "../../lib/site-content.ts";
 import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, needlesHeroImageUrl } from "../../lib/responsive-image.ts";
 import { createPageMetadata } from "../../lib/seo.ts";
@@ -92,7 +92,7 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
                 /> : null}
               </Link>
               <div className="guide-area-card-copy">
-                <p className="eyebrow">{area.guideCount} {area.guideCount === 1 ? "Guide" : "Guides"}</p>
+                <p className="eyebrow">{guideAreaCountLabel(area.guideCount)}</p>
                 <h3><Link href={area.path}>{area.name}</Link></h3>
                 <p>{area.guide.summary}</p>
                 <Link className="guide-area-open" href={area.path}>Explore the collection <span aria-hidden="true">→</span></Link>

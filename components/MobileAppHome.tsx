@@ -12,7 +12,7 @@ import { isLogoLikeStoryImage } from "../content/story-images";
 import { TradeBadge } from "./boats/TradeBadge";
 import { boatsHomepageIntro } from "../lib/classifieds-copy";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
-import { guidePublicPath } from "../lib/guides";
+import { guideAreaCountLabel, guidePublicPath, homepageGuideHighlights } from "../lib/guides";
 import type { HomepageContent } from "../lib/homepage-content-provider";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, resizedPublicImageUrl } from "../lib/responsive-image";
@@ -56,6 +56,7 @@ export async function MobileAppHome({
   const listing = (await loadBoatPreview())[0] ?? null;
   const lens = await loadLensTiles(galleryPublic);
   const reviews = uniqueStories([...reviewStories, ...practicalStories]).slice(0, 6);
+  const guideHighlights = homepageGuideHighlights(guides);
 
   return (
     <div className="mobile-app-home">
@@ -119,30 +120,54 @@ export async function MobileAppHome({
         ))}
       </Carousel>
 
-      <AppHeading action="All guides" href="/guides" id="app-guides-title" title="Guides" />
+      <AppHeading action="Browse all guides" href="/guides" id="app-guides-title" title="Guides" />
       <Carousel label="Guides">
-        {guides.map((guide) => {
+        {guideHighlights.areas.map((area) => {
+          const imageSrc = resizedPublicImageUrl(area.guide.imageUrl, 768);
+          return (
+            <Link className="app-card app-card-guide" href={area.path} key={area.key}>
+              {imageSrc ? (
+                <span className="app-card-media">
+                  <img
+                    alt={area.guide.imageAlt || area.name}
+                    decoding="async"
+                    loading="lazy"
+                    sizes="250px"
+                    src={imageSrc}
+                    srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(area.guide.imageUrl, [480, 768]) || undefined : undefined}
+                  />
+                </span>
+              ) : null}
+              <span className="app-card-body">
+                <small>{guideAreaCountLabel(area.guideCount)}</small>
+                <h3>{area.name}</h3>
+                <span className="app-card-go">View area</span>
+              </span>
+            </Link>
+          );
+        })}
+        {guideHighlights.recent.map((guide) => {
           const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
           return (
-          <Link className="app-card app-card-guide" href={guidePublicPath(guide)} key={guide.slug}>
-            {imageSrc ? (
-              <span className="app-card-media">
-                <img
-                  alt={guide.imageAlt || guide.title}
-                  decoding="async"
-                  loading="lazy"
-                  sizes="250px"
-                  src={imageSrc}
-                  srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
-                />
+            <Link className="app-card app-card-guide" href={guidePublicPath(guide)} key={guide.slug}>
+              {imageSrc ? (
+                <span className="app-card-media">
+                  <img
+                    alt={guide.imageAlt || guide.title}
+                    decoding="async"
+                    loading="lazy"
+                    sizes="250px"
+                    src={imageSrc}
+                    srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                  />
+                </span>
+              ) : null}
+              <span className="app-card-body">
+                <small>Recently added</small>
+                <h3>{guide.title}</h3>
+                <span className="app-card-go">View guide</span>
               </span>
-            ) : null}
-            <span className="app-card-body">
-              <small>{guide.guideType}</small>
-              <h3>{guide.title}</h3>
-              <span className="app-card-go">View guide</span>
-            </span>
-          </Link>
+            </Link>
           );
         })}
       </Carousel>

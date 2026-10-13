@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { guideCollectionLead, guideCollectionMembers, guideCruisingArea, guideDiscoveryAreas, guideEditorialLinkMatches } from "../lib/guides.ts";
+import { guideAreaCountLabel, guideCollectionLead, guideCollectionMembers, guideCruisingArea, guideDiscoveryAreas, guideEditorialLinkMatches, guideHubRelatedLinks, mobileGuideMenuLinks, recentPublicGuides } from "../lib/guides.ts";
 
 function guide({
   id,
@@ -12,6 +12,11 @@ function guide({
   regionName,
   parentGuideSlug = "",
   status = "published",
+  updatedAt = "2026-01-01T00:00:00.000Z",
+  publication,
+  relatedGuideSlugs = [],
+  sections = [],
+  imageUrl,
 }) {
   return {
     id,
@@ -24,9 +29,13 @@ function guide({
     regionName,
     parentGuideSlug,
     status,
+    updatedAt,
+    publication,
+    relatedGuideSlugs,
+    sections,
     editorialOrder: Number(internalId.replace(/\D/g, "")),
     canonicalPath: "",
-    imageUrl: `/images/${slug}.png`,
+    imageUrl: imageUrl === undefined ? `/images/${slug}.png` : imageUrl,
     imageAlt: title,
   };
 }
@@ -91,6 +100,59 @@ test("private hierarchy may include drafts while public discovery never does", (
   ];
   assert.deepEqual(guideDiscoveryAreas(records)[0].directGuides.map((item) => item.slug), ["portsmouth-harbour"]);
   assert.deepEqual(guideDiscoveryAreas(records, { includeDrafts: true })[0].nodes[0].children.map((item) => item.slug), ["southsea-marina"]);
+});
+
+test("an area with no child guides is labelled as an area guide", () => {
+  const records = [
+    guide({ id: "empty", internalId: "OSD-G700", slug: "empty-coast", title: "Empty Coast", guideType: "Cruising Area", regionKey: "empty-coast", regionName: "Empty Coast" }),
+  ];
+  const [area] = guideDiscoveryAreas(records);
+  assert.equal(area.guideCount, 0);
+  assert.equal(guideAreaCountLabel(0), "Area guide");
+  assert.equal(guideAreaCountLabel(1), "1 Guide");
+  assert.equal(guideAreaCountLabel(22), "22 Guides");
+});
+
+test("mobile guide links follow published discovery areas", () => {
+  const records = [
+    guide({ id: "solent", internalId: "OSD-G001", slug: "the-solent", title: "The Solent", guideType: "Cruising Area", regionKey: "solent", regionName: "The Solent" }),
+    guide({ id: "langstone", internalId: "OSD-G200", slug: "langstone-harbour", title: "Langstone Harbour", guideType: "Cruising Area", regionKey: "langstone-harbour", regionName: "Langstone Harbour" }),
+    guide({ id: "weymouth", internalId: "OSD-G400", slug: "weymouth-portland", title: "Weymouth & Portland", guideType: "Cruising Area", regionKey: "weymouth-portland", regionName: "Weymouth & Portland" }),
+  ];
+  assert.deepEqual(mobileGuideMenuLinks(records), [
+    { href: "/guides", label: "All Guides" },
+    { href: "/guides/solent", label: "The Solent" },
+    { href: "/guides/langstone-harbour", label: "Langstone Harbour" },
+    { href: "/guides/weymouth-portland", label: "Weymouth & Portland" },
+  ]);
+});
+
+test("area hubs keep saved section links and related guides", () => {
+  const langstone = guide({ id: "langstone", internalId: "OSD-G200", slug: "langstone-harbour", title: "Langstone Harbour", guideType: "Cruising Area", regionKey: "langstone-harbour", regionName: "Langstone Harbour" });
+  const chichester = guide({
+    id: "chichester",
+    internalId: "OSD-G300",
+    slug: "chichester-harbour",
+    title: "Chichester Harbour",
+    guideType: "Cruising Area",
+    regionKey: "chichester-harbour",
+    regionName: "Chichester Harbour",
+    parentGuideSlug: "the-solent",
+    relatedGuideSlugs: ["langstone-harbour"],
+    sections: [{ heading: "Nearby waters", body: [], links: [{ label: "Langstone Harbour", guideSlug: "langstone-harbour" }] }],
+  });
+  const links = guideHubRelatedLinks(chichester, [chichester, langstone]);
+  assert.deepEqual(links.map((link) => [link.label, link.slug]), [["Langstone Harbour", "langstone-harbour"]]);
+});
+
+test("recent guides follow publication date and skip area hubs without paintings", () => {
+  const records = [
+    guide({ id: "solent", internalId: "OSD-G001", slug: "the-solent", title: "The Solent", guideType: "Cruising Area", regionKey: "solent", regionName: "The Solent", publication: { publishedAt: "2026-09-01T00:00:00.000Z" } }),
+    guide({ id: "old", internalId: "OSD-G010", slug: "old-marina", title: "Old Marina", guideType: "Marina", regionKey: "solent", regionName: "The Solent", parentGuideSlug: "the-solent", publication: { publishedAt: "2026-01-01T00:00:00.000Z" } }),
+    guide({ id: "new", internalId: "OSD-G011", slug: "weymouth-marina", title: "Weymouth Marina", guideType: "Marina", regionKey: "solent", regionName: "The Solent", parentGuideSlug: "the-solent", publication: { createdAt: "2026-08-01T00:00:00.000Z", publishedAt: "2026-08-02T00:00:00.000Z" } }),
+    guide({ id: "blank", internalId: "OSD-G012", slug: "no-painting", title: "No Painting", guideType: "Marina", regionKey: "solent", regionName: "The Solent", parentGuideSlug: "the-solent", imageUrl: "", publication: { publishedAt: "2026-10-01T00:00:00.000Z" } }),
+  ];
+  assert.deepEqual(recentPublicGuides(records, 4).map((item) => item.slug), ["weymouth-marina", "old-marina"]);
 });
 
 test("editorial mentions link only unique published targets", () => {

@@ -18,13 +18,13 @@ import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { HomepageContentProvider } from "../lib/homepage-content-provider";
 import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
-import { guidePublicPath } from "../lib/guides";
+import { guideAreaCountLabel, guidePublicPath, homepageGuideHighlights } from "../lib/guides";
 import { readImageSize } from "../lib/image-derivatives";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, resizedPublicImageUrl } from "../lib/responsive-image";
 import {
   getActiveAds,
-  getHomepageGuides,
+  getPublishedGuides,
   getPublishedStories,
   getSiteSettings,
   hasStoryPhoto,
@@ -48,14 +48,9 @@ export async function generateMetadata(): Promise<Metadata> {
 function GuidePromoBand({
   guides,
 }: {
-  guides: Awaited<ReturnType<typeof getHomepageGuides>>;
+  guides: Awaited<ReturnType<typeof getPublishedGuides>>;
 }) {
-  const featuredSlugs = ["the-solent", "river-hamble", "hamble-point-marina"];
-  const featuredGuides = featuredSlugs.flatMap((slug) => {
-    const guide = guides.find((item) => item.slug === slug);
-    return guide ? [guide] : [];
-  });
-  if (featuredGuides.length === 0) return null;
+  const { areas, recent } = homepageGuideHighlights(guides);
 
   return (
     <section className="homepage-guides-promo" aria-labelledby="homepage-guides-title">
@@ -70,34 +65,44 @@ function GuidePromoBand({
           Explore All Guides
         </Link>
       </div>
-      <div className="homepage-guides-list" aria-label="Featured Old Sea Dogs Guides">
-        {featuredGuides.map((guide, index) => (
-          <Link className={index === 0 ? "mobile-guide-highlight" : undefined} href={guidePublicPath(guide)} key={guide.slug}>
-            <span className="homepage-guide-number">{String(index + 1).padStart(2, "0")}</span>
-            <strong className="homepage-guide-title">{guide.title}</strong>
-            <small className="homepage-guide-type">{guide.guideType} Guide</small>
-            <span className="homepage-guide-arrow" aria-hidden="true">→</span>
-            {index === 0 ? (
-              <span className="mobile-guide-card-content">
-                <span className="mobile-guide-image">
-                  <img
-                    alt={guide.imageAlt}
-                    decoding="async"
-                    loading="lazy"
-                    src={resizedPublicImageUrl(guide.imageUrl, 768)}
-                  />
-                </span>
-                <span className="mobile-guide-copy">
-                  <span className="eyebrow">Guide highlight</span>
-                  <strong>{guide.title}</strong>
-                  <span>{guide.regionName}</span>
-                  <span>{guide.summary}</span>
-                  <span className="mobile-text-link">View Guide</span>
-                </span>
-              </span>
-            ) : null}
-          </Link>
-        ))}
+      <div className="homepage-guides-panel">
+        {areas.length ? (
+          <div className="homepage-guides-list" aria-label="Cruising areas">
+            {areas.map((area, index) => (
+              <Link href={area.path} key={area.key}>
+                <span className="homepage-guide-number">{String(index + 1).padStart(2, "0")}</span>
+                <strong className="homepage-guide-title">{area.name}</strong>
+                <small className="homepage-guide-type">{guideAreaCountLabel(area.guideCount)}</small>
+                <span className="homepage-guide-arrow" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        ) : null}
+        {recent.length ? (
+          <div className="homepage-guides-recent">
+            <p className="eyebrow">Recently added</p>
+            <div className="homepage-guides-recent-grid">
+              {recent.map((guide) => {
+                const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
+                return (
+                  <Link href={guidePublicPath(guide)} key={guide.slug}>
+                    {imageSrc ? (
+                      <img
+                        alt={guide.imageAlt || guide.title}
+                        decoding="async"
+                        loading="lazy"
+                        sizes="(min-width: 1024px) 280px, 70vw"
+                        src={imageSrc}
+                        srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                      />
+                    ) : null}
+                    <strong>{guide.title}</strong>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -193,11 +198,11 @@ function EditorsPicksBand({
 }
 
 export default async function Home() {
-  const [stories, settings, ads, homepageGuides] = await Promise.all([
+  const [stories, settings, ads, publishedGuides] = await Promise.all([
     getPublishedStories(),
     getSiteSettings(),
     getActiveAds(),
-    getHomepageGuides(),
+    getPublishedGuides(),
   ]);
   const {
     featuredStory,
@@ -238,7 +243,7 @@ export default async function Home() {
           sectionCards,
         }}
         galleryPublic={isGalleryPublicRolloutEnabled(settings.galleryPublicRollout)}
-        guides={homepageGuides}
+        guides={publishedGuides}
         heroSize={heroSize}
       />
       <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
@@ -312,7 +317,7 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <GuidePromoBand guides={homepageGuides} />
+      <GuidePromoBand guides={publishedGuides} />
 
       <BoatsForSaleTeaser />
 

@@ -230,7 +230,7 @@ test("Phase Two preserves the approved homepage, cookie and story-publication co
     // Desktop homepage sections, the prefetched lead, the Substack signup,
     // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
     // The app-style mobile homepage is an extra block, hidden from 1024px up.
-    "app/page.tsx": "707b35089b51a4a0140f9f06a10ed9211ac458c88362517d2da41da586717491",
+    "app/page.tsx": "351bbd1d66fe534994faf413b9bfc97c72300a0364a0d0a47536626b079e2c6c",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
