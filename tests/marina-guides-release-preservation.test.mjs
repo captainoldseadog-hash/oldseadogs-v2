@@ -11,7 +11,7 @@ const protectedFiles = {
   // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
-  "app/page.tsx": "19afe84c16eef71576bc8575b87242fc1c75f8d09dce6149d77b0c013eabf53b",
+  "app/page.tsx": "d121b702b9b1fcd61be8bc0710b9f44ce0e496c6495fea482b502f9a3b40f4dc",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",

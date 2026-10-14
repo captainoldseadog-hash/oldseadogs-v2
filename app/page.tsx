@@ -78,32 +78,32 @@ function GuidePromoBand({
             ))}
           </div>
         ) : null}
-        {recent.length ? (
-          <div className="homepage-guides-recent">
-            <p className="eyebrow">Recently added</p>
-            <div className="homepage-guides-recent-grid">
-              {recent.map((guide) => {
-                const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
-                return (
-                  <Link href={guidePublicPath(guide)} key={guide.slug}>
-                    {imageSrc ? (
-                      <img
-                        alt={guide.imageAlt || guide.title}
-                        decoding="async"
-                        loading="lazy"
-                        sizes="(min-width: 1025px) 160px, (min-width: 640px) 46vw, 70vw"
-                        src={imageSrc}
-                        srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
-                      />
-                    ) : null}
-                    <strong>{guide.title}</strong>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
       </div>
+      {recent.length ? (
+        <div className="homepage-guides-recent">
+          <p className="eyebrow">Recently added</p>
+          <div className="homepage-guides-recent-grid">
+            {recent.map((guide) => {
+              const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
+              return (
+                <Link href={guidePublicPath(guide)} key={guide.slug}>
+                  {imageSrc ? (
+                    <img
+                      alt={guide.imageAlt || guide.title}
+                      decoding="async"
+                      loading="lazy"
+                      sizes="(min-width: 1025px) 280px, (min-width: 640px) 46vw, 70vw"
+                      src={imageSrc}
+                      srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                    />
+                  ) : null}
+                  <strong>{guide.title}</strong>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
