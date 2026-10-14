@@ -10301,7 +10301,7 @@ a {
   gap: 14px;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, .24);
-  padding: 22px 0;
+  padding: 14px 0;
   color: #ffffff;
 }
 
@@ -10331,7 +10331,7 @@ a {
 }
 
 .homepage-guides-recent {
-  margin-top: 28px;
+  margin-top: 16px;
 }
 
 .homepage-guides-recent .eyebrow {
@@ -10340,9 +10340,9 @@ a {
 
 .homepage-guides-recent-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 14px;
-  margin-top: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin-top: 10px;
 }
 
 .homepage-guides-recent-grid a {
@@ -10359,11 +10359,14 @@ a {
 }
 
 .homepage-guides-recent-grid strong {
-  display: block;
-  margin-top: 8px;
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.05rem;
-  line-height: 1.15;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .homepage-guides-recent-grid a:hover strong {
@@ -12720,6 +12723,15 @@ a {
     display: none;
   }
 
+  .homepage-guides-recent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 14px;
+  }
+
+  .homepage-guides-recent-grid strong {
+    font-size: 1.05rem;
+  }
+
   .homepage-guides-list > a:not(:first-child) {
     display: none;
   }
@@ -13918,7 +13930,7 @@ a {
     text-transform: uppercase;
   }
 
-  .app-lead-copy h1 {
+  .app-lead-copy h2 {
     margin: 4px 0 0;
     max-width: none;
     color: #fff;

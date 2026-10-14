@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { GuidePublicContent } from "../../../../components/GuidePublicContent.tsx";
 import { JsonLd } from "../../../../components/JsonLd.tsx";
 import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 
 import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
 import { getGuideBySlug, getPublishedGuides } from "../../../../lib/site-content.ts";
-import { createPageMetadata } from "../../../../lib/seo.ts";
+import { createPageMetadata, metaDescription, pageTitle } from "../../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../../lib/structured-data.ts";
 import { SiteHeader } from "../../../../components/SiteHeader";
 
@@ -31,13 +31,13 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
     ...metadata,
     openGraph: {
       ...metadata.openGraph,
-      title: record.socialTitle || record.seoTitle || record.title,
-      description: record.socialDescription || record.seoDescription || record.introduction,
+      title: pageTitle(record.socialTitle || record.seoTitle || record.title),
+      description: metaDescription(record.socialDescription || record.seoDescription || record.introduction),
     },
     twitter: {
       ...metadata.twitter,
-      title: record.socialTitle || record.seoTitle || record.title,
-      description: record.socialDescription || record.seoDescription || record.introduction,
+      title: pageTitle(record.socialTitle || record.seoTitle || record.title),
+      description: metaDescription(record.socialDescription || record.seoDescription || record.introduction),
     },
   };
 }
@@ -49,7 +49,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
     getPublishedGuides(),
   ]);
   if (!guide || guide.regionKey !== region) notFound();
-  if (guidePublicPath(guide) === guideRegionPath(region)) redirect(guideRegionPath(region));
+  if (guidePublicPath(guide) === guideRegionPath(region)) permanentRedirect(guideRegionPath(region));
   const publishedProductGuides = guideProductRecords(allPublished);
   const path = guidePublicPath(guide);
   const placeJsonLd = guidePlaceJsonLd(guide);

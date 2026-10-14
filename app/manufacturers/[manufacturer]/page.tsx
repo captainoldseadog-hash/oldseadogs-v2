@@ -34,7 +34,7 @@ export async function generateMetadata({
 
   return createPageMetadata({
     title: `${manufacturer.name} Stories`,
-    description: `Old Sea Dogs stories, reviews, launches, and news involving ${manufacturer.name}.`,
+    description: `Stories, reviews, launches and news from Old Sea Dogs involving ${manufacturer.name}, from new boats to the events around the yard.`,
     path: `/manufacturers/${manufacturer.slug}`,
   });
 }

@@ -35,7 +35,7 @@ export function BoatGallery({ photos, title }: { photos: GalleryPhoto[]; title: 
               role="tab"
               type="button"
             >
-              <img alt="" height={photo.height || 640} src={photo.thumb} width={photo.width || 640} />
+              <img alt={photo.alt || `Photograph ${photoIndex + 1} of ${title}`} height={photo.height || 640} src={photo.thumb} width={photo.width || 640} />
             </button>
           ))}
         </div>

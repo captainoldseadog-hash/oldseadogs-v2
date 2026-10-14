@@ -121,11 +121,50 @@ export function robotsMetadata(
   };
 }
 
+const INVISIBLE_CHARACTERS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
+const META_DESCRIPTION_MAX = 160;
+const META_TITLE_MAX = 60;
+const SHORT_DESCRIPTION_MIN = 70;
+
+/** Drop control and invisible characters, then collapse whitespace. */
+export function plainPublicText(value: string) {
+  return String(value || "").replace(INVISIBLE_CHARACTERS, "").replace(/\s+/g, " ").trim();
+}
+
+function trimAtWord(value: string, max: number) {
+  if (value.length <= max) return value;
+  const slice = value.slice(0, max + 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const cut = lastSpace >= Math.min(80, max - 20) ? slice.slice(0, lastSpace) : value.slice(0, max);
+  return cut.replace(/[\s,;:.!?–—-]+$/u, "").trim();
+}
+
+/**
+ * Meta description used at render time. CMS copy is left unchanged.
+ * Long text is cut on a word boundary. Very short text gains a site clause
+ * so section and listing defaults are useful in search results.
+ */
+export function metaDescription(value: string) {
+  let text = plainPublicText(value);
+  if (!text) text = defaultDescription;
+  if (text.length < SHORT_DESCRIPTION_MIN) {
+    const note = /old sea dogs/i.test(text)
+      ? "Practical boating and yachting coverage from the waterfront."
+      : "Boating and yachting coverage from Old Sea Dogs.";
+    text = `${text.replace(/[.!?…\s]+$/u, "")}. ${note}`;
+  }
+  return trimAtWord(text, META_DESCRIPTION_MAX);
+}
+
 export function pageTitle(title: string) {
-  if (title === siteName) {
+  const clean = plainPublicText(title);
+  if (!clean || clean === siteName) {
     return `${siteName} | Boating, Yachting & Sea Stories`;
   }
-  return title.includes(siteName) ? title : `${title} | ${siteName}`;
+  const withSite = clean.includes(siteName) ? clean : `${clean} | ${siteName}`;
+  if (withSite.length <= META_TITLE_MAX) return withSite;
+  if (clean.length <= META_TITLE_MAX) return clean;
+  return trimAtWord(clean, META_TITLE_MAX);
 }
 
 export function createPageMetadata({
@@ -146,6 +185,7 @@ export function createPageMetadata({
   noIndexFollow?: boolean;
 }): Metadata {
   const fullTitle = pageTitle(title);
+  const publicDescription = metaDescription(description);
   const usableImage = isRenderableImageReference(image.url) ? image : defaultOpenGraphImage;
   const sharedUrl = shareImageUrl(usableImage.url) || defaultOpenGraphImage.url;
   const sharedSize = sharedUrl === usableImage.url
@@ -155,14 +195,14 @@ export function createPageMetadata({
 
   return {
     title: fullTitle,
-    description,
+    description: publicDescription,
     alternates: {
       canonical: absoluteUrl(path),
     },
     openGraph: {
       type,
       title: fullTitle,
-      description,
+      description: publicDescription,
       url: absoluteUrl(path),
       siteName,
       images: [
@@ -177,7 +217,7 @@ export function createPageMetadata({
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
-      description,
+      description: publicDescription,
       images: [imageUrl],
     },
     robots: robotsMetadata(noIndex, noIndexFollow),

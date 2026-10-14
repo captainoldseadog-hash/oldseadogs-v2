@@ -30,10 +30,10 @@ test("anonymous public documents are shared-cacheable", () => {
     assert.equal(headers["Cache-Control"], PUBLIC_DOCUMENT_CACHE_CONTROL);
     assert.equal(headers["CDN-Cache-Control"], PUBLIC_SHARED_CACHE_CONTROL);
     assert.equal(headers["Cloudflare-CDN-Cache-Control"], PUBLIC_SHARED_CACHE_CONTROL);
-    assert.match(headers["Cache-Control"], /s-maxage=60/);
-    assert.equal(headers["Cache-Control"], "public, s-maxage=60, stale-while-revalidate=300");
-    assert.equal(headers["CDN-Cache-Control"], "public, max-age=60, stale-while-revalidate=300");
-    assert.match(headers["Cache-Control"], /stale-while-revalidate=300/);
+    assert.match(headers["Cache-Control"], /s-maxage=300/);
+    assert.equal(headers["Cache-Control"], "public, s-maxage=300, stale-while-revalidate=86400");
+    assert.equal(headers["CDN-Cache-Control"], "public, max-age=300, stale-while-revalidate=86400");
+    assert.match(headers["Cache-Control"], /stale-while-revalidate=86400/);
     assert.doesNotMatch(headers["CDN-Cache-Control"], /s-maxage/);
   }
 });
@@ -50,8 +50,7 @@ test("editor, preview, API and flight requests are never stored", () => {
     request({ pathname: "/", method: "POST" }),
     request({ pathname: "/", headers: { RSC: "1" } }),
     request({ pathname: "/guides/solent/hamble-point-marina.rsc" }),
-    request({ pathname: "/guides/solent/hamble-point-marina", headers: { accept: "*/*" } }),
-    request({ pathname: "/", headers: { accept: "" } }),
+    request({ pathname: "/", headers: { accept: "application/json" } }),
     request({ pathname: "/", headers: { "sec-fetch-dest": "empty" } }),
     request({ pathname: "/", headers: { Accept: "text/x-component" } }),
     request({ pathname: "/", headers: { "X-Vinext-Rsc-Render-Mode": "prefetch" } }),
@@ -88,6 +87,13 @@ test("consent and editor cookies are never stored, unrelated cookies still allow
     headers: { cookie: "__cf_bm=edge; _ga=1" },
   }));
   assert.equal(headers["Cache-Control"], PUBLIC_DOCUMENT_CACHE_CONTROL);
+});
+
+test("crawlers that omit a document Accept header still receive the public cache", () => {
+  for (const headers of [{ accept: "*/*" }, { accept: "" }]) {
+    const responseHeaders = cacheHeadersForPolicyRequest(request({ pathname: "/stories/a-story", headers }));
+    assert.equal(responseHeaders["Cache-Control"], PUBLIC_DOCUMENT_CACHE_CONTROL, JSON.stringify(headers));
+  }
 });
 
 test("image and media responses keep their own cache headers", () => {

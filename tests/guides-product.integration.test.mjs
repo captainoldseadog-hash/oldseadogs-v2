@@ -147,20 +147,20 @@ test("Guide library, Solent collection and Guide detail render the complete publ
     assert.match(html, new RegExp(record.media.primaryImage.split("/").at(-1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 
+  assert.match(regionHtml, /most concentrated cruising ground/);
+  assert.match(regionHtml, /Jump to section/);
+  assert.match(regionHtml, /Why the Solent Matters/);
+  assert.match(regionHtml, /Old Sea Dogs View/);
+  assert.match(regionHtml, /Cruise On/);
+  assert.match(regionHtml, /Know this area/);
+  assert.match(regionHtml, /Load Google Map/);
+  assert.doesNotMatch(regionHtml, /<iframe/);
+  assert.match(regionHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent"/);
+  assert.match(regionHtml, /"@type":"Article"/);
+  assert.match(regionHtml, /"@type":"BreadcrumbList"/);
   const detail = await request("/guides/solent/the-solent");
-  assert.equal(detail.status, 200);
-  const detailHtml = await detail.text();
-  assert.match(detailHtml, /most concentrated cruising ground/);
-  assert.match(detailHtml, /Jump to section/);
-  assert.match(detailHtml, /Why the Solent Matters/);
-  assert.match(detailHtml, /Old Sea Dogs View/);
-  assert.match(detailHtml, /Cruise On/);
-  assert.match(detailHtml, /Know this area/);
-  assert.match(detailHtml, /Load Google Map/);
-  assert.doesNotMatch(detailHtml, /<iframe/);
-  assert.match(detailHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent\/the-solent"/);
-  assert.match(detailHtml, /"@type":"Article"/);
-  assert.match(detailHtml, /"@type":"BreadcrumbList"/);
+  assert.equal(detail.status, 308);
+  assert.match(detail.headers.get("location") || "", /\/guides\/solent$/);
 
   const marina = await request("/guides/solent/hamble-point-marina");
   assert.equal(marina.status, 200);
@@ -376,6 +376,7 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.equal(sitemap.status, 200);
   const sitemapXml = await sitemap.text();
   assert.match(sitemapXml, /\/guides\/solent</);
+  assert.doesNotMatch(sitemapXml, /\/guides\/solent\/the-solent</);
   assert.doesNotMatch(sitemapXml, /solent-marina-guide/);
   assert.doesNotMatch(sitemapXml, /<loc>[^<]*\/marina-guide</);
   for (const pathname of ["/guides/solent-marina-guide", "/guides/solent-marina-guide/", "/marina-guide", "/marina-guide/"]) {

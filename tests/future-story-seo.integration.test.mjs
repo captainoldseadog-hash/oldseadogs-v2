@@ -199,8 +199,9 @@ test("a normal future published story is automatically indexable, server rendere
   assert.match(metadataContent(html, "googlebot"), /max-image-preview:large/i);
   assert.match(html, new RegExp(`rel=["']canonical["'] href=["']https://oldseadogs\\.com/stories/${futureSlug}["']`));
   const articleFigure = html.match(/<figure class="article-figure">[\s\S]*?<\/figure>/)?.[0] || "";
-  assert.match(articleFigure, new RegExp(`src="${leadImage.replaceAll("/", "\\/")}\\?variant=web"`, "i"));
-  assert.match(articleFigure, new RegExp(`srcSet="[^"]*${leadImage.replaceAll("/", "\\/")}\\?variant=web 1600w"`, "i"));
+  assert.match(articleFigure, new RegExp(`src="/img/1600/media/${mediaId}"`, "i"));
+  assert.match(articleFigure, new RegExp(`srcSet="[^"]*/img/1600/media/${mediaId} 1600w"`, "i"));
+  assert.doesNotMatch(articleFigure, /variant=web|data:image/);
   assert.match(articleFigure, /fetchpriority="high"/i);
   assert.match(articleFigure, /loading="eager"/i);
 
@@ -230,6 +231,10 @@ test("a normal future published story is automatically indexable, server rendere
   assert.equal(imageResponse.status, 200);
   assert.equal(imageResponse.headers.get("content-type"), "image/webp");
   assert.doesNotMatch(imageResponse.headers.get("x-robots-tag") || "", /noindex/i);
+  const shareImageResponse = await controller.fetch(`https://oldseadogs.com${shareImage}`);
+  assert.equal(shareImageResponse.status, 200, "og:image must be a final URL");
+  assert.equal(shareImageResponse.headers.get("location"), null);
+  assert.match(shareImageResponse.headers.get("content-type") || "", /^image\//);
 });
 
 test("sitemap automatically includes every eligible published story with actual lastmod", async () => {

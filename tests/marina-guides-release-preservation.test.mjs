@@ -11,7 +11,7 @@ const protectedFiles = {
   // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
-  "app/page.tsx": "351bbd1d66fe534994faf413b9bfc97c72300a0364a0d0a47536626b079e2c6c",
+  "app/page.tsx": "19afe84c16eef71576bc8575b87242fc1c75f8d09dce6149d77b0c013eabf53b",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -30,7 +30,7 @@ const protectedFiles = {
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
   // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
-  "app/sitemap.ts": "5af87a5168f72539a1a4e8198f34c249473011be015b5670b216b4c7aaad7933",
+  "app/sitemap.ts": "ef39a4598b0ddb25de4ea5b8502da6e941be52e198a46ddc337194b78c89f746",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

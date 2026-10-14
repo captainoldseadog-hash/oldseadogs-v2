@@ -91,7 +91,7 @@ function GuidePromoBand({
                         alt={guide.imageAlt || guide.title}
                         decoding="async"
                         loading="lazy"
-                        sizes="(min-width: 1024px) 280px, 70vw"
+                        sizes="(min-width: 1025px) 160px, (min-width: 640px) 46vw, 70vw"
                         src={imageSrc}
                         srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
                       />
@@ -438,7 +438,7 @@ export default async function Home() {
               <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
                 {section.photo ? (
                   <ResponsiveStoryImage
-                    alt=""
+                    alt={section.label}
                     className={`section-list-image ${
                       isLogoLikeStoryImage(section.photo) ? "club-logo-image" : ""
                     }`}

@@ -13,11 +13,11 @@
  */
 
 export const PUBLIC_DOCUMENT_CACHE_CONTROL =
-  "public, s-maxage=60, stale-while-revalidate=300";
+  "public, s-maxage=300, stale-while-revalidate=86400";
 
 /** Shared caches only. Omits s-maxage so Cloudflare can honour stale-while-revalidate. */
 export const PUBLIC_SHARED_CACHE_CONTROL =
-  "public, max-age=60, stale-while-revalidate=300";
+  "public, max-age=300, stale-while-revalidate=86400";
 
 export const PRIVATE_CACHE_CONTROL = "private, no-store";
 
@@ -129,15 +129,18 @@ function hasPrivateRequestState(request: CachePolicyRequest) {
 
 /**
  * Vinext removes `.rsc` and the RSC header before this proxy runs, then
- * renders flight at that suffix. A shared cache must only store browser
- * document navigations. Anything else stays private, including a bare
- * `.rsc` fetch whose Accept is not text/html.
+ * renders flight at that suffix. Those flights are already private via
+ * request state. A normal document fetch is public even when a crawler
+ * sends a wildcard Accept header or no Accept header. A positive
+ * non-document signal, such as sec-fetch-dest other than document or
+ * Accept application/json, stays private.
  */
 function isDocumentNavigation(request: CachePolicyRequest) {
-  const accept = (request.header("accept") || "").toLowerCase();
-  if (!accept.includes("text/html")) return false;
   const dest = (request.header("sec-fetch-dest") || "").trim().toLowerCase();
-  return dest === "" || dest === "document";
+  if (dest && dest !== "document") return false;
+  const accept = (request.header("accept") || "").toLowerCase();
+  if (!accept || accept.includes("text/html") || accept.includes("*/*") || accept.includes("text/*")) return true;
+  return false;
 }
 
 function cookieNames(header: string | null) {

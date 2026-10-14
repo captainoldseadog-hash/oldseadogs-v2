@@ -6,7 +6,7 @@ import { GUIDE_TYPES } from "../content/flagship-guides.ts";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { validateGuideInput } from "../lib/guide-validation.ts";
-import { guideProductRecords } from "../lib/guides.ts";
+import { guideProductRecords, guidePublicPath } from "../lib/guides.ts";
 
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 
@@ -73,6 +73,7 @@ test("The Solent fixture provides the complete first-edition manuscript and sect
     "Old Sea Dogs View",
   ]);
   assert.equal(guide.canonicalPath, "/guides/solent/the-solent");
+  assert.equal(guidePublicPath(guide), "/guides/solent");
   assert.equal(guide.seoTitle, "The Solent Cruising Guide | Old Sea Dogs");
   assert.match(guide.seoDescription, /harbours, rivers, anchorages/);
 });

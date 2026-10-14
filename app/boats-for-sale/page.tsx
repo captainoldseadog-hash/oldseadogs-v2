@@ -182,7 +182,7 @@ function Card({ listing }: { listing: PublicListing }) {
         <p className="boats-number">{listing.publicNumber} <TradeBadge sellerType={listing.sellerType} /></p>
         <p className="boats-chart-label">{listing.chartLabel}</p>
         <div className="boats-card-media">
-          {listing.photos[0] ? <img alt="" height={listing.photos[0].height || 640} src={listing.photos[0].thumb} width={listing.photos[0].width || 960} /> : <span className="boats-card-placeholder">Photograph to follow</span>}
+          {listing.photos[0] ? <img alt={listing.photos[0].alt || listing.title} height={listing.photos[0].height || 640} src={listing.photos[0].thumb} width={listing.photos[0].width || 960} /> : <span className="boats-card-placeholder">Photograph to follow</span>}
         </div>
         <h2>{listing.title.replace(/^Example only — /, "")}</h2>
         <p className="boats-card-meta">{[listing.location, listing.lengthLabel, listing.keelLabel].filter(Boolean).join(" · ")}</p>

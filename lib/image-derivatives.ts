@@ -1,4 +1,4 @@
-import { derivativeImageUrl, nearestResponsiveWidth, type ResponsiveImageWidth } from "./responsive-image.ts";
+import { nearestResponsiveWidth, type ResponsiveImageWidth } from "./responsive-image.ts";
 
 type NodeProcessLike = {
   cwd?: () => string;
@@ -191,17 +191,106 @@ export async function serveDerivative(request: Request, width: number, asset: st
     if (request.headers.get("if-none-match") === etag) {
       return new Response(null, { status: 304, headers: derivativeResponseHeaders(etag) });
     }
-    const bytes = await renderWebpDerivative(url, width);
-    if (!bytes) return redirectToOriginal(url);
-    return new Response(Buffer.from(bytes), { headers: derivativeResponseHeaders(etag) });
+    const delivered = await deliverResizedImage(url, width, source);
+    if (!delivered) return redirectToOriginal(url);
+    return imageBytesResponse(delivered.bytes, delivered.contentType, delivered.etag || etag);
   } catch (error) {
     console.error("[OldSeaDogs images] derivative failed", {
       url,
       width,
       errorMessage: error instanceof Error ? error.message : String(error),
     });
+    const stored = await storedMediaImage(url);
+    if (stored) return imageBytesResponse(stored.bytes, stored.contentType, stored.etag);
     return redirectToOriginal(url);
   }
+}
+
+function imageBytesResponse(bytes: Uint8Array, contentType: string, etag: string) {
+  return new Response(Buffer.from(bytes), {
+    headers: {
+      ...derivativeResponseHeaders(etag),
+      "Content-Type": contentType,
+    },
+  });
+}
+
+/**
+ * Prefer a resized WebP. If the original cannot be encoded, serve the stored
+ * web or thumbnail file with status 200 so share-image URLs are final.
+ */
+async function deliverResizedImage(url: string, width: number, source: SourceImage) {
+  try {
+    const bytes = await renderWebpDerivative(url, width);
+    if (bytes?.byteLength) return { bytes, contentType: "image/webp", etag: "" };
+  } catch (error) {
+    console.error("[OldSeaDogs images] resize failed", {
+      url,
+      width,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+  }
+  const mediaId = url.match(/^\/api\/media\/([A-Za-z0-9_-]+)$/)?.[1];
+  if (mediaId) {
+    for (const variant of ["web", "thumbnail"] as const) {
+      const stored = await readStoredMediaVariant(mediaId, variant);
+      if (!stored?.bytes.byteLength) continue;
+      const safeWidth = nearestResponsiveWidth(width);
+      try {
+        const resized = await encodeDerivative({
+          cacheKey: `${source.cacheKey}-${variant}`,
+          contentType: stored.contentType || "image/webp",
+          filename: stored.filename,
+          load: async () => stored.bytes,
+        }, safeWidth);
+        if (resized?.byteLength) {
+          return { bytes: resized, contentType: "image/webp", etag: `"${safeWidth}-${source.cacheKey}-${variant}"` };
+        }
+      } catch {
+        // The stored variant is already an image. Serving it avoids a redirect.
+      }
+      return {
+        bytes: stored.bytes,
+        contentType: imageContentType(stored.contentType),
+        etag: `"stored-${variant}-${source.cacheKey}"`,
+      };
+    }
+  }
+  try {
+    const original = await source.load();
+    if (original?.byteLength) {
+      return { bytes: original, contentType: imageContentType(source.contentType), etag: `"original-${source.cacheKey}"` };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function imageContentType(value: string | undefined) {
+  return value && value.startsWith("image/") ? value : "image/webp";
+}
+
+async function readStoredMediaVariant(id: string, variant: "web" | "thumbnail") {
+  const { getMediaAsset } = await import("./site-content");
+  const { readLocalMediaUpload } = await import("./local-media-storage");
+  const asset = await getMediaAsset(id);
+  if (!asset?.r2Key?.startsWith("local:")) return null;
+  const stored = await readLocalMediaUpload(asset.r2Key, variant);
+  if (!stored?.bytes?.byteLength) return null;
+  if (stored.contentType && !stored.contentType.startsWith("image/")) return null;
+  return stored;
+}
+
+async function storedMediaImage(url: string) {
+  const mediaId = url.match(/^\/api\/media\/([A-Za-z0-9_-]+)$/)?.[1];
+  if (!mediaId) return null;
+  for (const variant of ["web", "thumbnail"] as const) {
+    const stored = await readStoredMediaVariant(mediaId, variant);
+    if (!stored) continue;
+    return { bytes: stored.bytes, contentType: imageContentType(stored.contentType), etag: `"stored-${variant}-${mediaId}"` };
+  }
+  return null;
 }
 
 function sourceUrlForAsset(asset: string[]) {
@@ -218,14 +307,11 @@ function sourceUrlForAsset(asset: string[]) {
 }
 
 function redirectToOriginal(url: string) {
-  const location = derivativeImageUrl(url, 1600).startsWith("/api/media/")
-    ? derivativeImageUrl(url, 1600)
-    : url;
   return new Response(null, {
     status: 302,
     headers: {
       "Cache-Control": "private, no-store",
-      Location: location,
+      Location: url,
     },
   });
 }

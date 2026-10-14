@@ -78,7 +78,7 @@ test("public documents are cacheable and private routes stay no-store", async ()
     read("lib/public-cache-policy.ts"),
     read("app/layout.tsx"),
   ]);
-  assert.match(policy, /public, s-maxage=60, stale-while-revalidate=300/);
+  assert.match(policy, /public, s-maxage=300, stale-while-revalidate=86400/);
   assert.match(policy, /public, max-age=60, stale-while-revalidate=300/);
   assert.match(policy, /private, no-store/);
   assert.match(config, /source: "\/api\/editor"/);

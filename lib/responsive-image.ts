@@ -54,11 +54,7 @@ export function derivativeImageUrl(url: string, width: number) {
   if (!isDerivativeSource(url)) return url;
   const safeWidth = nearestResponsiveWidth(width);
   const mediaId = mediaIdFromPublicUrl(url);
-  if (mediaId) {
-    if (safeWidth <= 480) return `/api/media/${mediaId}?variant=thumbnail`;
-    if (safeWidth >= 1600) return `/api/media/${mediaId}?variant=web`;
-    return `/img/${safeWidth}/media/${mediaId}`;
-  }
+  if (mediaId) return `/img/${safeWidth}/media/${mediaId}`;
   const relative = (url.split(/[?#]/, 1)[0] || "").replace(/^\/+/, "");
   return `/img/${safeWidth}/${relative}`;
 }
@@ -73,8 +69,17 @@ export function derivativeSrcSet(url: string, widths: readonly number[] = RESPON
   return unique.map((width) => `${derivativeImageUrl(url, width)} ${width}w`).join(", ");
 }
 
+function isFullWebVariantAlias(url: string) {
+  return /[?&]variant=web(?:&|$)/.test(url);
+}
+
 export function mobileSourceSrcSet(url: string, dedicatedMobileUrl = "") {
-  if (dedicatedMobileUrl && dedicatedMobileUrl !== url && isRenderableImageReference(dedicatedMobileUrl)) return dedicatedMobileUrl;
+  if (
+    dedicatedMobileUrl
+    && dedicatedMobileUrl !== url
+    && !isFullWebVariantAlias(dedicatedMobileUrl)
+    && isRenderableImageReference(dedicatedMobileUrl)
+  ) return dedicatedMobileUrl;
   return derivativeSrcSet(url, [480, 768, 1200]) || (isRenderableImageReference(url) ? url : "");
 }
 
@@ -85,9 +90,9 @@ export function mobileSourceSrcSet(url: string, dedicatedMobileUrl = "") {
 export function resizedPublicImageUrl(url: string, width = 768) {
   if (!isRenderableImageReference(url)) return "";
   const dedicated = publicMediaVariantUrl(url, "mobile");
-  if (dedicated && dedicated !== url && isRenderableImageReference(dedicated)) return dedicated;
+  if (dedicated && dedicated !== url && !isFullWebVariantAlias(dedicated) && isRenderableImageReference(dedicated)) return dedicated;
   const thumbnail = publicMediaVariantUrl(url, "thumbnail");
-  if (thumbnail && thumbnail !== url && isRenderableImageReference(thumbnail)) return thumbnail;
+  if (thumbnail && thumbnail !== url && !/[?&]variant=/.test(thumbnail) && isRenderableImageReference(thumbnail)) return thumbnail;
   return derivativeImageUrl(url, width);
 }
 

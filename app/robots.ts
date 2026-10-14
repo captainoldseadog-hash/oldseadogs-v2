@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, productionSiteUrl, searchIndexingEnabled, siteUrl } from "../lib/seo";
+import { absoluteUrl, productionSiteUrl, searchIndexingEnabled } from "../lib/seo";
 
 const privateRoutes = [
   "/editor",
@@ -41,6 +41,5 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: searchIndexingEnabled
       ? `${productionSiteUrl}/sitemap.xml`
       : absoluteUrl("/sitemap.xml"),
-    host: siteUrl,
   };
 }

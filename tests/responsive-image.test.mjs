@@ -12,10 +12,11 @@ test("static guide artwork is served as a sized derivative and the original path
   assert.match(derivativeSrcSet(original), /1600w$/);
 });
 
-test("CMS media keeps the existing web and thumbnail files and only fills the gap widths", () => {
-  assert.equal(derivativeImageUrl("/api/media/photo-1", 480), "/api/media/photo-1?variant=thumbnail");
-  assert.equal(derivativeImageUrl("/api/media/photo-1", 1600), "/api/media/photo-1?variant=web");
+test("CMS media heroes use resized derivative URLs rather than the full web variant", () => {
+  assert.equal(derivativeImageUrl("/api/media/photo-1", 480), "/img/480/media/photo-1");
+  assert.equal(derivativeImageUrl("/api/media/photo-1", 1600), "/img/1600/media/photo-1");
   assert.equal(derivativeImageUrl("/api/media/photo-1", 768), "/img/768/media/photo-1");
+  assert.doesNotMatch(derivativeSrcSet("/api/media/photo-1"), /variant=web|data:/);
   assert.equal(derivativeImageUrl("https://example.com/photo.png", 768), "https://example.com/photo.png");
   assert.equal(derivativeSrcSet("https://example.com/photo.png"), "");
   assert.equal(derivativeImageUrl("pending", 768), "");

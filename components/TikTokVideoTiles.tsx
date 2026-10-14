@@ -21,8 +21,7 @@ function TikTokTile({ video, shown }: { video: PublicTikTokVideo; shown: boolean
   const name = views ? `${label}, ${views} views` : label;
   return (
     <TrackedExternalLink className="tiktok-grid-tile" hidden={!shown} href={video.watchUrl} platform="TikTok">
-      {shown ? <img alt="" decoding="async" loading="lazy" src={video.coverPath} /> : null}
-      <span className="tiktok-sr-only">{name}</span>
+      {shown ? <img alt={name} decoding="async" loading="lazy" src={video.coverPath} /> : <span className="tiktok-sr-only">{name}</span>}
       {shown ? (
         <span aria-hidden="true" className="tiktok-grid-views">
           <PlayIcon />

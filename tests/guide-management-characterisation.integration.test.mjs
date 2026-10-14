@@ -51,8 +51,11 @@ test("stored Guides override static seeds without changing current URLs or artwo
   assert.equal(override.title, "Stored Solent Override Characterisation");
   assert.equal(override.imageUrl, "/images/guides/guides-solent-needles-hero-v1.png");
 
+  const duplicateLead = await request("/guides/solent/the-solent");
+  assert.equal(duplicateLead.status, 308);
+  assert.match(duplicateLead.headers.get("location") || "", /\/guides\/solent$/);
   for (const [pathname, artwork] of [
-    ["/guides/solent/the-solent", "guides-solent-needles-hero-v1.png"],
+    ["/guides/solent", "guides-solent-needles-hero-v1.png"],
     ["/guides/solent/hamble-point-marina", "guides-marina-hamble-point-hero-v1.png"],
     ["/guides/solent/cowes", "guides-harbour-cowes-hero-v1.png"],
   ]) {

@@ -94,7 +94,7 @@ export async function MobileAppHome({
           <span aria-hidden="true" className="app-lead-shade" />
           <span className="app-lead-copy">
             <span className="app-tag">{displayCategoryLabel(featuredStory.category)}</span>
-            <h1>{featuredStory.title}</h1>
+            <h2>{featuredStory.title}</h2>
             <span className="app-lead-meta">
               {formatDate(featuredStory.date)} · {featuredStory.readMinutes} min read
             </span>
@@ -187,8 +187,7 @@ export async function MobileAppHome({
         ))}
         {lens.videos.map((video) => (
           <TrackedExternalLink className="app-lens-tile" href={video.watchUrl} key={video.id} platform="TikTok">
-            <img alt="" decoding="async" loading="lazy" sizes="150px" src={video.coverPath} />
-            <span className="tiktok-sr-only">{video.title || "TikTok video"}</span>
+            <img alt={video.title || "TikTok video"} decoding="async" loading="lazy" sizes="150px" src={video.coverPath} />
           </TrackedExternalLink>
         ))}
         <Link className="app-lens-more" href={lens.href}>See the full gallery</Link>

@@ -4,9 +4,7 @@ import { isRenderableImageReference, shareImageUrl } from "./responsive-image.ts
 import { absoluteUrl } from "./seo.ts";
 
 export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug">) {
-  if (guide.guideType === "Cruising Area" && guide.slug === guide.regionKey && !guide.parentGuideSlug) {
-    return guideRegionPath(guide.regionKey);
-  }
+  if (publishesOnRegionHub(guide)) return guideRegionPath(guide.regionKey);
   if (guide.canonicalPath?.startsWith("/guides/")) return guide.canonicalPath;
   return guide.regionKey
     ? `/guides/${guide.regionKey}/${guide.slug}`
@@ -15,6 +13,16 @@ export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" 
 
 export function guideRegionPath(regionKey: string) {
   return `/guides/${regionKey}`;
+}
+
+/**
+ * The region hub renders this cruising-area article, so a second URL would
+ * repeat the same title, description and body. Stored canonical paths stay
+ * as written in the CMS.
+ */
+function publishesOnRegionHub(guide: Pick<EditableGuide, "slug" | "regionKey" | "guideType" | "parentGuideSlug">) {
+  if (guide.guideType !== "Cruising Area" || guide.parentGuideSlug || !guide.regionKey) return false;
+  return guide.slug === guide.regionKey || guide.slug === `the-${guide.regionKey}`;
 }
 
 export function guideProductRecords(guides: readonly EditableGuide[]) {

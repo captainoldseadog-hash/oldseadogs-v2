@@ -85,8 +85,26 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    return withPublicCache(response, request, url);
   },
 };
+
+function withPublicCache(response: Response, request: Request, url: URL) {
+  const cacheHeaders = cacheHeadersForPolicyRequest({
+    header: (name) => request.headers.get(name),
+    method: request.method,
+    pathname: url.pathname,
+    searchParams: url.searchParams,
+  });
+  if (!cacheHeaders) return response;
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(cacheHeaders)) headers.set(key, value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 export default worker;

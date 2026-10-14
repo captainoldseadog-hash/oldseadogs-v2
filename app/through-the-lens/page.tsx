@@ -10,7 +10,7 @@ import { createPageMetadata } from "../../lib/seo";
 import { getApprovedPublicGalleryPhotos, getSiteSettings } from "../../lib/site-content";
 
 const title = "Through the Lens";
-const description = "Photographs from the Old Sea Dogs waterfront.";
+const description = "Photographs from the Old Sea Dogs waterfront, including shows, harbours and the boats that pass through them.";
 
 const galleryIsPublic = cache(async () => {
   const settings = await getSiteSettings();
@@ -40,7 +40,7 @@ export default async function ThroughTheLensPage() {
       <header className="social-hero">
         <p className="eyebrow">Gallery</p>
         <h1>Through the Lens</h1>
-        <p>Photographs from the Old Sea Dogs waterfront.</p>
+        <p>{description}</p>
         <p>
           <Link href="/social">Follow Old Sea Dogs on social</Link>
         </p>
@@ -55,7 +55,7 @@ export default async function ThroughTheLensPage() {
         <section className="lens-grid" aria-label="Photographs">
           {photos.map((photo) => (
             <figure className="lens-card" key={photo.id}>
-              <img alt={photo.alt} src={photo.imageUrl} />
+              <img alt={photo.alt || photo.title || "Through the Lens photograph"} src={photo.imageUrl} />
               <figcaption>
                 {photo.title ? <strong>{photo.title}</strong> : null}
                 {photo.caption ? <p>{photo.caption}</p> : null}
