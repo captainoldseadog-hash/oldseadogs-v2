@@ -102,6 +102,12 @@ addCheck(
   "PM2 can be started or reloaded with --env production so SEO does not stay in staging mode."
 );
 addCheck(
+  "Node start trusts the nginx forwarded protocol",
+  packageJson.scripts["start:do"].includes("VINEXT_TRUST_PROXY=1") &&
+    ecosystemSource.includes('VINEXT_TRUST_PROXY: "1"'),
+  "permanentRedirect and request.url Locations stay on https when nginx sends X-Forwarded-Proto."
+);
+addCheck(
   "Production canonical domain is non-www oldseadogs.com",
   seoSource.includes('productionSiteUrl = "https://oldseadogs.com"'),
   "Production canonicals, OG URLs and sitemap URLs use https://oldseadogs.com."

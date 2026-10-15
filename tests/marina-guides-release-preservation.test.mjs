@@ -32,10 +32,10 @@ const protectedFiles = {
   // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
   "app/sitemap.ts": "ef39a4598b0ddb25de4ea5b8502da6e941be52e198a46ddc337194b78c89f746",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
-  "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
+  "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
   "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
-  "package.json": "860c0b4b1b8a85d9911806e8dba42e4e8269876a6e11571602d05ea13180fcf6",
+  "package.json": "f9653d7495f567203143cb174dadbdd4319b2d562380e000845c042756a0dd43",
 };
 
 test("homepage, story, editor, scheduler, search and consent logic match production", async () => {
@@ -56,6 +56,15 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
   // A section with only editorial links is kept so area-hub links are not dropped on read.
   assert.equal(hash(reconstructedBaseline), "e5dd9c50e99c4b25473977969ab606edd3d424986004582a3aaa876d107a4f59");
+});
+
+test("node production start trusts nginx X-Forwarded-Proto for redirect Locations", async () => {
+  const [packageJson, ecosystem] = await Promise.all([
+    fs.readFile(path.join(projectDir, "package.json"), "utf8").then(JSON.parse),
+    fs.readFile(path.join(projectDir, "ecosystem.config.cjs"), "utf8"),
+  ]);
+  assert.match(packageJson.scripts["start:do"], /(?:^|\s)VINEXT_TRUST_PROXY=1(?:\s|$)/);
+  assert.match(ecosystem, /VINEXT_TRUST_PROXY:\s*"1"/);
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

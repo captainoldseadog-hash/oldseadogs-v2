@@ -12,7 +12,7 @@
     "build:do": "rm -rf dist && node scripts/write-build-info.mjs && OLDSEADOGS_RUNTIME=node vinext build && node scripts/check-digitalocean-build.mjs",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "start": "vinext start",
-    "start:do": "OLDSEADOGS_RUNTIME=node node --import ./scripts/story-scheduler-hook.mjs ./node_modules/vinext/dist/cli.js start --hostname ${HOST:-127.0.0.1} --port ${PORT:-3000}",
+    "start:do": "VINEXT_TRUST_PROXY=1 OLDSEADOGS_RUNTIME=node node --import ./scripts/story-scheduler-hook.mjs ./node_modules/vinext/dist/cli.js start --hostname ${HOST:-127.0.0.1} --port ${PORT:-3000}",
     "check:launch": "node scripts/check-launch-readiness.mjs",
     "check:storage": "node scripts/check-storage.mjs",
     "check:stories": "node scripts/check-story-regression.mjs",
