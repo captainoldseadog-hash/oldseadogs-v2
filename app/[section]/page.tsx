@@ -14,8 +14,9 @@ import {
 } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { isLogoLikeStoryImage } from "../../content/story-images";
+import { resolvePublicPage } from "../../lib/public-page";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
-import { createPageMetadata } from "../../lib/seo";
+import { createPageMetadata, robotsMetadata } from "../../lib/seo";
 import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
@@ -46,14 +47,21 @@ export async function generateMetadata({
     };
   }
 
-  const requestedPage = Number.parseInt(query?.page ?? "1", 10);
-  const canonicalPage = Number.isFinite(requestedPage) && requestedPage > 1 ? requestedPage : 1;
+  const stories = (await getPublishedStories()).filter((story) => storyMatchesSection(story, section));
+  const pageCount = Math.max(1, Math.ceil(stories.length / 80));
+  const currentPage = resolvePublicPage(query?.page, pageCount);
+  if (currentPage === null) {
+    return {
+      title: "Page not found | Old Sea Dogs",
+      robots: robotsMetadata(true),
+    };
+  }
 
   return {
     ...createPageMetadata({
       title: section.label,
       description: section.description,
-      path: makeSectionHref(section.slug, canonicalPage),
+      path: makeSectionHref(section.slug, currentPage),
     }),
     description: section.description,
   };
@@ -72,10 +80,8 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
   );
   const pageSize = 80;
   const pageCount = Math.max(1, Math.ceil(stories.length / pageSize));
-  const requestedPage = Number.parseInt(query?.page ?? "1", 10);
-  const currentPage = Number.isFinite(requestedPage)
-    ? Math.min(Math.max(requestedPage, 1), pageCount)
-    : 1;
+  const currentPage = resolvePublicPage(query?.page, pageCount);
+  if (currentPage === null) notFound();
   const start = (currentPage - 1) * pageSize;
   const pageStories = stories.slice(start, start + pageSize);
   const pageStart = stories.length === 0 ? 0 : start + 1;

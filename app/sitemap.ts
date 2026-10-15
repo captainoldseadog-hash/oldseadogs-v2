@@ -21,6 +21,19 @@ function lastModifiedDate(...values: Array<string | undefined>) {
   for (const value of values) { if (!value) continue; const date = new Date(value.includes("T") ? value : `${value}T00:00:00Z`); if (!Number.isNaN(date.getTime())) return date; }
   return STATIC_SITEMAP_LASTMOD;
 }
+function contentUpdatedDate(value: string | undefined) {
+  if (!value) return null;
+  const date = new Date(value.includes("T") ? value : `${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function latestContentUpdate(values: Array<string | undefined>) {
+  let latest = 0;
+  for (const value of values) {
+    const date = contentUpdatedDate(value);
+    if (date) latest = Math.max(latest, date.getTime());
+  }
+  return latest ? new Date(latest) : null;
+}
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [publishedStories, indexedGuides, boatListings, settings] = await Promise.all([
     getPublishedStories(),
@@ -50,7 +63,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         return path !== guideRegionPath(guide.regionKey) && !retiredMarinaGuideRedirect(path);
       })
       .map((guide) => ({ url: absoluteUrl(guidePublicPath(guide)), lastModified: lastModifiedDate(guide.updatedAt), changeFrequency: "monthly" as const, priority: guide.showOnHomepage ? 0.72 : 0.62 })),
-    ...manufacturers.filter((manufacturer, index, list) => list.findIndex((item) => item.slug === manufacturer.slug) === index).filter((manufacturer) => stories.some((story) => storyMatchesManufacturer(story, manufacturer))).map((manufacturer) => ({ url: absoluteUrl(`/manufacturers/${manufacturer.slug}`), lastModified: lastModifiedDate(...stories.filter((story) => storyMatchesManufacturer(story, manufacturer)).flatMap((story) => [story.updatedAt, story.createdAt, story.date])), changeFrequency: "weekly" as const, priority: 0.62 })),
-    ...stories.map((story) => ({ url: absoluteUrl(`/stories/${story.slug}`), lastModified: lastModifiedDate(story.updatedAt, story.createdAt, story.date), changeFrequency: "monthly" as const, priority: story.isFeatured ? 0.9 : 0.65 })),
+    ...manufacturers.filter((manufacturer, index, list) => list.findIndex((item) => item.slug === manufacturer.slug) === index).filter((manufacturer) => stories.some((story) => storyMatchesManufacturer(story, manufacturer))).map((manufacturer) => ({ url: absoluteUrl(`/manufacturers/${manufacturer.slug}`), lastModified: latestContentUpdate(stories.filter((story) => storyMatchesManufacturer(story, manufacturer)).map((story) => story.updatedAt)) ?? STATIC_SITEMAP_LASTMOD, changeFrequency: "weekly" as const, priority: 0.62 })),
+    ...stories.map((story) => {
+      const updated = contentUpdatedDate(story.updatedAt);
+      return { url: absoluteUrl(`/stories/${story.slug}`), ...(updated ? { lastModified: updated } : {}), changeFrequency: "monthly" as const, priority: story.isFeatured ? 0.9 : 0.65 };
+    }),
   ];
 }

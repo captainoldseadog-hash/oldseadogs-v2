@@ -30,21 +30,21 @@ const oldSectionByCategory = new Map<string, string>([
 ]);
 
 const removableSlugPrefixes = [
-  "news",
-  "shows",
   "boat-shows",
-  "racing",
-  "races",
-  "regatta",
   "boat-reviews",
-  "reviews",
-  "gear",
   "destinations",
   "masterclass",
   "maintenance",
   "lifestyle",
+  "regatta",
+  "reviews",
+  "racing",
+  "shows",
   "clubs",
   "ports",
+  "races",
+  "news",
+  "gear",
 ];
 
 const redirectMap = new Map<string, string>();
@@ -64,18 +64,12 @@ function pathFromUrl(value: string) {
 }
 
 function addRedirect(oldPath: string, newPath: string) {
-  const normalizedOldPath = normalizePath(oldPath);
+  const normalizedOldPath = lookupPath(oldPath);
   const normalizedNewPath = normalizePath(newPath);
 
   if (normalizedOldPath === normalizedNewPath) return;
 
   redirectMap.set(normalizedOldPath, normalizedNewPath);
-
-  try {
-    redirectMap.set(normalizePath(decodeURIComponent(normalizedOldPath)), normalizedNewPath);
-  } catch {
-    // Leave the encoded path in place if the source path cannot be decoded.
-  }
 }
 
 function legacySectionForStory(story: LegacyRedirectStory) {
@@ -84,11 +78,28 @@ function legacySectionForStory(story: LegacyRedirectStory) {
 }
 
 function stripKnownPrefix(slug: string) {
+  const lower = slug.toLowerCase();
   for (const prefix of removableSlugPrefixes) {
     const marker = `${prefix}-`;
-    if (slug.startsWith(marker)) return slug.slice(marker.length);
+    if (lower.startsWith(marker)) return lower.slice(marker.length);
   }
-  return slug;
+  return lower;
+}
+
+function collapseRepeatedSlashes(pathname: string) {
+  return pathname.replace(/\/{2,}/g, "/");
+}
+
+function decodePath(pathname: string) {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return pathname;
+  }
+}
+
+function lookupPath(pathname: string) {
+  return normalizePath(decodePath(collapseRepeatedSlashes(pathname).toLowerCase()));
 }
 
 // These two archive stories were saved through the editor, which truncates
@@ -132,6 +143,46 @@ for (const [legacySlug, liveSlug] of liveSlugByLegacySlug) {
   addRedirect(`/stories/${legacySlug}`, `/stories/${liveSlug}`);
 }
 
+const liveStorySlugs = new Set<string>();
+for (const story of legacyStories as LegacyRedirectStory[]) {
+  liveStorySlugs.add((liveSlugByLegacySlug.get(story.slug) ?? story.slug).toLowerCase());
+}
+
+const unprefixedClaims = new Map<string, Set<string>>();
+function claimUnprefixedSlug(bareSlug: string, liveSlug: string) {
+  if (!bareSlug || bareSlug === liveSlug || liveStorySlugs.has(bareSlug)) return;
+  const claims = unprefixedClaims.get(bareSlug) ?? new Set<string>();
+  claims.add(liveSlug);
+  unprefixedClaims.set(bareSlug, claims);
+}
+
+for (const story of legacyStories as LegacyRedirectStory[]) {
+  const liveSlug = (liveSlugByLegacySlug.get(story.slug) ?? story.slug).toLowerCase();
+  claimUnprefixedSlug(stripKnownPrefix(story.slug), liveSlug);
+  claimUnprefixedSlug(stripKnownPrefix(liveSlug), liveSlug);
+}
+
+const unprefixedStorySlugs = new Map<string, string>();
+for (const [bareSlug, liveSlugs] of unprefixedClaims) {
+  if (liveSlugs.size === 1) unprefixedStorySlugs.set(bareSlug, [...liveSlugs][0]);
+}
+
+function unprefixedStoryRedirect(pathname: string) {
+  const slug = pathname.match(/^\/stories\/([^/]+)$/)?.[1];
+  if (!slug) return null;
+  const liveSlug = unprefixedStorySlugs.get(slug);
+  return liveSlug ? `/stories/${liveSlug}` : null;
+}
+
+function hasFileExtension(pathname: string) {
+  return /\.[a-z0-9]{1,8}$/i.test(pathname);
+}
+
 export function getLegacyRedirectPath(pathname: string) {
-  return redirectMap.get(normalizePath(pathname)) ?? null;
+  const lookup = lookupPath(pathname);
+  const requested = normalizePath(pathname);
+  const mapped = redirectMap.get(lookup) ?? unprefixedStoryRedirect(lookup);
+  if (mapped && mapped !== requested) return mapped;
+  if (!hasFileExtension(lookup) && lookup !== requested) return lookup;
+  return null;
 }

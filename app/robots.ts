@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, productionSiteUrl, searchIndexingEnabled } from "../lib/seo";
 
+const publicCrawlers = ["*", "GPTBot", "PerplexityBot", "ClaudeBot", "Google-Extended"];
+
 const privateRoutes = [
   "/editor",
   "/editor/",
@@ -31,13 +33,11 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: privateRoutes,
-      },
-    ],
+    rules: {
+      userAgent: publicCrawlers,
+      allow: "/",
+      disallow: privateRoutes,
+    },
     sitemap: searchIndexingEnabled
       ? `${productionSiteUrl}/sitemap.xml`
       : absoluteUrl("/sitemap.xml"),

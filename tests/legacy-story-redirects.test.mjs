@@ -48,3 +48,32 @@ test("section redirects are unchanged", () => {
   assert.equal(getLegacyRedirectPath("/racing"), "/races");
   assert.equal(getLegacyRedirectPath("/boat-reviews/"), "/reviews");
 });
+
+test("unprefixed story slugs redirect to the prefixed story and unknowns stay missing", () => {
+  assert.equal(
+    getLegacyRedirectPath("/stories/navigating-the-seas-of-work-family-loyalty-chronicles-of-captain-guy-booth"),
+    "/stories/lifestyle-navigating-the-seas-of-work-family-loyalty-chronicles-of-captain-guy-booth",
+  );
+  assert.equal(
+    getLegacyRedirectPath("/stories/lymington-marina"),
+    "/stories/ports-lymington-marina",
+  );
+  assert.equal(getLegacyRedirectPath("/stories/not-a-real-story-zzz"), null);
+  assert.equal(getLegacyRedirectPath("/stories/the-ocean-race-2027"), null);
+});
+
+test("uppercase story slugs and repeated slashes redirect to the canonical path", () => {
+  assert.equal(
+    getLegacyRedirectPath("/stories/Lymington-Marina"),
+    "/stories/ports-lymington-marina",
+  );
+  assert.equal(
+    getLegacyRedirectPath("//stories//ports-lymington-marina"),
+    "/stories/ports-lymington-marina",
+  );
+  assert.equal(
+    getLegacyRedirectPath("/STORIES/NOT-A-REAL-STORY-ZZZ"),
+    "/stories/not-a-real-story-zzz",
+  );
+  assert.equal(getLegacyRedirectPath("/stories/ports-lymington-marina"), null);
+});

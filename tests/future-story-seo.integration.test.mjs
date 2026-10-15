@@ -263,6 +263,7 @@ test("sitemap automatically includes every eligible published story with actual 
     xml,
     new RegExp(`<loc>https://oldseadogs\\.com/stories/${futureSlug}</loc>\\s*<lastmod>${updatedAt.replaceAll(".", "\\.")}</lastmod>`),
   );
+  assert.match(xml, /<loc>https:\/\/oldseadogs\.com\/<\/loc>\s*<lastmod>2026-10-11T00:00:00\.000Z<\/lastmod>/);
   assert.doesNotMatch(xml, /<loc>https:\/\/oldseadogs\.com\/search<\/loc>/);
   for (const privatePath of ["/editor", "/api/editor", "/api/search", "/api/social/track"]) {
     assert.doesNotMatch(
@@ -312,6 +313,14 @@ test("search, private routes and pagination retain the intended crawl controls",
   assert.match(pageTwoHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/news\?page=2"/);
   assert.match(metadataContent(pageTwoHtml, "robots"), /\bindex\b/i);
   assert.match(metadataContent(pageTwoHtml, "robots"), /\bfollow\b/i);
+
+  const pastTheEnd = await controller.fetch("https://oldseadogs.com/news?page=999");
+  assert.equal(pastTheEnd.status, 404);
+
+  const storyResponse = await controller.fetch(`https://oldseadogs.com/stories/${futureSlug}`);
+  assert.equal(storyResponse.headers.get("cache-control"), "public, s-maxage=300, stale-while-revalidate=86400");
+  const editorCache = await controller.fetch("https://oldseadogs.com/editor");
+  assert.match(editorCache.headers.get("cache-control") || "", /private, no-store/);
 });
 
 test("robots.txt allows public media and excludes private routes", async () => {
@@ -319,6 +328,10 @@ test("robots.txt allows public media and excludes private routes", async () => {
   assert.equal(response.status, 200);
   const robots = await response.text();
   assert.match(robots, /User-Agent: \*/i);
+  assert.match(robots, /User-Agent: GPTBot/i);
+  assert.match(robots, /User-Agent: PerplexityBot/i);
+  assert.match(robots, /User-Agent: ClaudeBot/i);
+  assert.match(robots, /User-Agent: Google-Extended/i);
   assert.match(robots, /Allow: \/(?:\r?\n|$)/i);
   for (const privatePath of ["/editor", "/api/editor", "/api/search", "/api/social/track"]) {
     assert.match(robots, new RegExp(`Disallow: ${privatePath.replaceAll("/", "\\/")}`));

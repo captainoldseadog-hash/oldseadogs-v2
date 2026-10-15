@@ -30,7 +30,7 @@ const protectedFiles = {
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
   // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
-  "app/sitemap.ts": "ef39a4598b0ddb25de4ea5b8502da6e941be52e198a46ddc337194b78c89f746",
+  "app/sitemap.ts": "0d467c5869fff7f5743508a00b582f6699406d49864130bc8d2b4600ce1e94cc",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { SiteFooter } from "../../components/SiteFooter";
 import { displayCategoryLabel } from "../../content/sections";
 import { formatDate } from "../../content/stories";
+import { resolvePublicPage } from "../../lib/public-page";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -53,10 +55,8 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
     : visibleStories;
   const pageSize = 80;
   const pageCount = Math.max(1, Math.ceil(filteredStories.length / pageSize));
-  const requestedPage = Number.parseInt(params?.page ?? "1", 10);
-  const currentPage = Number.isFinite(requestedPage)
-    ? Math.min(Math.max(requestedPage, 1), pageCount)
-    : 1;
+  const currentPage = resolvePublicPage(params?.page, pageCount);
+  if (currentPage === null) notFound();
   const start = (currentPage - 1) * pageSize;
   const pageStories = filteredStories.slice(start, start + pageSize);
   const pageStart = filteredStories.length === 0 ? 0 : start + 1;
