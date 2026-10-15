@@ -5,7 +5,11 @@ import {
   storyMatchesSection,
 } from "../content/sections";
 import { detectManufacturer, storyMatchesManufacturer } from "../content/manufacturers";
-import { type EditableStory } from "./site-content";
+import { getRelatedGuides, latestStoriesForGuide } from "./related-guides.ts";
+import { storyClearsStoryTriage } from "./story-triage.ts";
+import { type EditableGuide, type EditableStory } from "./site-content";
+
+export { latestStoriesForGuide };
 import { normalizeSearchText, searchTokens } from "./search";
 
 export type InternalLinkItem = {
@@ -14,6 +18,7 @@ export type InternalLinkItem = {
   category: string;
   summary: string;
   reason: string;
+  guidePath?: string;
 };
 
 export type InternalLinkGroup = {
@@ -138,9 +143,22 @@ function detectRaceTopic(story: EditableStory) {
 export function getInternalLinkGroups(
   current: EditableStory,
   stories: EditableStory[],
-  options: { relatedStories?: EditableStory[] } = {},
+  options: {
+    relatedStories?: EditableStory[];
+    guides?: readonly Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug" | "title">[];
+  } = {},
 ): InternalLinkGroup[] {
   const groups: InternalLinkGroup[] = [];
+  if (options.guides && storyClearsStoryTriage(current)) {
+    const relatedGuides = getRelatedGuides(current, options.guides, 3);
+    if (relatedGuides.length > 0) {
+      groups.push({
+        title: "Related guides",
+        href: "/guides",
+        items: relatedGuides,
+      });
+    }
+  }
   const section = sectionForStory(current);
 
   const related = options.relatedStories?.slice(0, 4) || findRelatedStories(current, stories, 4);
@@ -240,5 +258,5 @@ export function getInternalLinkGroups(
       items: uniqueLinkItems(group.items),
     }))
     .filter((group) => group.items.length > 0)
-    .slice(0, 3);
+    .slice(0, 4);
 }

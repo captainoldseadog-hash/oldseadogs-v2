@@ -10,6 +10,8 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const publishedAt = "2026-08-11T09:30:00.000Z";
 const updatedAt = "2026-08-11T10:45:00.000Z";
 const futureSlug = "future-published-story-seo-proof";
+const thinSlug = "boat-reviews-an-in-depth-review-of-the-temo-1000-electric-outboard";
+const rescuedSlug = "news-dorries-yachts-confirms-new-lease-at-volkswerft-stralsund-shipyard";
 const excludedSlug = "explicitly-excluded-published-story";
 const draftSlug = "future-draft-story";
 const scheduledSlug = "future-scheduled-story";
@@ -134,6 +136,14 @@ before(async () => {
     `${JSON.stringify(emptyStore([
       story(),
       story({
+        id: `legacy_${rescuedSlug}`,
+        slug: rescuedSlug,
+        title: "Rescued thin story stays indexable",
+        isFeatured: false,
+        editorialStatus: "Keep live",
+        summary: "An editor approval keeps this triaged story available to search.",
+      }),
+      story({
         id: excludedSlug,
         slug: excludedSlug,
         title: "Explicitly excluded published story",
@@ -243,15 +253,23 @@ test("sitemap automatically includes every eligible published story with actual 
   const xml = await response.text();
   const storyUrls = [...xml.matchAll(/<loc>https:\/\/oldseadogs\.com\/stories\/([^<]+)<\/loc>/g)].map((match) => match[1]);
   const legacyStories = JSON.parse(await fs.readFile(path.join(projectDir, "content/legacy-stories.json"), "utf8"));
+  const triageExclude = new Set(JSON.parse(await fs.readFile(path.join(projectDir, "content/story-triage/sitemap-exclude-slugs.json"), "utf8")));
   const supersededPortStories = portStoryGuideLinks.map((link) => link.storySlug);
+  const indexableLegacyStories = legacyStories.filter((story) => {
+    if (supersededPortStories.includes(story.slug)) return false;
+    if (story.slug === rescuedSlug) return true;
+    return !triageExclude.has(story.slug);
+  });
   const report = {
     totalPublishedStories: legacyStories.length + 2,
-    totalIndexablePublishedStories: legacyStories.length + 1 - supersededPortStories.length,
-    totalNoindexedPublishedStories: 1,
+    totalIndexablePublishedStories: indexableLegacyStories.length + 1,
+    totalNoindexedPublishedStories: triageExclude.size,
     totalSitemapStoryUrls: storyUrls.length,
   };
 
   assert.ok(storyUrls.includes(futureSlug));
+  assert.ok(storyUrls.includes(rescuedSlug));
+  assert.ok(!storyUrls.includes(thinSlug));
   assert.ok(!storyUrls.includes(excludedSlug));
   assert.ok(!storyUrls.includes(draftSlug));
   assert.ok(!storyUrls.includes(scheduledSlug));
@@ -321,6 +339,42 @@ test("search, private routes and pagination retain the intended crawl controls",
   assert.equal(storyResponse.headers.get("cache-control"), "public, s-maxage=300, stale-while-revalidate=86400");
   const editorCache = await controller.fetch("https://oldseadogs.com/editor");
   assert.match(editorCache.headers.get("cache-control") || "", /private, no-store/);
+});
+
+test("thin stories are noindex,follow and duplicate clusters redirect in one hop", async () => {
+  const thinResponse = await controller.fetch(`https://oldseadogs.com/stories/${thinSlug}`);
+  assert.equal(thinResponse.status, 200);
+  const thinHtml = await thinResponse.text();
+  const thinRobots = metadataContent(thinHtml, "robots");
+  assert.match(thinRobots, /noindex/i);
+  assert.match(thinRobots, /follow/i);
+  assert.doesNotMatch(thinRobots, /nofollow/i);
+  assert.match(thinHtml, new RegExp(`rel=["']canonical["'] href=["']https://oldseadogs\\.com/stories/${thinSlug}["']`));
+  assert.doesNotMatch(thinHtml, /Related guides/);
+
+  const rescuedResponse = await controller.fetch(`https://oldseadogs.com/stories/${rescuedSlug}`);
+  assert.equal(rescuedResponse.status, 200);
+  const rescuedRobots = metadataContent(await rescuedResponse.text(), "robots");
+  assert.match(rescuedRobots, /\bindex\b/i);
+  assert.match(rescuedRobots, /\bfollow\b/i);
+  assert.doesNotMatch(rescuedRobots, /noindex/i);
+
+  const duplicate = await controller.fetch("https://oldseadogs.com/stories/news-imoca-2026-season-five-races-two-oceans-and-one-relentless-test-of-offshore-sailing");
+  assert.equal(duplicate.status, 301);
+  assert.equal(
+    duplicate.headers.get("location"),
+    "https://oldseadogs.com/stories/racing-imoca-2026-season-five-races-two-oceans-and-one-relentless-test-of-offshore-sailing",
+  );
+  const legacyHop = await controller.fetch("https://oldseadogs.com/news/imoca-2026-season-five-races-two-oceans-and-one-relentless-test-of-offshore-sailing");
+  assert.equal(legacyHop.status, 301);
+  assert.equal(legacyHop.headers.get("location"), duplicate.headers.get("location"));
+
+  const cowesSlug = "news-cowes-week-2026-two-centuries-of-sail-the-worlds-longest-running-regatta-celebrates-its-200";
+  const cowesResponse = await controller.fetch(`https://oldseadogs.com/stories/${cowesSlug}`);
+  assert.equal(cowesResponse.status, 200);
+  const cowesHtml = await cowesResponse.text();
+  assert.match(cowesHtml, /Related guides/);
+  assert.match(cowesHtml, /href="\/guides\/solent\/cowes"/);
 });
 
 test("robots.txt allows public media and excludes private routes", async () => {

@@ -23,7 +23,8 @@ import {
 } from "../../../lib/guides.ts";
 import type { EditableGuide } from "../../../lib/site-content.ts";
 import { publicImageAlt } from "../../../lib/public-image-alt.ts";
-import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
+import { latestStoriesForGuide } from "../../../lib/internal-links.ts";
+import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../lib/structured-data.ts";
 import { SiteHeader } from "../../../components/SiteHeader";
@@ -89,9 +90,20 @@ function GuideHubRelated({
   );
 }
 
+function guideLatestStories(
+  guide: EditableGuide,
+  stories: Awaited<ReturnType<typeof getPublishedStories>>,
+) {
+  return latestStoriesForGuide(guidePublicPath(guide), stories).map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    summary: story.summary,
+  }));
+}
+
 export default async function RegionPage({ params }: RegionPageProps) {
   const { region } = await params;
-  const allPublished = await getPublishedGuides();
+  const [allPublished, stories] = await Promise.all([getPublishedGuides(), getPublishedStories()]);
   const regional = guideRegionRecords(allPublished).filter((guide) => guide.regionKey === region);
 
   if (!regional.length) {
@@ -102,7 +114,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
       <main className="article-shell guides-shell guide-product-shell">
         <JsonLd data={placeJsonLd ? [guideArticleJsonLd(legacyGuide), placeJsonLd] : guideArticleJsonLd(legacyGuide)} />
         <PrimaryNavigation />
-        <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} />
+        <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} latestStories={guideLatestStories(legacyGuide, stories)} />
         <SiteFooter extraLinks={[{ href: "/guides", label: "Guides" }]} />
       </main>
     );
@@ -137,7 +149,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
           ]),
         ]} />
         <PrimaryNavigation />
-        <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} />
+        <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} latestStories={guideLatestStories(areaGuide, stories)} />
         <GuideCollectionBrowser
           guides={childItems}
           searchPlaceholder={`Search ${regionName} Guides`}

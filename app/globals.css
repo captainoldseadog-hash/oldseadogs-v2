@@ -1711,6 +1711,18 @@
   text-transform: uppercase;
 }
 
+.guide-latest-stories {
+  margin-bottom: 28px;
+}
+
+.guide-latest-stories h2 {
+  margin-bottom: 14px;
+}
+
+.guide-latest-stories .internal-link-group {
+  background: #ffffff;
+}
+
 .guide-feedback {
   margin-bottom: 58px;
   border: 1px solid var(--line);

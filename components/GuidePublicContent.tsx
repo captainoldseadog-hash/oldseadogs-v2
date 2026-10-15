@@ -330,10 +330,12 @@ export function GuidePublicContent({
   guide,
   publishedGuides,
   preview = false,
+  latestStories = [],
 }: {
   guide: EditableGuide;
   publishedGuides: EditableGuide[];
   preview?: boolean;
+  latestStories?: Array<{ slug: string; title: string; summary: string }>;
 }) {
   const publishedOnly = publishedGuides.filter((item) => item.status === "published");
   const related = relatedGuides(guide, publishedOnly, "relatedGuideSlugs");
@@ -767,6 +769,24 @@ export function GuidePublicContent({
           <Link href="/guides"><span>Next</span><strong>All Old Sea Dogs Guides</strong></Link>
         )}
       </nav>
+
+      {latestStories.length > 0 ? (
+        <section className="guide-latest-stories" aria-labelledby="guide-latest-stories-title">
+          <p className="eyebrow">From the archive</p>
+          <h2 id="guide-latest-stories-title">Latest stories</h2>
+          <div className="internal-link-group">
+            <div className="internal-link-list">
+              {latestStories.map((story) => (
+                <Link href={`/stories/${story.slug}`} key={story.slug}>
+                  <span>Story</span>
+                  <strong>{story.title}</strong>
+                  <small>{story.summary}</small>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="guide-feedback" aria-labelledby="guide-feedback-title">
         <p className="eyebrow">Local knowledge</p>

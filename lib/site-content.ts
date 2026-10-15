@@ -35,6 +35,7 @@ import { isRenderableImageReference } from "./responsive-image.ts";
 export { validateGuideInput } from "./guide-validation.ts";
 import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
+import { isEditoriallyApprovedStatus, isTriageNoindex } from "./story-triage.ts";
 import {
   getSectionForCategory,
   normalizeStoryCategory,
@@ -2339,8 +2340,7 @@ function storyBodyWordCount(story: Pick<EditableStory, "body">) {
 }
 
 export function isEditoriallyApprovedStory(story: Pick<EditableStory, "editorialStatus">) {
-  const status = story.editorialStatus.trim().toLowerCase();
-  return status === "ready" || status === "keep live";
+  return isEditoriallyApprovedStatus(story.editorialStatus);
 }
 
 export function isWeakEditorialStory(story: Pick<
@@ -2385,8 +2385,13 @@ export function isStorySearchIndexable(story: Pick<
   | "publishedAt"
   | "scheduledPublishAt"
   | "noindex"
+  | "slug"
+  | "editorialStatus"
 >) {
-  return isPublicStoryNow(story) && !story.noindex;
+  if (!isPublicStoryNow(story) || story.noindex) return false;
+  if (isEditoriallyApprovedStory(story)) return true;
+  if (isTriageNoindex(story.slug)) return false;
+  return true;
 }
 
 export function isPromotedStory(story: Pick<EditableStory, "sortOrder">) {

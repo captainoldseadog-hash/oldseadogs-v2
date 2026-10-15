@@ -5,6 +5,7 @@ import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
 import { getApprovedPublicGalleryPhotos, getIndexedGuides, getPublishedStories, getSiteSettings, isStorySearchIndexable } from "../lib/site-content";
+import { isTriageSitemapExcluded } from "../lib/story-triage";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { retiredMarinaGuideRedirect } from "../lib/marina-library-redirect";
 import { absoluteUrl } from "../lib/seo";
@@ -44,7 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const galleryLive = isGalleryPublicRolloutEnabled(settings.galleryPublicRollout);
   const galleryPhotos = galleryLive ? await getApprovedPublicGalleryPhotos() : [];
   const stories = publishedStories.filter(
-    (story) => isStorySearchIndexable(story) && !storyPrefersGuideCanonical(story.slug),
+    (story) =>
+      isStorySearchIndexable(story) &&
+      !storyPrefersGuideCanonical(story.slug) &&
+      !isTriageSitemapExcluded(story.slug, story.editorialStatus),
   );
   const productGuides = guideRegionRecords(indexedGuides);
   const guideRegions = [...new Set(productGuides.map((guide) => guide.regionKey))];

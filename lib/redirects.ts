@@ -1,4 +1,5 @@
 import legacyStories from "../content/legacy-stories.json" with { type: "json" };
+import storyTriageRedirects from "../content/story-triage/redirects.json" with { type: "json" };
 
 type LegacyRedirectStory = {
   slug: string;
@@ -166,12 +167,46 @@ const unprefixedStorySlugs = new Map<string, string>();
 for (const [bareSlug, liveSlugs] of unprefixedClaims) {
   if (liveSlugs.size === 1) unprefixedStorySlugs.set(bareSlug, [...liveSlugs][0]);
 }
+for (const [bareSlug, liveSlug] of unprefixedStorySlugs) {
+  addRedirect(`/stories/${bareSlug}`, `/stories/${liveSlug}`);
+}
 
-function unprefixedStoryRedirect(pathname: string) {
-  const slug = pathname.match(/^\/stories\/([^/]+)$/)?.[1];
-  if (!slug) return null;
-  const liveSlug = unprefixedStorySlugs.get(slug);
-  return liveSlug ? `/stories/${liveSlug}` : null;
+for (const entry of [...storyTriageRedirects.duplicates, ...storyTriageRedirects.unprefixed]) {
+  addRedirect(entry.from, entry.to);
+}
+
+const flattenedRedirects = flattenRedirectMap(redirectMap);
+redirectMap.clear();
+for (const [from, to] of flattenedRedirects) redirectMap.set(from, to);
+
+/**
+ * Follow redirect targets until they stop (max 5 hops). A loop or a longer
+ * chain throws so a bad data file cannot ship a multi-hop or circular 301.
+ */
+export function flattenRedirectMap(map: ReadonlyMap<string, string>, maxHops = 5) {
+  const flattened = new Map<string, string>();
+  for (const [from, initial] of map) {
+    const seen = new Set<string>([from]);
+    let current = initial;
+    let hops = 1;
+    while (map.has(current)) {
+      if (seen.has(current)) {
+        throw new Error(`Redirect loop at ${from}`);
+      }
+      if (hops >= maxHops) {
+        throw new Error(`Redirect chain from ${from} exceeds ${maxHops} hops`);
+      }
+      seen.add(current);
+      current = map.get(current) || current;
+      hops += 1;
+    }
+    if (current !== from) flattened.set(from, current);
+  }
+  return flattened;
+}
+
+export function legacyRedirectRuleCount() {
+  return redirectMap.size;
 }
 
 function hasFileExtension(pathname: string) {
@@ -181,8 +216,9 @@ function hasFileExtension(pathname: string) {
 export function getLegacyRedirectPath(pathname: string) {
   const lookup = lookupPath(pathname);
   const requested = normalizePath(pathname);
-  const mapped = redirectMap.get(lookup) ?? unprefixedStoryRedirect(lookup);
+  const mapped = redirectMap.get(lookup);
   if (mapped && mapped !== requested) return mapped;
-  if (!hasFileExtension(lookup) && lookup !== requested) return lookup;
+  const rawPath = pathname.split(/(?=[?#])/)[0] || pathname;
+  if (!hasFileExtension(lookup) && rawPath !== lookup) return lookup;
   return null;
 }

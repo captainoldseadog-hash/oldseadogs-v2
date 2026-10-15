@@ -31,6 +31,7 @@ import {
 import {
   getActiveAds,
   getMediaAsset,
+  getPublishedGuides,
   getPublishedStories,
   getStoryBySlug,
   getSiteSettings,
@@ -271,7 +272,7 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
             </div>
             <div className="internal-link-list">
               {group.items.map((item) => (
-                <Link href={`/stories/${item.slug}`} key={item.slug}>
+                <Link href={item.guidePath || `/stories/${item.slug}`} key={item.guidePath || item.slug}>
                   <span>{displayCategoryLabel(item.category)}</span>
                   <strong>{item.title}</strong>
                   <small>{item.reason}</small>
@@ -369,9 +370,16 @@ export default async function StoryPage({ params }: StoryPageProps) {
     notFound();
   }
 
-  const [allStories, ads] = await Promise.all([getPublishedStories(), getActiveAds()]);
+  const [allStories, ads, publishedGuides] = await Promise.all([
+    getPublishedStories(),
+    getActiveAds(),
+    getPublishedGuides(),
+  ]);
   const relatedStories = findRelatedStories(story, allStories, 6);
-  const internalLinkGroups = getInternalLinkGroups(story, allStories, { relatedStories });
+  const internalLinkGroups = getInternalLinkGroups(story, allStories, {
+    relatedStories,
+    guides: publishedGuides,
+  });
   const storyHasPhoto = hasStoryPhoto(story);
   const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
   const storyImage = storyHasPhoto ? await storyImageDetails(story.imageUrl) : null;

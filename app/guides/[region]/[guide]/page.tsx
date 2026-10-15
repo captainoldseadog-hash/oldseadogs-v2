@@ -5,7 +5,8 @@ import { JsonLd } from "../../../../components/JsonLd.tsx";
 import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 
 import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
-import { getGuideBySlug, getPublishedGuides } from "../../../../lib/site-content.ts";
+import { latestStoriesForGuide } from "../../../../lib/internal-links.ts";
+import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../../lib/site-content.ts";
 import { createPageMetadata, metaDescription, pageTitle } from "../../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../../lib/structured-data.ts";
 import { SiteHeader } from "../../../../components/SiteHeader";
@@ -44,14 +45,20 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
 
 export default async function GuidePage({ params }: GuidePageProps) {
   const { region, guide: slug } = await params;
-  const [guide, allPublished] = await Promise.all([
+  const [guide, allPublished, stories] = await Promise.all([
     getGuideBySlug(slug),
     getPublishedGuides(),
+    getPublishedStories(),
   ]);
   if (!guide || guide.regionKey !== region) notFound();
   if (guidePublicPath(guide) === guideRegionPath(region)) permanentRedirect(guideRegionPath(region));
   const publishedProductGuides = guideProductRecords(allPublished);
   const path = guidePublicPath(guide);
+  const latestStories = latestStoriesForGuide(path, stories).map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    summary: story.summary,
+  }));
   const placeJsonLd = guidePlaceJsonLd(guide);
   const breadcrumbData = breadcrumbJsonLd([
     { name: "Home", path: "/" },
@@ -66,7 +73,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
         ? [guideArticleJsonLd(guide), placeJsonLd, breadcrumbData]
         : [guideArticleJsonLd(guide), breadcrumbData]} />
       <SiteHeader current="guides" />
-      <GuidePublicContent guide={guide} publishedGuides={publishedProductGuides} />
+      <GuidePublicContent guide={guide} publishedGuides={publishedProductGuides} latestStories={latestStories} />
       <SiteFooter extraLinks={[
         { href: `/guides/${guide.regionKey}`, label: `${guide.regionName} Guides` },
         { href: "/guides", label: "All Guides" },

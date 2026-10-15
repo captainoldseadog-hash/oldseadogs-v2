@@ -59,7 +59,10 @@ test("unprefixed story slugs redirect to the prefixed story and unknowns stay mi
     "/stories/ports-lymington-marina",
   );
   assert.equal(getLegacyRedirectPath("/stories/not-a-real-story-zzz"), null);
-  assert.equal(getLegacyRedirectPath("/stories/the-ocean-race-2027"), null);
+  assert.equal(
+    getLegacyRedirectPath("/stories/the-ocean-race-2027"),
+    "/stories/racing-the-ocean-race-2027",
+  );
 });
 
 test("uppercase story slugs and repeated slashes redirect to the canonical path", () => {

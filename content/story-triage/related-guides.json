@@ -1,0 +1,2124 @@
+{
+ "keyword_rules": [
+  {
+   "pattern": "\\bcowes week\\b",
+   "guides": [
+    "/guides/cowes-week-guide",
+    "/guides/solent/cowes"
+   ]
+  },
+  {
+   "pattern": "\\bround the island\\b|\\brtir\\b",
+   "guides": [
+    "/guides/round-the-island-race-guide",
+    "/guides/solent/cowes"
+   ]
+  },
+  {
+   "pattern": "\\beast cowes\\b",
+   "guides": [
+    "/guides/solent/east-cowes-marina",
+    "/guides/solent/cowes"
+   ]
+  },
+  {
+   "pattern": "\\bcowes yacht haven\\b",
+   "guides": [
+    "/guides/solent/cowes-yacht-haven"
+   ]
+  },
+  {
+   "pattern": "\\bcowes\\b",
+   "guides": [
+    "/guides/solent/cowes",
+    "/guides/solent/cowes-yacht-haven"
+   ]
+  },
+  {
+   "pattern": "\\bisle of wight\\b|\\bsolent\\b",
+   "guides": [
+    "/guides/solent"
+   ]
+  },
+  {
+   "pattern": "\\blymington\\b",
+   "guides": [
+    "/guides/solent/lymington-yacht-haven",
+    "/guides/solent/berthon-lymington-marina"
+   ]
+  },
+  {
+   "pattern": "\\bhamble\\b",
+   "guides": [
+    "/guides/solent/river-hamble",
+    "/guides/solent/port-hamble-marina",
+    "/guides/solent/hamble-point-marina"
+   ]
+  },
+  {
+   "pattern": "\\bsouthampton boat show\\b|\\bboat show calendar\\b",
+   "guides": [
+    "/guides/uk-boat-show-calendar"
+   ]
+  },
+  {
+   "pattern": "\\bsouthampton\\b",
+   "guides": [
+    "/guides/solent/southampton-water",
+    "/guides/solent/ocean-village-marina",
+    "/guides/solent/shamrock-quay"
+   ]
+  },
+  {
+   "pattern": "\\bportsmouth\\b|\\bspinnaker tower\\b|\\bgunwharf\\b",
+   "guides": [
+    "/guides/solent/portsmouth-harbour",
+    "/guides/solent/gunwharf-quays"
+   ]
+  },
+  {
+   "pattern": "\\bsouthsea\\b",
+   "guides": [
+    "/guides/solent/southsea-marina",
+    "/guides/solent/portsmouth-harbour"
+   ]
+  },
+  {
+   "pattern": "\\bgosport\\b|\\bhaslar\\b",
+   "guides": [
+    "/guides/solent/gosport-marina",
+    "/guides/solent/haslar-marina"
+   ]
+  },
+  {
+   "pattern": "\\bport solent\\b",
+   "guides": [
+    "/guides/solent/port-solent-marina"
+   ]
+  },
+  {
+   "pattern": "\\bbembridge\\b",
+   "guides": [
+    "/guides/solent/bembridge-marina"
+   ]
+  },
+  {
+   "pattern": "\\bryde\\b",
+   "guides": [
+    "/guides/solent/ryde-marina"
+   ]
+  },
+  {
+   "pattern": "\\byarmouth\\b",
+   "guides": [
+    "/guides/solent/yarmouth"
+   ]
+  },
+  {
+   "pattern": "\\bbeaulieu\\b",
+   "guides": [
+    "/guides/solent/beaulieu-river"
+   ]
+  },
+  {
+   "pattern": "\\bnewtown creek\\b",
+   "guides": [
+    "/guides/solent/newtown-creek"
+   ]
+  },
+  {
+   "pattern": "\\bpoole\\b|\\bsandbanks\\b|\\bbrownsea\\b",
+   "guides": [
+    "/guides/poole-harbour",
+    "/guides/poole-harbour/sandbanks",
+    "/guides/poole-harbour/brownsea-island"
+   ]
+  },
+  {
+   "pattern": "\\bchichester\\b|\\bbosham\\b|\\bitchenor\\b|\\bemsworth\\b",
+   "guides": [
+    "/guides/chichester-harbour",
+    "/guides/chichester-harbour/bosham",
+    "/guides/chichester-harbour/itchenor"
+   ]
+  },
+  {
+   "pattern": "\\blangstone\\b",
+   "guides": [
+    "/guides/langstone-harbour"
+   ]
+  },
+  {
+   "pattern": "\\bweymouth\\b|\\bportland\\b",
+   "guides": [
+    "/guides/weymouth-portland",
+    "/guides/weymouth-portland/weymouth-harbour",
+    "/guides/weymouth-portland/portland-marina"
+   ]
+  }
+ ],
+ "priority_slugs": [
+  "round-the-island-race-2026-one-day-fifty-miles-and-a-thousand-stories-waiting-to",
+  "news-cowes-week-2026-two-centuries-of-sail-the-worlds-longest-running-regatta-celebrates-its-200",
+  "destinations-the-old-sea-dogs-global-club-directory",
+  "news-cowes-week-opens",
+  "news-admirals-cup-set-to-make-triumphant-return-to-cowes-in-july-2025",
+  "news-portsmouth-yardstick-2026-numbers-released-what-every-club-racer-needs-to-know",
+  "news-round-the-island-race-2026-dates-released",
+  "news-wavemakers-expands-to-portsmouth-as-rya-pushes-to-redefine-sailings-talent-pathway",
+  "news-thunder-around-the-isle-of-wight-ukopra-offshore-championship-explodes-into-life-for-2026",
+  "news-round-the-island-race-2026-the-clock-starts-now",
+  "british-adventurer-james-ketchell-completed-a-historic-sailing-circumnavigation",
+  "racing-cowestorquaycowes-powerboat-race-roars-into-life",
+  "news-the-return-of-the-poker-run-a-new-2025-spectacle",
+  "news-race-4-of-the-admirals-cup-served-up-a-solent-riddle",
+  "news-engines-over-canvas-the-lymington-challenge-powers-in",
+  "racing-black-foils-swipe-portsmouth-glory-from-home-team-in-high-stakes-sailgp-clash",
+  "news-hf50-catamarans-sailgp-sir-ben-ainslie-portsmouth-waterfront",
+  "racing-the-opening-chapter-of-the-ocean-race-europe-2025",
+  "boat-shows-the-199th-cowes-week-2025",
+  "racing-poole-bay-100-ukopra-offshore-powerboat-championship",
+  "news-bolney-wine-estate-joins-cowes-week-2025",
+  "news-cowes-week-2025-ended-in-style-with-trophies-awarded",
+  "news-class40-top-guns-rolex-fastnet-race",
+  "boat-shows-boat-events-and-regattas-diary-2025",
+  "racing-the-admirals-cup",
+  "news-the-2026-rorc-round-britain-ireland-race",
+  "boat-reviews-the-moxley-12",
+  "rys-flag-officers-1825-present-royal-yacht-squadron-m8dk7h",
+  "the-countdown-to-the-round-the-island-2026",
+  "boat-reviews-gypsy-moth-iv-an-iconic-british-yacht",
+  "news-round-3-of-the-2025-ukopra-offshore-powerboat-championship",
+  "boat-reviews-jolt-by-name-jolt-by-nature-monacos-thunderbolt-in-the-2025-admirals-cup",
+  "racing-go-gps-cowes-international-powerboat-festival-offshore-glory-and-a-new-champion-crowned",
+  "boat-reviews-nautitech-40-open-catamaran",
+  "racing-hard-gains-and-narrow-escapes-admirals-cup-fleet-charges-west",
+  "racing-admirals-cup-opens-with-a-brutal-channel-test",
+  "news-cowes-week-update-2025",
+  "racing-round-three-of-the-ukopra-offshore-powerboat-championships"
+ ],
+ "precomputed_matches": {
+  "round-the-island-race-2026-one-day-fifty-miles-and-a-thousand-stories-waiting-to": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.6
+   }
+  ],
+  "british-adventurer-james-ketchell-completed-a-historic-sailing-circumnavigation": [
+   {
+    "path": "/guides/solent/gosport-marina",
+    "title": "Gosport Marina Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/haslar-marina",
+    "title": "Haslar Marina Guide",
+    "score": 1.1
+   }
+  ],
+  "rys-flag-officers-1825-present-royal-yacht-squadron-m8dk7h": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "crimson-blazer-congressional-cup-modern-match-racing": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 1.0
+   }
+  ],
+  "marineware-40-years-composites-coatings-marine-industry": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.7
+   }
+  ],
+  "sea-doo-rxt-x-spark-x-uk-debut-southampton-boat-show-2026": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.8
+   }
+  ],
+  "southampton-international-boat-show-2026-opens-mayflower-park": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 3.2
+   }
+  ],
+  "tom-stierle-rya-yachtmaster-of-the-year-2025-mike-golding": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "2026-iqfoil-world-championships-steinberg-van-opzeeland-weymouth": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 2.8
+   }
+  ],
+  "steinberg-lyons-lead-2026-iqfoil-world-championships-weymouth": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 2.8
+   }
+  ],
+  "inside-the-2026-musto-iqfoil-world-championships": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 3.1
+   }
+  ],
+  "double-trouble-wins-cowes-torquay-cowes-powerboat-race-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 2.0
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.8
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.3
+   }
+  ],
+  "jetpack-british-soldier-rorc-round-britain-ireland-race-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "cowes-torquay-cowes-2026-storm-course-changed-race-preview": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.6
+   }
+  ],
+  "palanad-4-swift-class40-rorc-round-britain-ireland-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "varuna-6-finishes-rorc-round-britain-ireland-race-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "pace-line-honours-rorc-round-britain-ireland-race-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.3
+   }
+  ],
+  "cowes-week-2026-winners-champions-bicentenary-results": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.9
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.6
+   }
+  ],
+  "rorc-team-2027-admirals-cup-ino-veritas-beau-ideal": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "cowes-week-2026-bicentenary-winners-seven-days-solent-racing": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.4
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.9
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.8
+   }
+  ],
+  "cowes-week-2026-days-five-six-beau-geste-bicentennial-racing": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.6
+   }
+  ],
+  "round-britain-ireland-race-2026-50th-anniversary": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "cowes-week-2026-folkboats-j70-rs21-squibs-tp52-racing": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.1
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.7
+   }
+  ],
+  "exploring-duo-worlds-toughest-row-atlantic-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.4
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.2
+   }
+  ],
+  "princess-anne-cowes-week-2026": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.2
+   }
+  ],
+  "cowes-week-2026-bicentenary-solent-sailing": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.6
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 4.0
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.8
+   }
+  ],
+  "the-2026-rorc-round-britain-and-ireland-race": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "round-the-island-race-2026": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.6
+   }
+  ],
+  "50th-anniversary-of-the-round-britain-and-ireland-race": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "old-sea-dogs-joined-the-island-sailing-club-press-boat": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 2.9
+   }
+  ],
+  "the-countdown-to-the-round-the-island-2026": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 4.0
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.4
+   }
+  ],
+  "racing-2026s-exciting-rs-aero-spring-championship-at-island-barn-reservoir": [
+   {
+    "path": "/guides/solent/lymington-yacht-haven",
+    "title": "Lymington Yacht Haven Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/chichester-harbour",
+    "title": "Chichester Harbour Guides",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/berthon-lymington-marina",
+    "title": "Berthon Lymington Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "news-oyster-yachts-heritage-and-adaptation-for-the-future": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.7
+   }
+  ],
+  "news-cowes-week-2026-two-centuries-of-sail-the-worlds-longest-running-regatta-celebrates-its-200": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.0
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.4
+   }
+  ],
+  "news-thunder-around-the-isle-of-wight-ukopra-offshore-championship-explodes-into-life-for-2026": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.9
+   }
+  ],
+  "news-project-solent-superyacht-embarks-for-outfitting-journey": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.4
+   }
+  ],
+  "news-wavemakers-expands-to-portsmouth-as-rya-pushes-to-redefine-sailings-talent-pathway": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.8
+   }
+  ],
+  "news-round-the-island-race-2026-the-clock-starts-now": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.5
+   }
+  ],
+  "racing-thrilling-national-open-and-gp-open-mark-ilca-uk-2026-sailing-season": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "news-portsmouth-yardstick-2026-numbers-released-what-every-club-racer-needs-to-know": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 3.1
+   }
+  ],
+  "news-green-direction-royal-southampton-yacht-clubs-new-commodores-plan": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.7
+   }
+  ],
+  "destinations-the-old-sea-dogs-global-club-directory": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "gear-henri-lloyd-partners-with-prometheus-sailing-creating-waves-together": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/port-solent-marina",
+    "title": "Port Solent Marina Guide",
+    "score": 1.2
+   }
+  ],
+  "news-round-the-island-race-2026-dates-released": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.0
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "boat-reviews-gypsy-moth-iv-an-iconic-british-yacht": [
+   {
+    "path": "/guides/chichester-harbour",
+    "title": "Chichester Harbour Guides",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/chichester-harbour/bosham",
+    "title": "Bosham",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/chichester-harbour/itchenor",
+    "title": "Itchenor",
+    "score": 2.8
+   }
+  ],
+  "news-archipelago-yachts-unveils-new-production-facility-on-isle-of-wight": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.3
+   }
+  ],
+  "news-celtic-longboat-winter-regatta-ignites-dell-quay-sailing-club": [
+   {
+    "path": "/guides/chichester-harbour",
+    "title": "Chichester Harbour Guides",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/chichester-harbour/bosham",
+    "title": "Bosham",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/chichester-harbour/itchenor",
+    "title": "Itchenor",
+    "score": 1.0
+   }
+  ],
+  "boat-reviews-the-moxley-12": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.1
+   }
+  ],
+  "racing-anticipation-surges-for-round-the-island-race-2026-incredible-discounts-for-early-bird-en": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "lifestyle-exciting-voyage-around-the-solent-unveiling-the-magic-of-bucklers-hard": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.6
+   }
+  ],
+  "news-the-2026-rorc-round-britain-ireland-race": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "news-hamble-winter-series-2025-concludes-grand-plans-for-sailing-grand-slam-2026-revealed": [
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/port-hamble-marina",
+    "title": "Port Hamble Marina Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent/hamble-point-marina",
+    "title": "Hamble Point Marina Guide",
+    "score": 2.8
+   }
+  ],
+  "racing-memorable-moments-from-2025-hamble-winter-series-and-upcoming-sailing-grand-slam-2026": [
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/port-hamble-marina",
+    "title": "Port Hamble Marina Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/solent/hamble-point-marina",
+    "title": "Hamble Point Marina Guide",
+    "score": 2.7
+   }
+  ],
+  "boat-reviews-jolt-by-name-jolt-by-nature-monacos-thunderbolt-in-the-2025-admirals-cup": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-busa-london-six-pack-2025-regatta-at-welsh-harp-sailing-club": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.4
+   }
+  ],
+  "news-race-delight-at-welsh-harp-and-norfolk-broads": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 1.1
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 1.1
+   }
+  ],
+  "news-ockelbos-new-launch-an-all-weather-family-cruiser-arrives-in-the-uk": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.5
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.5
+   }
+  ],
+  "boat-reviews-the-duchy-27-outboard-an-affordable-compact-cruiser-at-the-centre-of-attention": [
+   {
+    "path": "/guides/uk-boat-show-calendar",
+    "title": "UK Boat Show Calendar",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-unleashing-the-dragons-the-final-race-in-the-dragon-tt-series": [
+   {
+    "path": "/guides/solent/gosport-marina",
+    "title": "Gosport Marina Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/haslar-marina",
+    "title": "Haslar Marina Guide",
+    "score": 2.8
+   }
+  ],
+  "lifestyle-nautical-adventure-an-epic-coastal-sail-from-poole-to-isles-of-scilly": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.7
+   }
+  ],
+  "racing-thrilling-outcomes-in-the-2025-bermuda-gold-cup": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-rooster-ilca-6-national-open-event-action-packed-sailing-at-weymouth-portland-academy": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 3.0
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 3.0
+   }
+  ],
+  "racing-stellar-strategies-on-display-at-2025-hamble-winter-series": [
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/port-hamble-marina",
+    "title": "Port Hamble Marina Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/solent/hamble-point-marina",
+    "title": "Hamble Point Marina Guide",
+    "score": 2.9
+   }
+  ],
+  "racing-stirring-finale-at-henri-lloyd-cowes-lymington-weekend-2025": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/lymington-yacht-haven",
+    "title": "Lymington Yacht Haven Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.7
+   }
+  ],
+  "lifestyle-a-serene-journey-sailing-from-poole-to-the-isles-of-scilly": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.7
+   }
+  ],
+  "boat-shows-southampton-boat-show-unveils-beneteau-swift-trawler-54": [
+   {
+    "path": "/guides/uk-boat-show-calendar",
+    "title": "UK Boat Show Calendar",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.7
+   }
+  ],
+  "boat-shows-elevate-your-boating-experience-with-ancasta-in-cannes-and-southampton": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.6
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.6
+   }
+  ],
+  "racing-go-gps-cowes-international-powerboat-festival-offshore-glory-and-a-new-champion-crowned": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.1
+   }
+  ],
+  "racing-poole-and-burnhams-spirited-racing-kicks-off": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.9
+   }
+  ],
+  "racing-cowestorquaycowes-powerboat-race-roars-into-life": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "racing-ocean-race-europe-leg-2": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.5
+   }
+  ],
+  "news-the-return-of-the-poker-run-a-new-2025-spectacle": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 4.1
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 1.2
+   }
+  ],
+  "news-sailgp-locks-in-sassnitz-rio-and-portsmouth-for-multi-year-calendar-shake-up": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 3.0
+   }
+  ],
+  "news-the-ocean-race-europe-leg-1-biotherm-storms-to-portsmouth-as-malizias-dover-gamble-strikes-": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.7
+   }
+  ],
+  "racing-the-opening-chapter-of-the-ocean-race-europe-2025": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.6
+   }
+  ],
+  "news-the-ocean-race-europe-biotherm-holding-the-cards": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 1.0
+   }
+  ],
+  "boat-shows-two-exciting-boat-shows-by-ancasta-in-southampton-opportunities-galore-this-september": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.9
+   }
+  ],
+  "news-cowes-week-2025-ended-in-style-with-trophies-awarded": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.7
+   }
+  ],
+  "news-cowes-week-update-2025": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "news-engines-over-canvas-the-lymington-challenge-powers-in": [
+   {
+    "path": "/guides/solent/lymington-yacht-haven",
+    "title": "Lymington Yacht Haven Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/berthon-lymington-marina",
+    "title": "Berthon Lymington Marina Guide",
+    "score": 2.6
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "news-cowes-week-opens": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.7
+   }
+  ],
+  "news-bolney-wine-estate-joins-cowes-week-2025": [
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.6
+   }
+  ],
+  "news-first-blind-sailor-to-solo-round-the-isle-of-wight": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 1.2
+   }
+  ],
+  "racing-hard-gains-and-narrow-escapes-admirals-cup-fleet-charges-west": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "news-race-4-of-the-admirals-cup-served-up-a-solent-riddle": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.2
+   }
+  ],
+  "boat-reviews-nautitech-40-open-catamaran": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "boat-shows-the-199th-cowes-week-2025": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.9
+   },
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.6
+   }
+  ],
+  "boat-shows-boat-events-and-regattas-diary-2025": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-admirals-cup-opens-with-a-brutal-channel-test": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "racing-black-foils-swipe-portsmouth-glory-from-home-team-in-high-stakes-sailgp-clash": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.6
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "racing-round-three-of-the-ukopra-offshore-powerboat-championships": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.5
+   }
+  ],
+  "racing-thrilling-dayboat-open-tournament-at-poole-yacht-club": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.7
+   }
+  ],
+  "destinations-a-nautical-adventure-from-poole-to-penzance": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.7
+   }
+  ],
+  "racing-sailing-extravaganza-sailgp-docks-in-portsmouth": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.7
+   }
+  ],
+  "news-the-admirals-cup-2025": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.5
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "news-admirals-cup-set-to-make-triumphant-return-to-cowes-in-july-2025": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.4
+   }
+  ],
+  "news-hf50-catamarans-sailgp-sir-ben-ainslie-portsmouth-waterfront": [
+   {
+    "path": "/guides/solent/portsmouth-harbour",
+    "title": "Portsmouth Harbour Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/gunwharf-quays",
+    "title": "Gunwharf Quays / Portsmouth Guide",
+    "score": 2.9
+   }
+  ],
+  "news-round-3-of-the-2025-ukopra-offshore-powerboat-championship": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 4.0
+   },
+   {
+    "path": "/guides/solent/gosport-marina",
+    "title": "Gosport Marina Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent/haslar-marina",
+    "title": "Haslar Marina Guide",
+    "score": 3.1
+   }
+  ],
+  "racing-excitement-and-challenges-at-2025-taittinger-royal-solent-yacht-club-regatta": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.7
+   }
+  ],
+  "news-highlights-of-the-2025-taittinger-royal-solent-yacht-club-regatta-and-ok-nationals-at-dabch": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.7
+   }
+  ],
+  "racing-exhilarating-2000-class-millenium-series-at-chichester-yacht-club": [
+   {
+    "path": "/guides/chichester-harbour",
+    "title": "Chichester Harbour Guides",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/chichester-harbour/bosham",
+    "title": "Bosham",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/chichester-harbour/itchenor",
+    "title": "Itchenor",
+    "score": 2.7
+   }
+  ],
+  "news-class40-top-guns-rolex-fastnet-race": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-mid-june-keelboat-weekend-at-bembridge-sailing-club": [
+   {
+    "path": "/guides/solent/bembridge-marina",
+    "title": "Bembridge Marina Guide",
+    "score": 3.3
+   }
+  ],
+  "racing-poole-bay-100-ukopra-offshore-powerboat-championship": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.7
+   }
+  ],
+  "news-sailing-high-exciting-winds-at-bembridge-and-medway-yacht-club-races": [
+   {
+    "path": "/guides/solent/bembridge-marina",
+    "title": "Bembridge Marina Guide",
+    "score": 3.4
+   }
+  ],
+  "news-poole-bay-100-offshore-powerboat": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 3.1
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 3.1
+   }
+  ],
+  "racing-round-the-island-race-2025": [
+   {
+    "path": "/guides/round-the-island-race-guide",
+    "title": "Round the Island Race Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.0
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.1
+   }
+  ],
+  "racing-the-admirals-cup": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.3
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.0
+   }
+  ],
+  "news-cowes-week-sunsail-renew-sponsorship": [
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.1
+   }
+  ],
+  "racing-the-exhilarating-race-at-tynemouth-and-wpnsa-prince-of-wales-cup-week": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 1.0
+   }
+  ],
+  "racing-ukopra-offshore-powerboat-championships": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 1.2
+   }
+  ],
+  "news-garmin-the-official-weather-forecast-sponsor-for-cowes-week-2025": [
+   {
+    "path": "/guides/cowes-week-guide",
+    "title": "Cowes Week Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.2
+   }
+  ],
+  "news-russell-coutts-progress-report-on-sailgp-a-deep-dive": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.3
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.7
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.7
+   }
+  ],
+  "racing-spectacular-international-canoe-open-makes-waves-at-poole-yacht-club": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 2.9
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 2.9
+   }
+  ],
+  "news-the-illusion-designer-trophy-2025-showcasing-spectacular-bembridge-sailing": [
+   {
+    "path": "/guides/solent/bembridge-marina",
+    "title": "Bembridge Marina Guide",
+    "score": 3.5
+   }
+  ],
+  "news-unveiling-the-2025-cadet-alf-simmonds-trophy-at-weymouth-portland-national-sailing-academy": [
+   {
+    "path": "/guides/weymouth-portland",
+    "title": "Weymouth & Portland Guide",
+    "score": 3.8
+   },
+   {
+    "path": "/guides/weymouth-portland/weymouth-harbour",
+    "title": "Weymouth Harbour Guide",
+    "score": 3.2
+   },
+   {
+    "path": "/guides/weymouth-portland/portland-marina",
+    "title": "Portland Marina Guide",
+    "score": 3.2
+   }
+  ],
+  "boat-shows-anticipating-the-elegance-at-the-2025-cowes-classics-day": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.6
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.0
+   }
+  ],
+  "boat-shows-southampton-to-host-ancasta-spring-boat-show": [
+   {
+    "path": "/guides/solent/southampton-water",
+    "title": "Southampton Water Guide",
+    "score": 3.4
+   },
+   {
+    "path": "/guides/solent/ocean-village-marina",
+    "title": "Ocean Village Marina Guide",
+    "score": 2.8
+   },
+   {
+    "path": "/guides/solent/shamrock-quay",
+    "title": "Shamrock Quay Guide",
+    "score": 2.8
+   }
+  ],
+  "news-a-century-in-the-making-royal-western-yacht-clubs-centenary-race": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "news-temporary-layoffs-at-sunseeker-international-raise-eyebrows": [
+   {
+    "path": "/guides/poole-harbour",
+    "title": "Poole Harbour Cruising Area Guide",
+    "score": 1.2
+   },
+   {
+    "path": "/guides/poole-harbour/sandbanks",
+    "title": "Sandbanks Guide",
+    "score": 1.0
+   },
+   {
+    "path": "/guides/poole-harbour/brownsea-island",
+    "title": "Brownsea Island Guide",
+    "score": 1.0
+   }
+  ],
+  "ports-brighton-marina": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.2
+   }
+  ],
+  "clubs-island-sailing-club-isc": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.8
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.7
+   }
+  ],
+  "clubs-cowes-corinthian-yacht-club-ccyc": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 4.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 3.9
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.7
+   }
+  ],
+  "clubs-island-harbour-yacht-club-ihyc": [
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.7
+   }
+  ],
+  "clubs-itchenor-sailing-club-isc": [
+   {
+    "path": "/guides/chichester-harbour",
+    "title": "Chichester Harbour Guides",
+    "score": 4.3
+   },
+   {
+    "path": "/guides/chichester-harbour/bosham",
+    "title": "Bosham",
+    "score": 3.7
+   },
+   {
+    "path": "/guides/chichester-harbour/itchenor",
+    "title": "Itchenor",
+    "score": 3.7
+   }
+  ],
+  "clubs-royal-lymington-yacht-club-rlymyc": [
+   {
+    "path": "/guides/solent/lymington-yacht-haven",
+    "title": "Lymington Yacht Haven Guide",
+    "score": 4.1
+   },
+   {
+    "path": "/guides/solent/berthon-lymington-marina",
+    "title": "Berthon Lymington Marina Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.6
+   }
+  ],
+  "clubs-royal-ocean-racing-club-rorc": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.9
+   }
+  ],
+  "clubs-royal-southern-yacht-club-rsrnyc": [
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 1.9
+   },
+   {
+    "path": "/guides/solent/port-hamble-marina",
+    "title": "Port Hamble Marina Guide",
+    "score": 1.7
+   },
+   {
+    "path": "/guides/solent/hamble-point-marina",
+    "title": "Hamble Point Marina Guide",
+    "score": 1.7
+   }
+  ],
+  "clubs-royal-thames-yacht-club-rtyc": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 3.5
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 2.9
+   }
+  ],
+  "clubs-royal-yacht-squadron-rys": [
+   {
+    "path": "/guides/solent/cowes",
+    "title": "Cowes Harbour Guide",
+    "score": 1.9
+   },
+   {
+    "path": "/guides/solent/cowes-yacht-haven",
+    "title": "Cowes Yacht Haven Guide",
+    "score": 1.7
+   },
+   {
+    "path": "/guides/solent",
+    "title": "The Solent Cruising Guide",
+    "score": 1.5
+   }
+  ],
+  "clubs-warsash-sailing-club-wsc": [
+   {
+    "path": "/guides/solent/river-hamble",
+    "title": "River Hamble Guide",
+    "score": 1.7
+   },
+   {
+    "path": "/guides/solent/port-hamble-marina",
+    "title": "Port Hamble Marina Guide",
+    "score": 1.5
+   },
+   {
+    "path": "/guides/solent/hamble-point-marina",
+    "title": "Hamble Point Marina Guide",
+    "score": 1.5
+   }
+  ]
+ }
+}
