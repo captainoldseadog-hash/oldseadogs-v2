@@ -57,7 +57,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
   // A section with only editorial links is kept so area-hub links are not dropped on read.
-  assert.equal(hash(reconstructedBaseline), "e5dd9c50e99c4b25473977969ab606edd3d424986004582a3aaa876d107a4f59");
+  // Story search indexing also skips the active thin-story triage wave unless an editor has approved the story.
+  assert.equal(hash(reconstructedBaseline), "3798a244019bf4dfda78129ab400c9766f2ffef502f92db669163c43d24a2592");
 });
 
 test("node production start trusts nginx X-Forwarded-Proto for redirect Locations", async () => {

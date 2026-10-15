@@ -218,7 +218,6 @@ export function getLegacyRedirectPath(pathname: string) {
   const requested = normalizePath(pathname);
   const mapped = redirectMap.get(lookup);
   if (mapped && mapped !== requested) return mapped;
-  const rawPath = pathname.split(/(?=[?#])/)[0] || pathname;
-  if (!hasFileExtension(lookup) && rawPath !== lookup) return lookup;
+  if (!hasFileExtension(lookup) && lookup !== requested) return lookup;
   return null;
 }
