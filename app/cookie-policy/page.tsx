@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
           How Old Sea Dogs may use cookies and similar technologies for site
           function, measurement, maps, and advertising.
         </p>
-        <span>Last updated: 6 October 2026</span>
+        <span>Last updated: 18 October 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Cookie policy">
@@ -101,9 +101,13 @@ export default function CookiePolicyPage() {
             Manage preferences for analytics and advertising cookies.
           </p>
           <p>
-            You can reopen Privacy choices from the footer at any time. If you
-            withdraw analytics consent, future analytics events are stopped and
-            accessible Google Analytics cookies are removed from this site.
+            You can reopen Privacy choices from the footer at any time. If
+            Google&apos;s own consent message is switched on, that same footer
+            control reopens Google&apos;s message for UK and EEA advertising
+            choices. Analytics still loads only after analytics storage is
+            granted. If you withdraw analytics consent, future analytics events
+            are stopped and accessible Google Analytics cookies are removed
+            from this site.
           </p>
 
           <h2>Questions</h2>

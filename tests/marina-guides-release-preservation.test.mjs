@@ -34,10 +34,12 @@ const protectedFiles = {
   // Thin-story triage slugs and redirected duplicates are omitted.
   "app/sitemap.ts": "36a6c90278370d0f4a773f1cb621be381ecf2f6b114a12a397bf44ab59538f69",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
-  "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
+  // Google CMP stays off until OLDSEADOGS_USE_GOOGLE_CMP=true.
+  "ecosystem.config.cjs": "0051e8b27b9207502b8415c5c4daa70c680e47ffc87a83fcc37244f916e331ab",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
   // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
-  "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",
+  // Google CMP: hide this banner on public pages only while OLDSEADOGS_USE_GOOGLE_CMP=true.
+  "components/CookieConsent.tsx": "e3eac874b014a00f0dc613b199442be2577085577da817380526ae504511d892",
   // heic-convert turns iPhone HEIC photographs into JPEG when the image library cannot decode HEVC.
   "package.json": "6736523cb9ceb37802bb1f415e74b72cdf3c4a2d795e76a543060336ee183684",
 };

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { AdSenseLoader } from "../components/AdSenseLoader";
 import { CookieConsent } from "../components/CookieConsent";
+import { GoogleCmpLoader } from "../components/GoogleCmpLoader";
 import { JsonLd } from "../components/JsonLd";
 import { MobileSiteHeader } from "../components/MobileSiteHeader";
+import { googleCmpConsentDefaultScript, googleFcPresentSnippet } from "../lib/google-cmp";
 import {
   adsenseClientId,
   adsenseEnabled,
@@ -12,10 +14,12 @@ import {
   adsensePublisherId,
   createPageMetadata,
   defaultDescription,
+  fundingChoicesScriptSrc,
   ga4MeasurementId,
   robotsMetadata,
   siteName,
   siteUrl,
+  useGoogleCmp,
 } from "../lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "../lib/structured-data";
 import { mobileGuideMenuLinks } from "../lib/guides";
@@ -68,7 +72,9 @@ export default async function RootLayout({
   const shouldRenderAdsenseMeta = isPublicPage && Boolean(adsenseAccountId);
   const adsenseLoaderActive = adsenseEnabled && adsenseLoaderClientId === adsensePublisherId;
   const shouldRenderAdsenseLoader = isAdsenseLoaderPath(pathname) && adsenseLoaderActive;
-  const shouldRenderGoogleConsent = isPublicPage && (Boolean(ga4MeasurementId) || shouldRenderAdsenseLoader);
+  const shouldRenderGoogleCmp = useGoogleCmp && isAdsenseLoaderPath(pathname);
+  const shouldRenderGoogleConsent = isPublicPage && (Boolean(ga4MeasurementId) || shouldRenderAdsenseLoader || shouldRenderGoogleCmp);
+  const consentDefaultSource = shouldRenderGoogleCmp ? googleCmpConsentDefaultScript() : googleConsentDefaults;
 
   return (
     <html lang="en">
@@ -77,8 +83,17 @@ export default async function RootLayout({
           {shouldRenderGoogleConsent ? (
             <script
               data-ga4-id={ga4MeasurementId}
-              dangerouslySetInnerHTML={{ __html: googleConsentDefaults }}
+              dangerouslySetInnerHTML={{ __html: consentDefaultSource }}
               id="oldseadogs-google-consent-default"
+            />
+          ) : null}
+          {shouldRenderGoogleCmp ? (
+            // Keep this after the consent default. React would otherwise hoist
+            // the async Funding Choices tag ahead of Consent Mode.
+            <noscript
+              dangerouslySetInnerHTML={{
+                __html: `</noscript><script async id="oldseadogs-google-cmp" src="${fundingChoicesScriptSrc}" onerror="this.dataset.cmpFailed='true';window.dispatchEvent(new Event('oldseadogs:google-cmp-unavailable'))"></script><script id="oldseadogs-googlefc-present">${googleFcPresentSnippet}</script><noscript>`,
+              }}
             />
           ) : null}
           {shouldRenderAdsenseLoader ? (
@@ -98,12 +113,14 @@ export default async function RootLayout({
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
         <AdSenseLoader enabled={adsenseLoaderActive} src={adsenseLoaderSrc} />
+        <GoogleCmpLoader enabled={useGoogleCmp} src={fundingChoicesScriptSrc} />
         {isPublicPage ? <MobileSiteHeader guideLinks={guideLinks} /> : null}
         {children}
         <CookieConsent
           adsenseClientId={adsenseLoaderClientId}
           adsenseEnabled={adsenseEnabled}
           ga4Id={ga4MeasurementId}
+          useGoogleCmp={useGoogleCmp}
         />
       </body>
     </html>

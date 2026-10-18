@@ -14,7 +14,12 @@ import {
   parseConsentChoice,
   type ConsentChoice,
 } from "../lib/cookie-consent.ts";
-import { isEditorPath } from "../lib/route-boundaries";
+import {
+  analyticsDecisionFromConsentModeStatus,
+  analyticsStorageFromConsentCommand,
+  applyGoogleConsentDefaults,
+} from "../lib/google-cmp";
+import { isAdsenseLoaderPath, isEditorPath } from "../lib/route-boundaries";
 
 type CookieConsentProps = {
   ga4Id?: string;
@@ -22,6 +27,7 @@ type CookieConsentProps = {
   adsenseEnabled?: boolean;
   initialChoice?: ConsentChoice | null;
   migrateInitialChoice?: boolean;
+  useGoogleCmp?: boolean;
 };
 
 const openPrivacyChoicesEvent = "oldseadogs:open-privacy-choices";
@@ -146,16 +152,43 @@ function ensureGoogleTagQueue() {
   return window.gtag;
 }
 
-function ensureGoogleConsentDefaults() {
-  if (window.__oldSeaDogsGoogleConsentDefaulted) return;
-  ensureGoogleTagQueue()("consent", "default", {
-    analytics_storage: "denied",
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    wait_for_update: 500,
-  });
-  window.__oldSeaDogsGoogleConsentDefaulted = true;
+function loadGoogleAnalytics(ga4Id: string) {
+  loadScript("oldseadogs-ga4", `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4Id)}`);
+  loadInlineScript(
+    "oldseadogs-ga4-init",
+    `window.gtag("js",new Date());window.gtag("config","${ga4Id}",{anonymize_ip:true,allow_google_signals:false,allow_ad_personalization_signals:false,send_page_view:false});`
+  );
+}
+
+function openGoogleConsentMessage() {
+  const openLocal = () => window.dispatchEvent(new Event(openPrivacyChoicesEvent));
+  const googlefc = window.googlefc;
+  const reopen = () => {
+    window.__oldSeaDogsApplyAnalyticsConsent?.(false);
+    googlefc?.showRevocationMessage?.();
+    window.googlefc?.callbackQueue?.push({
+      CONSENT_MODE_DATA_READY: () => window.__oldSeaDogsSyncGoogleCmpAnalytics?.(),
+    });
+  };
+  if (googlefc?.showRevocationMessage && typeof window.__tcfapi === "function") {
+    let settled = false;
+    window.__tcfapi("addEventListener", 2, (tcData, success) => {
+      if (settled || !success || !tcData) return;
+      if (tcData.eventStatus !== "tcloaded" && tcData.eventStatus !== "useractioncomplete") return;
+      settled = true;
+      if (typeof tcData.listenerId === "number") {
+        window.__tcfapi?.("removeEventListener", 2, () => undefined, tcData.listenerId);
+      }
+      if (tcData.gdprApplies) reopen();
+      else openLocal();
+    });
+    return;
+  }
+  if (googlefc?.showRevocationMessage) {
+    reopen();
+    return;
+  }
+  openLocal();
 }
 
 function setGoogleAnalyticsDisabled(ga4Id: string, disabled: boolean) {
@@ -191,19 +224,27 @@ export function CookieConsent({
   adsenseEnabled = false,
   initialChoice = null,
   migrateInitialChoice = false,
+  useGoogleCmp = false,
 }: CookieConsentProps) {
   const pathname = usePathname();
   const isEditorRoute = pathname ? isEditorPath(pathname) : false;
+  const googleCmpOnThisPage = Boolean(useGoogleCmp && pathname && isAdsenseLoaderPath(pathname));
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [ads, setAds] = useState(false);
+  const [cmpAnalyticsGranted, setCmpAnalyticsGranted] = useState(false);
   const lastTrackedPath = useRef("");
+  const choiceRef = useRef(choice);
+  const readyRef = useRef(isReady);
+  const cmpStatusRef = useRef<number | null>(null);
+  const cmpSeenRef = useRef(false);
   const hasOptionalServices = Boolean(ga4Id || (adsenseEnabled && adsenseClientId));
+  const analyticsMeasurementAllowed = googleCmpOnThisPage ? cmpAnalyticsGranted : Boolean(choice?.analytics);
 
   useEffect(() => {
-    ensureGoogleConsentDefaults();
+    applyGoogleConsentDefaults(useGoogleCmp);
     const timer = window.setTimeout(() => {
       const storedChoice = readStoredChoice(initialChoice, migrateInitialChoice);
       setChoice(storedChoice);
@@ -212,10 +253,14 @@ export function CookieConsent({
       setIsReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [initialChoice, migrateInitialChoice]);
+  }, [initialChoice, migrateInitialChoice, useGoogleCmp]);
 
   useEffect(() => {
-    if (!choice || isEditorRoute) return;
+    window.__oldSeaDogsUseGoogleCmp = googleCmpOnThisPage;
+  }, [googleCmpOnThisPage]);
+
+  useEffect(() => {
+    if (!choice || isEditorRoute || googleCmpOnThisPage) return;
 
     updateGoogleConsent(choice);
 
@@ -225,11 +270,7 @@ export function CookieConsent({
     }
 
     if (choice.analytics && ga4Id) {
-      loadScript("oldseadogs-ga4", `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4Id)}`);
-      loadInlineScript(
-        "oldseadogs-ga4-init",
-        `window.gtag("js",new Date());window.gtag("config","${ga4Id}",{anonymize_ip:true,allow_google_signals:false,allow_ad_personalization_signals:false,send_page_view:false});`
-      );
+      loadGoogleAnalytics(ga4Id);
     }
 
     if (choice.ads && adsenseEnabled && adsenseClientId) {
@@ -238,10 +279,119 @@ export function CookieConsent({
         loadScript("oldseadogs-adsense", adsenseSrc, "anonymous");
       }
     }
-  }, [adsenseClientId, adsenseEnabled, choice, ga4Id, isEditorRoute]);
+  }, [adsenseClientId, adsenseEnabled, choice, ga4Id, googleCmpOnThisPage, isEditorRoute]);
 
   useEffect(() => {
-    if (!choice?.analytics || !ga4Id || isEditorRoute || !pathname) {
+    if (!googleCmpOnThisPage) return;
+    choiceRef.current = choice;
+    readyRef.current = isReady;
+    let cancelled = false;
+
+    const applyAllowed = (allowed: boolean) => {
+      if (cancelled) return;
+      setCmpAnalyticsGranted(allowed);
+      if (!ga4Id) return;
+      window.__oldSeaDogsApplyingAnalyticsConsent = true;
+      try {
+        ensureGoogleTagQueue()("consent", "update", {
+          analytics_storage: allowed ? "granted" : "denied",
+        });
+        setGoogleAnalyticsDisabled(ga4Id, !allowed);
+        if (!allowed) removeGoogleAnalyticsCookies();
+        if (allowed) loadGoogleAnalytics(ga4Id);
+      } finally {
+        window.__oldSeaDogsApplyingAnalyticsConsent = false;
+      }
+    };
+
+    window.__oldSeaDogsApplyAnalyticsConsent = applyAllowed;
+
+    const sync = (status: number | null | undefined, seen: boolean) => {
+      if (cancelled || !seen) return;
+      const decision = analyticsDecisionFromConsentModeStatus(
+        status,
+        window.googlefc?.ConsentModePurposeStatusEnum,
+      );
+      if (decision === "wait") return;
+      if (decision === "denied") {
+        applyAllowed(false);
+        return;
+      }
+      if (decision === "granted") {
+        applyAllowed(true);
+        return;
+      }
+      if (!readyRef.current) return;
+      applyAllowed(Boolean(choiceRef.current?.analytics));
+    };
+
+    window.__oldSeaDogsSyncGoogleCmpAnalytics = () => {
+      const status = window.googlefc?.getGoogleConsentModeValues?.().analyticsStoragePurposeConsentStatus;
+      if (typeof status === "number") {
+        cmpStatusRef.current = status;
+        cmpSeenRef.current = true;
+      }
+      sync(cmpStatusRef.current, cmpSeenRef.current);
+    };
+
+    const remember = (status: number | null | undefined) => {
+      if (typeof status === "number") cmpStatusRef.current = status;
+      cmpSeenRef.current = true;
+      sync(cmpStatusRef.current, true);
+    };
+
+    window.googlefc = window.googlefc || {};
+    window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+    window.googlefc.callbackQueue.push({
+      CONSENT_MODE_DATA_READY: () => {
+        remember(window.googlefc?.getGoogleConsentModeValues?.().analyticsStoragePurposeConsentStatus);
+      },
+    });
+    window.googlefc.callbackQueue.push({
+      CONSENT_API_READY: () => {
+        window.__tcfapi?.("addEventListener", 2, (tcData, success) => {
+          if (!success || !tcData) return;
+          if (tcData.eventStatus !== "tcloaded" && tcData.eventStatus !== "useractioncomplete") return;
+          remember(window.googlefc?.getGoogleConsentModeValues?.().analyticsStoragePurposeConsentStatus);
+        });
+      },
+    });
+
+    if (!window.__oldSeaDogsConsentPushWrapped) {
+      window.__oldSeaDogsConsentPushWrapped = true;
+      const dataLayer = (window.dataLayer = window.dataLayer || []);
+      const originalPush = dataLayer.push.bind(dataLayer);
+      dataLayer.push = (...items: GoogleTagCommand[]) => {
+        const result = originalPush(...items);
+        if (window.__oldSeaDogsApplyingAnalyticsConsent || !window.__oldSeaDogsUseGoogleCmp) return result;
+        for (const item of items) {
+          const allowed = analyticsStorageFromConsentCommand(item);
+          if (allowed !== null) window.__oldSeaDogsApplyAnalyticsConsent?.(allowed);
+        }
+        return result;
+      };
+    }
+
+    const markCmpUnavailable = () => {
+      cmpStatusRef.current = 4;
+      cmpSeenRef.current = true;
+      sync(cmpStatusRef.current, true);
+    };
+    if (document.getElementById("oldseadogs-google-cmp")?.dataset.cmpFailed === "true") {
+      markCmpUnavailable();
+    } else {
+      sync(cmpStatusRef.current, cmpSeenRef.current);
+    }
+    window.addEventListener("oldseadogs:google-cmp-unavailable", markCmpUnavailable);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("oldseadogs:google-cmp-unavailable", markCmpUnavailable);
+    };
+  }, [ga4Id, googleCmpOnThisPage, choice, isReady]);
+
+  useEffect(() => {
+    if (!analyticsMeasurementAllowed || !ga4Id || isEditorRoute || !pathname) {
       lastTrackedPath.current = "";
       return;
     }
@@ -252,7 +402,7 @@ export function CookieConsent({
       page_path: pathname,
       page_title: document.title,
     });
-  }, [choice?.analytics, ga4Id, isEditorRoute, pathname]);
+  }, [analyticsMeasurementAllowed, ga4Id, isEditorRoute, pathname]);
 
   useEffect(() => {
     function openPreferences() {
@@ -303,6 +453,10 @@ export function CookieConsent({
   }
 
   if (!isReady) {
+    return null;
+  }
+
+  if (googleCmpOnThisPage && !showPreferences) {
     return null;
   }
 
@@ -371,5 +525,9 @@ export function CookieConsent({
 }
 
 export function openOldSeaDogsPrivacyChoices() {
+  if (window.__oldSeaDogsUseGoogleCmp) {
+    openGoogleConsentMessage();
+    return;
+  }
   window.dispatchEvent(new Event(openPrivacyChoicesEvent));
 }

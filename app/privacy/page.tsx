@@ -24,7 +24,7 @@ export default function PrivacyPage() {
           How Old Sea Dogs handles contact details, cookies, advertising,
           submitted material, and photo credits.
         </p>
-        <span>Last updated: 3 August 2026</span>
+        <span>Last updated: 18 October 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Privacy policy">
@@ -90,6 +90,12 @@ export default function PrivacyPage() {
             all optional cookies, reject non-essential cookies, manage
             preferences, or later withdraw consent using Privacy choices in the
             footer.
+          </p>
+          <p>
+            If Google&apos;s consent message is switched on, UK and EEA
+            advertising choices are collected by that message. The footer
+            Privacy choices control reopens it. Analytics still stays off
+            until analytics storage is granted.
           </p>
           <p>
             Third-party vendors, including Google, may use cookies to serve ads

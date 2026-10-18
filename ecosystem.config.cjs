@@ -25,6 +25,7 @@ module.exports = {
         NEXT_PUBLIC_ENABLE_DIRECT_ADS: process.env.NEXT_PUBLIC_ENABLE_DIRECT_ADS || "true",
         OLDSEADOGS_GA4_ID: process.env.OLDSEADOGS_GA4_ID || "G-88HT8MHR7T",
         OLDSEADOGS_ENABLE_ADSENSE: process.env.OLDSEADOGS_ENABLE_ADSENSE || "false",
+        OLDSEADOGS_USE_GOOGLE_CMP: process.env.OLDSEADOGS_USE_GOOGLE_CMP || "false",
         OLDSEADOGS_ADSENSE_CLIENT: process.env.OLDSEADOGS_ADSENSE_CLIENT || "",
         OLDSEADOGS_EDITOR_EMAILS:
           process.env.OLDSEADOGS_EDITOR_EMAILS || "captainoldseadog@gmail.com",
@@ -41,6 +42,7 @@ module.exports = {
         NEXT_PUBLIC_ENABLE_DIRECT_ADS: process.env.NEXT_PUBLIC_ENABLE_DIRECT_ADS || "true",
         OLDSEADOGS_GA4_ID: process.env.OLDSEADOGS_GA4_ID || "G-88HT8MHR7T",
         OLDSEADOGS_ENABLE_ADSENSE: process.env.OLDSEADOGS_ENABLE_ADSENSE || "false",
+        OLDSEADOGS_USE_GOOGLE_CMP: process.env.OLDSEADOGS_USE_GOOGLE_CMP || "false",
         OLDSEADOGS_ADSENSE_CLIENT: process.env.OLDSEADOGS_ADSENSE_CLIENT || "",
         NEXT_PUBLIC_ENABLE_ADSENSE: process.env.NEXT_PUBLIC_ENABLE_ADSENSE || "false",
         NEXT_PUBLIC_ADSENSE_CLIENT_ID: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "",

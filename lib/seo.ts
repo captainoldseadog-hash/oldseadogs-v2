@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fundingChoicesMessageSrc, isGoogleCmpEnabled } from "./google-cmp.ts";
 import { isRenderableImageReference, shareImageDimensions, shareImageUrl } from "./responsive-image.ts";
 
 export const siteName = "Old Sea Dogs";
@@ -45,6 +46,8 @@ export const adsenseClientId =
   "";
 export const adsenseLoaderClientId = adsenseClientId || adsensePublisherId;
 export const adsenseLoaderSrc = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseLoaderClientId}`;
+export const fundingChoicesScriptSrc = fundingChoicesMessageSrc(adsensePublisherId);
+export const useGoogleCmp = isGoogleCmpEnabled(runtimeProcess?.env?.OLDSEADOGS_USE_GOOGLE_CMP);
 const adsenseEnvironmentEnabled =
   isProduction &&
   (runtimeProcess?.env?.OLDSEADOGS_ENABLE_ADSENSE ||
