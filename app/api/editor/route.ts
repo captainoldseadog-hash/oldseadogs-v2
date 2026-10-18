@@ -677,10 +677,20 @@ async function bridgeEditorView(request: Request) {
   if (view === "story") {
     const id = url.searchParams.get("id") || "";
     const story = data.stories.find((item) => item.id === id || item.slug === id);
+    const management = story ? data.storyManagement[story.id] : null;
+    const deletion = story && management
+      ? storyDeletionEligibility({
+          story,
+          management,
+          homepageIds: homepageContext.homepageIds,
+          homepageSlugs: homepageContext.homepageSlugs,
+          referencedStoryIds: homepageContext.referencedStoryIds,
+        })
+      : null;
     return {
       view,
-      story: story ?? null,
-      management: story ? data.storyManagement[story.id] : null,
+      story: story ? { ...story, management, deletion } : null,
+      management,
       revisions: story ? await getStoryRevisions(story.id) : [],
       media: data.media
         .slice(0, 60)
@@ -1472,7 +1482,14 @@ export async function POST(request: Request) {
           editorialWarnings: getEditorialWarnings({ ...story, status: "published" }),
         }, { status: 409 });
       }
-      const next = { ...story, status: "draft" as const, scheduledPublishAt: "", editorialStatus: "Draft" };
+      const unpublishing = payload.status === "unpublished";
+      const next = {
+        ...story,
+        status: unpublishing ? "unpublished" as const : "draft" as const,
+        scheduledPublishAt: "",
+        publishedAt: unpublishing ? "" : story.publishedAt,
+        editorialStatus: unpublishing ? "Unpublished" : "Draft",
+      };
       return privateJson({
         story: await saveStory({
           ...next,

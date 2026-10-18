@@ -1651,6 +1651,7 @@ export default function EditorDashboard() {
   const [sourceCheckResult, setSourceCheckResult] = useState<SourceCheckResult | null>(null);
   const [articlePreviewStory, setArticlePreviewStory] = useState<EditorStory | null>(null);
   const [deleteStoryCandidate, setDeleteStoryCandidate] = useState<EditorStory | null>(null);
+  const [deleteStoryError, setDeleteStoryError] = useState("");
   const [recoveryFilters, setRecoveryFilters] = useState<RecoveryFilters>({
     category: "",
     source: "",
@@ -3126,6 +3127,7 @@ export default function EditorDashboard() {
       setMessage("Save this story before deleting it.");
       return;
     }
+    setDeleteStoryError("");
     setDeleteStoryCandidate(story);
   }
 
@@ -3179,8 +3181,23 @@ export default function EditorDashboard() {
   async function permanentlyDeleteStoryCandidate() {
     if (!deleteStoryCandidate) return;
     const story = deleteStoryCandidate;
-    setDeleteStoryCandidate(null);
-    await deleteStoryById(story.id, "Story deleted successfully.");
+    setBusy(true);
+    setDeleteStoryError("");
+    try {
+      const response = await fetch("/api/editor", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "deleteStories", ids: [story.id], confirm: true, backupBeforeDelete: true }),
+      });
+      await readEditorPayload(response, "Could not scrap this story.");
+      setDeleteStoryCandidate(null);
+      await loadEditor();
+      setMessage("Draft scrapped. A backup was saved first.");
+    } catch (error) {
+      setDeleteStoryError(error instanceof Error ? error.message : "Could not scrap this story.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function deleteCurrentStory() {
@@ -4486,6 +4503,8 @@ export default function EditorDashboard() {
                 <dd>{displayCategoryLabel(deleteStoryCandidate.category)}</dd>
               </div>
             </dl>
+            {deleteStoryError ? <p role="alert">{deleteStoryError}</p> : null}
+            <p>Only a private draft that has never been published can be scrapped. A verified backup is created first.</p>
             <div className="delete-story-actions">
               <button type="button" className="quiet-button" onClick={() => setDeleteStoryCandidate(null)} disabled={busy}>
                 Cancel
@@ -4494,7 +4513,7 @@ export default function EditorDashboard() {
                 Unpublish instead
               </button>
               <button type="button" className="danger-button" onClick={() => void permanentlyDeleteStoryCandidate()} disabled={busy}>
-                Permanently delete
+                Scrap draft
               </button>
             </div>
           </div>

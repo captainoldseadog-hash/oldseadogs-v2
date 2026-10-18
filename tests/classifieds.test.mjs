@@ -6,7 +6,7 @@ import test from "node:test";
 import sharp from "sharp";
 import { CLASSIFIEDS_MAX_PHOTO_BYTES, CLASSIFIEDS_RETENTION_DAYS, addDays } from "../lib/classifieds-types.ts";
 import { setClassifiedsMailSinkForTests } from "../lib/classifieds-mail.ts";
-import { processClassifiedPhoto } from "../lib/classifieds-photos.ts";
+import { ClassifiedPhotoError, processClassifiedPhoto } from "../lib/classifieds-photos.ts";
 import { filterPublicListings, toPublicListing } from "../lib/classifieds-public.ts";
 import { publicCacheDisposition } from "../lib/public-cache-policy.ts";
 import { clearClassifiedsCaches, classifiedsStorePath, readClassifiedsStore, updateClassifiedsStore } from "../lib/classifieds-store.ts";
@@ -322,6 +322,19 @@ test("photograph limits and location metadata are enforced", async () => {
   assert.match(Buffer.from(withSecret).toString("latin1"), /GPS-SECRET-LOCATION-51\.5/);
   const processed = await processClassifiedPhoto(new Uint8Array(withSecret), "image/jpeg");
   assert.doesNotMatch(Buffer.from(processed.webp).toString("latin1"), /GPS-SECRET-LOCATION/);
+});
+
+test("HEIC photographs are accepted and a renamed non-image is refused plainly", async () => {
+  const heic = await fs.readFile(path.join(projectDir, "tests/fixtures/tiny-hevc.heic"));
+  const processed = await processClassifiedPhoto(new Uint8Array(heic), "image/heic");
+  assert.equal(processed.width, 16);
+  assert.equal(processed.height, 12);
+  assert.equal(processed.sourceFormat, "heif");
+  const fake = new TextEncoder().encode("this is not a photograph");
+  await assert.rejects(
+    processClassifiedPhoto(fake, "image/heic"),
+    (error) => error instanceof ClassifiedPhotoError && error.message === "That file could not be read as a photograph.",
+  );
 });
 
 test("buyer enquiries and public pages never reveal the seller email", async () => {

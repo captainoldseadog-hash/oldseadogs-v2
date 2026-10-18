@@ -86,7 +86,13 @@ export async function prepareEditorPhoto(file: File): Promise<{ file: File; note
   const heic = isHeicPhoto(file);
   const direct = directTypes.has(declared) && !heic;
   if (direct && file.size <= targetBytes) {
-    return { file, note: "" };
+    try {
+      const loaded = await loadPhoto(file);
+      loaded.close();
+      return { file, note: "" };
+    } catch {
+      throw new Error("The editor could not read this photo. Please choose a JPEG, PNG or WebP image.");
+    }
   }
 
   let loaded: LoadedPhoto;

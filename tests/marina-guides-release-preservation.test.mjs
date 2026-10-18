@@ -15,10 +15,10 @@ const protectedFiles = {
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
-  "app/editor/EditorDashboard.tsx": "1b27dbaf3ca5b50efc95bf14fd7cedf74ae1b841acfdb820d96064d8c9dcc08c",
+  "app/editor/EditorDashboard.tsx": "a902cbd0127b18924de95d04d39192447fa37fa449f39f3f70fd5011887d6237",
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
   // Through the Lens rollout reads galleryPublicRollout instead of a hardcoded false.
-  "app/api/editor/route.ts": "ba5a6a708cc74c17f3dac77dee7dbd54e3c3c697f8c8a0bdac409bf42ca4897b",
+  "app/api/editor/route.ts": "0d9bbf88e1ea9c01f6e9cdfead0fefd8e975912246f205ad849a8c3658748f34",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
   // Discover audit, Boats for Sale, the shared two-row site header,
@@ -37,7 +37,8 @@ const protectedFiles = {
   "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
   "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
-  "package.json": "f9653d7495f567203143cb174dadbdd4319b2d562380e000845c042756a0dd43",
+  // heic-convert turns iPhone HEIC photographs into JPEG when the image library cannot decode HEVC.
+  "package.json": "6736523cb9ceb37802bb1f415e74b72cdf3c4a2d795e76a543060336ee183684",
 };
 
 test("homepage, story, editor, scheduler, search and consent logic match production", async () => {

@@ -7,7 +7,7 @@ import { oldSeaDogsSections } from "../../content/sections";
 import { analyzeOldSeaDogsStyle, findBannedPublicationPhrases, getEditorialWarnings } from "../../lib/editorial-quality";
 import { saveEditorStoryRequest } from "../../lib/editor-publication.js";
 import { validateMediaRights } from "../../lib/media-rights";
-import { isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
+import { formatUkDateTime, isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
 import {
   insertStoryBlockAtCursor,
   insertStoryBlockAtIndex,
@@ -785,18 +785,6 @@ function formatDateTime(value: string) {
   });
 }
 
-function formatUkDateTime(value: string) {
-  if (!value) return "Not set";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone: "Europe/London",
-    timeZoneName: "short",
-  }).format(date);
-}
-
 function displayStatus(value: string) {
   const normalized = value.trim().toLowerCase();
   const labels: Record<string, string> = {
@@ -1253,6 +1241,21 @@ function StoryListPage({
     }
   };
 
+  const unpublishListedStory = async (story: StorySummary) => {
+    if (!window.confirm(`Unpublish “${story.title}”? It will leave the public site and stay in the editor.`)) return;
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      await postBridgeAction({ action: "setStoryStatus", id: story.id, status: "unpublished", confirm: true });
+      setActionMessage("Story unpublished. It is no longer on the public site.");
+      reload();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "The story could not be unpublished.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const deleteSelectedDrafts = async (ids: string[], label: string) => {
     if (ids.length === 0) {
       setActionMessage("No deletable Drafts are selected.");
@@ -1473,6 +1476,9 @@ function StoryListPage({
                       {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Rewrite")}>Needs Rewrite</button> : null}
                       {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
                       {isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
+                      {!isScrapedQueue && story.status === "published" && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void unpublishListedStory(story)}>Unpublish</button> : null}
+                      {!isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteSelectedDrafts([story.id], "Scrap draft")}>Scrap</button> : null}
+                      {!isScrapedQueue && !story.deletion.eligible && story.status === "draft" && story.deletion.reasons[0] ? <small>{story.deletion.reasons[0]}</small> : null}
                     </div>
                   </article>
                   {mediaStoryId === story.id ? (
@@ -1814,6 +1820,7 @@ function BridgeMediaPicker({
   canInsertInline = true,
   initialMediaId = "",
   onSelectedMediaChange,
+  onNotice,
 }: {
   assets: MediaAsset[];
   context: string;
@@ -1830,6 +1837,7 @@ function BridgeMediaPicker({
   canInsertInline?: boolean;
   initialMediaId?: string;
   onSelectedMediaChange?: (selection: MediaSelection) => void;
+  onNotice?: (message: string) => void;
 }) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1868,6 +1876,13 @@ function BridgeMediaPicker({
   const [selectionBusy, setSelectionBusy] = useState(false);
   const selectionInFlightRef = useRef(false);
   const [message, setMessage] = useState("");
+  const messageRef = useRef<HTMLParagraphElement | null>(null);
+  const onNoticeRef = useRef(onNotice);
+  onNoticeRef.current = onNotice;
+  useEffect(() => {
+    onNoticeRef.current?.(message);
+    if (message) messageRef.current?.scrollIntoView({ block: "center" });
+  }, [message]);
   const [savedRightsSignature, setSavedRightsSignature] = useState(() => JSON.stringify({
     id: initialRightsAsset?.id || "",
     copyrightOwnership: initialRightsAsset?.copyrightOwnership || "unknown",
@@ -2097,6 +2112,13 @@ function BridgeMediaPicker({
       prepareNote = prepared.note;
     } catch (prepareError) {
       const error = prepareError instanceof Error ? prepareError.message : "This photo could not be prepared.";
+      setUploadDiagnostics((current) => ({
+        ...current,
+        selectedFileName: file.name,
+        mimeType: file.type || "Unknown",
+        fileSize: `${formatBytes(file.size)} (${file.size} bytes)`,
+        error,
+      }));
       setMessage(error);
       return;
     }
@@ -2531,6 +2553,7 @@ function BridgeMediaPicker({
             ) : null}
             {currentImage && onRemoveImage ? <button type="button" onClick={() => void onRemoveImage()}>Remove image</button> : null}
           </div>
+          {message ? <p className="bridge-save-message" ref={messageRef} role="alert">{message}</p> : null}
           {selectedFile || uploadDiagnostics.uploadRequestStarted === "Yes" || uploadDiagnostics.error ? (
             <div className="bridge-upload-diagnostics" aria-live="polite">
               <strong>Upload diagnostics</strong>
@@ -2622,7 +2645,6 @@ function BridgeMediaPicker({
           </div>
         </div>
       ) : null}
-      {message ? <p className="bridge-save-message">{message}</p> : null}
     </section>
   );
 }
@@ -2682,6 +2704,7 @@ function WriteStoryEditor({
   const [bodyText, setBodyText] = useState(() => initialStory.body.join("\n\n"));
   const [tagText, setTagText] = useState(() => initialStory.tags.join(", "));
   const [message, setMessage] = useState("");
+  const [photoNotice, setPhotoNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
@@ -2888,6 +2911,28 @@ function WriteStoryEditor({
     } catch (saveError: unknown) {
       setMessage(saveError instanceof Error ? saveError.message : "Story could not be saved.");
     } finally {
+      setSaving(false);
+    }
+  };
+
+  const scrapDraft = async () => {
+    if (!story.id) {
+      setMessage("Save this story as a draft before scrapping it.");
+      return;
+    }
+    if (story.deletion && !story.deletion.eligible) {
+      setMessage(story.deletion.reasons.join(" ") || "This story cannot be scrapped.");
+      return;
+    }
+    const title = story.title.trim() || "this draft";
+    if (!window.confirm(`Scrap “${title}”?\n\nOnly a private Draft can be scrapped. A verified backup is created first. This cannot be undone.`)) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      await postBridgeAction({ action: "deleteStories", ids: [story.id], confirm: true, backupBeforeDelete: true });
+      window.location.assign("/editor/drafts");
+    } catch (scrapError: unknown) {
+      setMessage(scrapError instanceof Error ? scrapError.message : "This story could not be scrapped.");
       setSaving(false);
     }
   };
@@ -3132,6 +3177,7 @@ function WriteStoryEditor({
                 <button type="button" onClick={() => document.getElementById("story-media-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Upload New Photo</button>
                 <button type="button" onClick={() => document.getElementById("story-media-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Choose from Media Library</button>
               </div>
+              {photoNotice ? <p className="bridge-save-message" role="alert">{photoNotice}</p> : null}
             </div>
 
             <section className="bridge-story-blocks" aria-label="Article block order">
@@ -3251,6 +3297,7 @@ function WriteStoryEditor({
               initialPlacement="inline"
               initialMediaId={initialMediaId}
               onSelectedMediaChange={setSelectedStoryMedia}
+              onNotice={setPhotoNotice}
               storyComposer
               canInsertInline={bodyCursor !== null || replaceBlockIndex !== null}
               panelId="story-media-panel"
@@ -3404,8 +3451,10 @@ function WriteStoryEditor({
                 <button disabled={saving || !story.scheduledPublishAt} onClick={() => void saveStory("scheduled")} type="button">Schedule</button>
                 <button disabled={saving} onClick={() => void saveStory("published")} type="button">Publish Now</button>
                 {story.status === "published" ? <button disabled={saving} onClick={() => { if (window.confirm("Unpublish this story? It will be removed from public pages until explicitly republished.")) void saveStory("unpublished"); }} type="button">Unpublish</button> : null}
+                {story.id && story.status === "draft" ? <button disabled={saving || story.deletion?.eligible === false} onClick={() => void scrapDraft()} type="button">Scrap draft</button> : null}
               </div>
             </div>
+            {story.deletion && !story.deletion.eligible && story.status === "draft" ? <p className="bridge-muted" role="status">{story.deletion.reasons.join(" ")}</p> : null}
             {displayedEditorialWarnings.length ? (
               <div className="press-warning-box" role="status">
                 <strong>Editorial suggestions are available. You may publish now or review them first.</strong>
@@ -4416,7 +4465,7 @@ function MediaLibraryUploader({ onUploaded }: { onUploaded: (assets: MediaAsset[
       onDrop={(event) => { event.preventDefault(); setDragging(false); void uploadFiles(Array.from(event.dataTransfer.files)); }}
     >
       <strong>Drag and drop photos here</strong>
-      <span>Upload several JPG, PNG or WebP files at once. Originals are preserved.</span>
+      <span>Upload several JPEG, PNG, WebP or iPhone HEIC photos at once. A file that is not a real photograph is refused, and this browser says so if it cannot read an HEIC photo.</span>
       <button disabled={busy} type="button" onClick={() => inputRef.current?.click()}>Choose Files</button>
       <input ref={inputRef} id={inputId} className="bridge-hidden-file-input" type="file" accept={bridgePhotoUploadAccept} multiple onChange={(event) => void uploadFiles(Array.from(event.currentTarget.files || []))} />
     </div>

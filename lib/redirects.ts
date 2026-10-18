@@ -213,7 +213,21 @@ function hasFileExtension(pathname: string) {
   return /\.[a-z0-9]{1,8}$/i.test(pathname);
 }
 
+const sellerTokenPath = /^\/boats-for-sale\/(?:verify|manage|keep|relist)\/([^/]+)$/i;
+
+function sellerTokenRedirect(pathname: string) {
+  const collapsed = normalizePath(decodePath(collapseRepeatedSlashes(pathname)));
+  const match = collapsed.match(sellerTokenPath);
+  if (!match) return undefined;
+  const prefix = collapsed.slice(0, collapsed.length - match[1].length).toLowerCase();
+  const canonical = `${prefix}${match[1]}`;
+  const asRequested = normalizePath(decodePath(pathname));
+  return canonical === asRequested ? null : canonical;
+}
+
 export function getLegacyRedirectPath(pathname: string) {
+  const sellerToken = sellerTokenRedirect(pathname);
+  if (sellerToken !== undefined) return sellerToken;
   const lookup = lookupPath(pathname);
   const requested = normalizePath(pathname);
   const mapped = redirectMap.get(lookup);

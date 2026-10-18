@@ -2589,12 +2589,33 @@
   gap: 8px;
 }
 
+.bridge-story-table,
+.bridge-story-row-wrap,
+.bridge-story-table-head,
+.bridge-story-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .bridge-story-table-head,
 .bridge-story-row {
   display: grid;
-  grid-template-columns: 76px minmax(240px, 1.5fr) 108px 108px 120px 118px 112px;
-  gap: 12px;
+  grid-template-columns: 72px minmax(0, 1.8fr) minmax(0, 0.72fr) minmax(0, 0.72fr) minmax(0, 0.9fr) minmax(0, 0.7fr) minmax(9.5rem, 1.15fr);
+  gap: 8px;
   align-items: center;
+}
+
+.bridge-story-row > *,
+.bridge-story-table-head > * {
+  min-width: 0;
+}
+
+.bridge-story-row .bridge-row-actions a,
+.bridge-story-row .bridge-row-actions button {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .bridge-story-table-head {
@@ -4025,6 +4046,44 @@
 
   .bridge-live-preview h2 {
     font-size: 1.75rem;
+  }
+
+  .editor-shell {
+    overflow-x: hidden;
+  }
+
+  .editor-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editor-shell input,
+  .editor-shell select,
+  .editor-shell textarea,
+  .editor-form input,
+  .editor-form select,
+  .editor-form textarea {
+    font-size: 16px;
+  }
+
+  .editor-shell button,
+  .editor-shell .editor-link,
+  .story-row-actions button,
+  .story-row-actions a,
+  .delete-story-actions button {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .delete-story-modal {
+    width: min(620px, calc(100% - 24px));
+    margin: 12px auto;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+
+  .delete-story-details,
+  .delete-story-actions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -9140,7 +9199,7 @@ a {
 }
 
 .delete-story-actions button {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--signal);
   border-radius: 6px;
   padding: 0 14px;
@@ -9154,6 +9213,17 @@ a {
 .delete-story-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+@media (max-width: 760px) {
+  .delete-story-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .delete-story-actions button {
+    width: 100%;
+  }
 }
 
 .article-preview-frame.preview-mode {
@@ -13833,7 +13903,23 @@ a {
 .boats-helm-photo img { width: 168px; height: 112px; object-fit: cover; background: #e7eeea; }
 .boats-helm-photo figcaption { color: var(--muted); font-size: 0.78rem; }
 .boats-helm-photo-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.boats-helm-photo-actions button, .boats-helm-form button { min-height: 44px; }
+.boats-helm-photo-actions button,
+.boats-helm-form button,
+.boats-helm-mail button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--harbour);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--harbour);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
 .boats-helm-form { display: grid; gap: 12px; margin: 16px 0; }
 .boats-helm-form h3 { margin: 0; }
 .boats-helm-form label { display: grid; gap: 4px; }

@@ -19,22 +19,58 @@ export type ProcessedPhoto = {
   sourceFormat: string;
 };
 
+const heifBrands = new Set(["heic", "heix", "hevc", "hevx", "mif1", "msf1", "heim", "heis", "hevm", "hevs", "avif"]);
+
+export function isHeifContainer(bytes: Uint8Array) {
+  if (bytes.byteLength < 12) return false;
+  const box = String.fromCharCode(bytes[4], bytes[5], bytes[6], bytes[7]);
+  if (box !== "ftyp") return false;
+  const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]).toLowerCase();
+  return heifBrands.has(brand);
+}
+
+async function jpegBytesFromHeic(bytes: Uint8Array): Promise<{ bytes: Uint8Array; format: string } | null> {
+  if (!isHeifContainer(bytes)) return null;
+  try {
+    const imported = await import("heic-convert");
+    const convert = imported.default;
+    const output = await convert({ buffer: Buffer.from(bytes), format: "JPEG", quality: 0.92 });
+    const jpeg = output instanceof Uint8Array ? output : new Uint8Array(output);
+    return jpeg.byteLength > 0 ? { bytes: jpeg, format: "heif" } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function processClassifiedPhoto(bytes: Uint8Array, declaredType = ""): Promise<ProcessedPhoto> {
   if (bytes.byteLength <= 0) throw new ClassifiedPhotoError("Choose a photograph to upload.");
   if (bytes.byteLength > CLASSIFIEDS_MAX_PHOTO_BYTES) {
     throw new ClassifiedPhotoError("Each photograph must be 8 MB or smaller.", 413);
   }
   const declared = declaredType.toLowerCase();
-  if (declared && !/image\/(jpeg|png|webp|heic|heif)/.test(declared) && !declared.endsWith("heic")) {
+  if (declared && !/image\/(jpeg|png|webp|heic|heif)/.test(declared) && !declared.endsWith("heic") && !declared.endsWith("heif")) {
     throw new ClassifiedPhotoError("Upload a JPEG, PNG, WebP or HEIC photograph.", 415);
   }
+  try {
+    return await encodeClassifiedWebp(bytes);
+  } catch (error) {
+    if (!(error instanceof ClassifiedPhotoError) || !isHeifContainer(bytes)) throw error;
+    const converted = await jpegBytesFromHeic(bytes);
+    if (!converted) {
+      throw new ClassifiedPhotoError("This HEIC photograph could not be read. Please upload a JPEG, PNG or WebP instead.", 415);
+    }
+    return encodeClassifiedWebp(converted.bytes, "heif");
+  }
+}
+
+async function encodeClassifiedWebp(bytes: Uint8Array, formatHint = ""): Promise<ProcessedPhoto> {
   const sharp = await loadSharp();
   let pipeline: SharpLike;
   try {
     pipeline = sharp(bytes, { failOn: "none", limitInputPixels: 16_000_000, sequentialRead: true });
     const metadata = await pipeline.metadata();
     const format = metadata.format || "";
-    if (!ALLOWED_FORMATS.has(format)) {
+    if (!formatHint && (!ALLOWED_FORMATS.has(format) || !metadata.width || !metadata.height)) {
       throw new ClassifiedPhotoError("Upload a JPEG, PNG, WebP or HEIC photograph.", 415);
     }
     const oriented = pipeline.rotate();
@@ -59,14 +95,10 @@ export async function processClassifiedPhoto(bytes: Uint8Array, declaredType = "
       thumb,
       width: Number(saved.width || metadata.width || 0),
       height: Number(saved.height || metadata.height || 0),
-      sourceFormat: format,
+      sourceFormat: formatHint || format,
     };
   } catch (error) {
     if (error instanceof ClassifiedPhotoError) throw error;
-    const message = error instanceof Error ? error.message : "";
-    if (/heif|heic|unsupported/i.test(message) || /heic|heif/.test(declared)) {
-      throw new ClassifiedPhotoError("This HEIC photograph could not be read. Please upload a JPEG, PNG or WebP instead.", 415);
-    }
     throw new ClassifiedPhotoError("That file could not be read as a photograph.", 415);
   }
 }

@@ -80,3 +80,15 @@ test("uppercase story slugs and repeated slashes redirect to the canonical path"
   );
   assert.equal(getLegacyRedirectPath("/stories/ports-lymington-marina"), null);
 });
+
+test("seller confirm, manage and keep links keep the token's capital letters", () => {
+  const token = "AbC123_-xY";
+  assert.equal(getLegacyRedirectPath(`/boats-for-sale/verify/${token}`), null);
+  assert.equal(getLegacyRedirectPath(`/boats-for-sale/manage/${token}`), null);
+  assert.equal(getLegacyRedirectPath(`/boats-for-sale/keep/${token}`), null);
+  assert.equal(getLegacyRedirectPath(`/boats-for-sale/relist/${token}`), null);
+  assert.equal(getLegacyRedirectPath(`/Boats-for-sale/VERIFY/${token}`), `/boats-for-sale/verify/${token}`);
+  assert.equal(getLegacyRedirectPath(`/BOATS-FOR-SALE/Manage/${token}/`), `/boats-for-sale/manage/${token}`);
+  assert.equal(getLegacyRedirectPath(`//boats-for-sale//keep/${token}`), `/boats-for-sale/keep/${token}`);
+  assert.equal(getLegacyRedirectPath(`/boats-for-sale/verify/${token.toLowerCase()}`), null);
+});

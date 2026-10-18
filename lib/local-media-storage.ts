@@ -23,6 +23,56 @@ type LocalMediaUpload = {
   height: number;
 };
 
+export class EditorPhotoRejectedError extends Error {
+  constructor(message = "That file could not be read as a photograph. Please choose a JPEG, PNG or WebP image.") {
+    super(message);
+    this.name = "EditorPhotoRejectedError";
+  }
+}
+
+const editorPhotoFormats = new Set(["jpeg", "png", "webp"]);
+
+export async function transcodeEditorPhotograph(bytes: Uint8Array) {
+  if (bytes.byteLength < 1) throw new EditorPhotoRejectedError("That photo is empty. Please choose another.");
+  let sharp: (input: Uint8Array, options: { failOn: "none" }) => {
+    clone(): {
+      resize(options: { fit: "inside"; height: number; width: number; withoutEnlargement: boolean }): {
+        webp(options: { quality: number }): { toBuffer(): Promise<Buffer> };
+      };
+    };
+    metadata(): Promise<{ format?: string; height?: number; width?: number }>;
+    rotate(): {
+      clone(): {
+        resize(options: { fit: "inside"; height: number; width: number; withoutEnlargement: boolean }): {
+          webp(options: { quality: number }): { toBuffer(): Promise<Buffer> };
+        };
+      };
+      metadata(): Promise<{ format?: string; height?: number; width?: number }>;
+    };
+  };
+  try {
+    const sharpModule = await import(/* @vite-ignore */ "sharp");
+    sharp = sharpModule.default;
+  } catch {
+    throw new EditorPhotoRejectedError("The editor could not check this photograph. Please try again.");
+  }
+  try {
+    const source = sharp(bytes, { failOn: "none" }).rotate();
+    const metadata = await source.metadata();
+    const format = metadata.format || "";
+    const width = Number(metadata.width || 0);
+    const height = Number(metadata.height || 0);
+    if (!editorPhotoFormats.has(format) || width < 1 || height < 1) throw new EditorPhotoRejectedError();
+    const web = new Uint8Array(await source.clone().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer());
+    const thumb = new Uint8Array(await source.clone().resize({ width: 480, height: 480, fit: "inside", withoutEnlargement: true }).webp({ quality: 76 }).toBuffer());
+    if (web.byteLength < 1 || thumb.byteLength < 1) throw new EditorPhotoRejectedError();
+    return { web, thumb, width, height };
+  } catch (error) {
+    if (error instanceof EditorPhotoRejectedError) throw error;
+    throw new EditorPhotoRejectedError();
+  }
+}
+
 export async function saveLocalVideoUpload(input: LocalMediaUploadInput): Promise<LocalMediaUpload | null> {
   const process = nodeProcess();
   if (!process?.versions?.node || !process.cwd) return null;
@@ -119,6 +169,7 @@ export async function saveLocalMediaUpload(input: LocalMediaUploadInput): Promis
   const fsSpecifier = "node:fs/promises";
   const pathSpecifier = "node:path";
   const fs = await import(/* @vite-ignore */ fsSpecifier) as {
+    rm(path: string, options: { force: boolean }): Promise<void>;
     writeFile(path: string, data: Uint8Array): Promise<void>;
     writeFile(path: string, data: string): Promise<void>;
   };
@@ -138,23 +189,14 @@ export async function saveLocalMediaUpload(input: LocalMediaUploadInput): Promis
   const thumbnailPath = path.join(mediaPaths.thumbnailDir, thumbnailFilename);
   const metadataPath = path.join(mediaPaths.metadataDir, `${input.id}.json`);
   const bytes = new Uint8Array(input.bytes);
-
-  await fs.writeFile(originalPath, bytes);
-  let width = 0;
-  let height = 0;
+  const decoded = await transcodeEditorPhotograph(bytes);
+  const width = decoded.width;
+  const height = decoded.height;
+  const written = [originalPath, webPath, thumbnailPath, metadataPath];
   try {
-    const sharpModule = await import(/* @vite-ignore */ "sharp");
-    const sharp = sharpModule.default;
-    const source = sharp(bytes, { failOn: "none" }).rotate();
-    const metadata = await source.metadata();
-    width = Number(metadata.width || 0);
-    height = Number(metadata.height || 0);
-    await source.clone().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toFile(webPath);
-    await source.clone().resize({ width: 480, height: 480, fit: "inside", withoutEnlargement: true }).webp({ quality: 76 }).toFile(thumbnailPath);
-  } catch {
-    await fs.writeFile(webPath, bytes);
-    await fs.writeFile(thumbnailPath, bytes);
-  }
+    await fs.writeFile(originalPath, bytes);
+    await fs.writeFile(webPath, decoded.web);
+    await fs.writeFile(thumbnailPath, decoded.thumb);
   await fs.writeFile(
     metadataPath,
     JSON.stringify(
@@ -176,6 +218,10 @@ export async function saveLocalMediaUpload(input: LocalMediaUploadInput): Promis
       2
     )
   );
+  } catch (error) {
+    await Promise.all(written.map((filePath) => fs.rm(filePath, { force: true }).catch(() => undefined)));
+    throw error;
+  }
 
   return {
     key: `local:${input.id}`,
