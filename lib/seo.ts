@@ -38,16 +38,19 @@ const configuredGa4MeasurementId =
 export const ga4MeasurementId = /^G-[A-Z0-9]{4,20}$/i.test(configuredGa4MeasurementId.trim())
   ? configuredGa4MeasurementId.trim().toUpperCase()
   : "";
+export const adsensePublisherId = "ca-pub-7278382533036873";
 export const adsenseClientId =
   runtimeProcess?.env?.OLDSEADOGS_ADSENSE_CLIENT ||
   runtimeProcess?.env?.NEXT_PUBLIC_ADSENSE_CLIENT_ID ||
   "";
+export const adsenseLoaderClientId = adsenseClientId || adsensePublisherId;
+export const adsenseLoaderSrc = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseLoaderClientId}`;
 const adsenseEnvironmentEnabled =
   isProduction &&
   (runtimeProcess?.env?.OLDSEADOGS_ENABLE_ADSENSE ||
     runtimeProcess?.env?.NEXT_PUBLIC_ENABLE_ADSENSE) === "true" &&
-  Boolean(adsenseClientId);
-export const adsenseEnabled = false;
+  Boolean(adsenseLoaderClientId);
+export const adsenseEnabled = adsenseEnvironmentEnabled;
 export const adsenseRecoveryMode =
   adsenseEnvironmentEnabled
     ? "Visible AdSense units are temporarily disabled during the low-value-content recovery pass."

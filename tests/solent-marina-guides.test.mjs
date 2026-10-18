@@ -232,7 +232,8 @@ test("Phase Two preserves the approved homepage, cookie and story-publication co
     // The app-style mobile homepage is an extra block, hidden from 1024px up.
     "app/page.tsx": "d121b702b9b1fcd61be8bc0710b9f44ce0e496c6495fea482b502f9a3b40f4dc",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
-    "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
+    // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
+    "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
     "content/homepage-production-snapshot.ts": "464346a0a9c6be2b34b168aae6a53b8d28b53016ad41d6c17a85c41a18ca1066",
     "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
