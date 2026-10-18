@@ -5,6 +5,7 @@ import { AdBlock, pickAdvertForPlacement } from "./AdBlock";
 import { SocialFollowBlock } from "./SocialFollowBlock";
 import { displayCategoryLabel, sectionPathForCategory } from "../content/sections";
 import type { Advert, EditableStory } from "../lib/site-content";
+import { publicStoryMethodNotes } from "../lib/public-story-method";
 import { storyHeaderDateLabel } from "../lib/story-header-date";
 import { cleanStoryTags } from "../lib/tags";
 import { publicImageAlt } from "../lib/public-image-alt";
@@ -93,7 +94,8 @@ function sourceLabel(story: ArticlePreviewContentProps["story"]) {
 }
 
 function methodLabel(story: ArticlePreviewContentProps["story"]) {
-  if (story.methodNotes?.trim()) return story.methodNotes.trim();
+  const notes = publicStoryMethodNotes(story.methodNotes);
+  if (notes) return notes;
   return "Edited by Michael Hodges for Old Sea Dogs, with names, dates, places, source claims and photo details checked against the available public information before publication.";
 }
 
@@ -101,18 +103,6 @@ function imageCreditLabel(story: ArticlePreviewContentProps["story"]) {
   if (story.imageCredit?.trim()) return story.imageCredit.trim();
   if (story.imageUrl?.trim()) return "Image credit being checked by the editor.";
   return "No lead image used.";
-}
-
-function defaultOldSeaDogsView(story: ArticlePreviewContentProps["story"]) {
-  const audience = story.category.toLowerCase().includes("club")
-    ? "club members, visiting crews and volunteers"
-    : story.category.toLowerCase().includes("port")
-      ? "skippers, marina visitors and harbour users"
-      : story.category.toLowerCase().includes("race")
-        ? "crews, owners and race followers"
-        : "sailors, owners, clubs, marinas and readers";
-
-  return `This story matters only if it helps ${audience} make better decisions afloat or ashore. The new point should be the named event, result, boat, notice, place or change in the report above, not the shine around it. Old Sea Dogs treats press releases and organiser statements as a starting point, then looks for the practical detail: dates, entry rules, berthing, costs, crew impact, safety notes and what readers should check next. What remains uncertain is the usual waterfront mix of weather, final notices, availability, pricing and how a claim holds up once people arrive. Use this piece as a pointer, then check the linked source before making plans.`;
 }
 
 function parseInlineImage(paragraph: string) {
@@ -465,11 +455,13 @@ export function ArticlePreviewContent({
 
         <AdBlock ad={articleInlineAd} className="article-inline-ad" />
 
-        <section className="old-sea-dogs-view" aria-labelledby="old-sea-dogs-view-title">
-          <p className="eyebrow">Old Sea Dogs View</p>
-          <h2 id="old-sea-dogs-view-title">What this means on the water</h2>
-          <p>{story.oldSeaDogsView?.trim() || defaultOldSeaDogsView(story)}</p>
-        </section>
+        {story.oldSeaDogsView?.trim() ? (
+          <section className="old-sea-dogs-view" aria-labelledby="old-sea-dogs-view-title">
+            <p className="eyebrow">Old Sea Dogs View</p>
+            <h2 id="old-sea-dogs-view-title">What this means on the water</h2>
+            <p>{story.oldSeaDogsView.trim()}</p>
+          </section>
+        ) : null}
 
         <footer className="article-source-notes" aria-label="Sources and editorial method">
           <div>

@@ -72,6 +72,7 @@ import {
   type DevelopmentHomepageFixturePolicy,
 } from "./homepage-fixture-policy.js";
 import { isScheduledPublishDue, validateScheduledPublishAt } from "./story-schedule-time";
+import { legacyArchiveMethodNotes } from "./public-story-method";
 
 export type EditableStory = {
   id: string;
@@ -2311,7 +2312,7 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
     videoPosition: "",
     oldSeaDogsView: "",
     sourceNotes: story.sourceName || "Old Sea Dogs legacy archive.",
-    methodNotes: "Legacy archive story retained for continuity and queued for editorial audit.",
+    methodNotes: legacyArchiveMethodNotes,
     contentBasis: "Old Sea Dogs archive",
     editorialStatus: "Needs improvement",
     noindex: false,
