@@ -30,6 +30,7 @@ import { previewPressReleaseCleaning, type PressReleaseCleaningPreview } from ".
 import { createSafeId } from "../../lib/safe-id";
 import { cleanStoryTags } from "../../lib/tags";
 import { isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
+import { prepareEditorPhoto } from "./prepare-editor-photo";
 
 type StoryStatus = "draft" | "scheduled" | "published" | "unpublished";
 
@@ -709,7 +710,7 @@ const handledReviewSourceTypes = new Set([
 const maxPhotoUploadMb = 25;
 const maxPhotoUploadBytes = maxPhotoUploadMb * 1024 * 1024;
 const maxDirectUploadBytes = 650 * 1024;
-const photoUploadAccept = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+const photoUploadAccept = "image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif";
 const allowedPhotoUploadTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const minimumUsableReviewWords = 100;
 
@@ -1010,11 +1011,14 @@ function canApproveReview(story: Pick<EditorStory, "title" | "summary" | "body" 
 
 function validatePhotoUpload(file: File) {
   const lowerName = file.name.toLowerCase();
+  const declaredType = file.type.toLowerCase();
   const fileLooksSupported =
-    allowedPhotoUploadTypes.has(file.type.toLowerCase()) || /\.(jpe?g|png|webp)$/.test(lowerName);
+    allowedPhotoUploadTypes.has(declaredType)
+    || declaredType.startsWith("image/")
+    || /\.(jpe?g|png|webp|heic|heif|gif|bmp|avif)$/.test(lowerName);
 
-  if (!fileLooksSupported) {
-    return "Unsupported file type. Please upload a JPG, JPEG, PNG or WebP image.";
+  if (!fileLooksSupported || declaredType === "image/svg+xml") {
+    return "Unsupported file type. Please choose a JPEG, PNG, WebP or iPhone photo.";
   }
 
   if (file.size <= 0) {
@@ -3267,20 +3271,6 @@ export default function EditorDashboard() {
       previewSrc: localPreviewSrc,
     });
 
-    const validationError = validatePhotoUpload(file);
-    if (validationError) {
-      setUploadDebug({
-        ...blankUploadDebug("Upload stopped before sending."),
-        uploadStatus: "Upload stopped before sending.",
-        selectedFileName: file.name,
-        uploadRequestUrl: uploadUrl,
-        previewSrc: localPreviewSrc,
-        error: validationError,
-      });
-      setMessage(validationError);
-      return null;
-    }
-
     setBusy(true);
     setMessage(progressMessage);
     setUploadDebug({
@@ -3291,13 +3281,27 @@ export default function EditorDashboard() {
       previewSrc: localPreviewSrc,
     });
     try {
+      const phoneReady = await prepareEditorPhoto(file);
+      const validationError = validatePhotoUpload(phoneReady.file);
+      if (validationError) {
+        setUploadDebug({
+          ...blankUploadDebug("Upload stopped before sending."),
+          uploadStatus: "Upload stopped before sending.",
+          selectedFileName: file.name,
+          uploadRequestUrl: uploadUrl,
+          previewSrc: localPreviewSrc,
+          error: validationError,
+        });
+        setMessage(validationError);
+        return null;
+      }
       const prepared = options.skipClientPrepare
         ? {
-            file,
-            changed: false,
-            message: `Using selected image directly (${formatBytes(file.size)}).`,
+            file: phoneReady.file,
+            changed: phoneReady.file !== file,
+            message: phoneReady.note || `Using selected image directly (${formatBytes(phoneReady.file.size)}).`,
           }
-        : await preparePhotoForUpload(file);
+        : await preparePhotoForUpload(phoneReady.file);
       const uploadFile = prepared.file;
       setUploadDebug({
         ...blankUploadDebug(prepared.message),

@@ -20,6 +20,7 @@ import {
 import BoatsForSaleManager from "./boats/BoatsForSaleManager";
 import GuideManager from "./guides/GuideManager";
 import type { EditorGuide, GuidesPayload } from "./guides/guide-types";
+import { editorPhotoAccept, prepareEditorPhoto } from "./prepare-editor-photo";
 
 export type BridgeCmsSection =
   | "dashboard"
@@ -594,7 +595,7 @@ function HomepageSlotsManager({ data, leadStoryId, reload }: { data: HomepageLea
     <div className="bridge-panel-heading"><div><p className="bridge-eyebrow">Step 3 — commit the front page</p><h2>Save Homepage</h2><p className="bridge-muted">Headline story: <strong>{selectedLeadStory?.title || "Automatic published story"}</strong>. Nothing changes publicly until you press Save Homepage.</p></div><button className="bridge-primary-action" type="button" disabled={busy} onClick={() => void save()}>Save Homepage</button></div>
     <div className="bridge-homepage-slot-grid">{renderOrderedList("Latest", latestIds, setLatestIds)}{renderOrderedList("Editor’s Choice", editorsChoiceIds, setEditorsChoiceIds)}</div>
     <details><summary>Choose and hide published stories</summary><div className="bridge-homepage-candidates">{data.candidates.map((story) => <article key={story.id}><strong>{story.title}</strong><small>{story.category} · {formatDateTime(story.publishedAt || story.date)}</small><HomepageVisibilitySummary story={story} /><div className="bridge-row-actions"><button type="button" onClick={() => addTo("latest", story.id)}>Add to Latest</button><button type="button" onClick={() => addTo("editors", story.id)}>Add to Editor’s Choice</button><button type="button" onClick={() => addTo("hidden", story.id)}>Hide from homepage</button></div></article>)}</div></details>
-    <div className="bridge-panel-heading"><h3>Homepage preview</h3><div className="bridge-segmented">{(["desktop", "tablet", "mobile"] as const).map((item) => <button type="button" className={device === item ? "active" : ""} onClick={() => setDevice(item)} key={item}>{item}</button>)}</div></div>
+    <div className="bridge-panel-heading"><h3>Homepage preview</h3><div className="bridge-segmented bridge-desktop-tools">{(["desktop", "tablet", "mobile"] as const).map((item) => <button type="button" className={device === item ? "active" : ""} onClick={() => setDevice(item)} key={item}>{item}</button>)}</div></div>
     <div className={`bridge-homepage-preview ${device}`}><article className="lead"><span>Homepage Headline Story</span><strong>{selectedLeadStory?.title || "Automatic published story"}</strong></article><div>{selectedStories(latestIds).map((story) => <article key={story.id}><span>Latest</span><strong>{story.title}</strong></article>)}</div><div>{selectedStories(editorsChoiceIds).map((story) => <article key={story.id}><span>Editor’s Choice</span><strong>{story.title}</strong></article>)}</div></div>
     {hiddenIds.length > 0 ? <p className="bridge-muted">Hidden from homepage: {selectedStories(hiddenIds).map((story) => story.title).join(" · ") || `${hiddenIds.length} selected stories`}</p> : null}
     {message ? <p className="bridge-save-message">{message}</p> : null}
@@ -942,32 +943,60 @@ function ErrorBlock({ message }: { message: string }) {
 }
 
 function BridgeNav({ activeSection }: { activeSection: BridgeCmsSection }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <aside className="bridge-sidebar" aria-label="Bridge CMS navigation">
-      <Link href="/editor" className="bridge-brand">
-        <span className="brand-mark" aria-hidden="true" />
-        <span>
-          <strong>Old Sea Dogs</strong>
-          <small>Bridge CMS</small>
-        </span>
-      </Link>
-      {navGroups.map((group) => (
-        <nav key={group.label} aria-label={group.label}>
-          <p>{group.label}</p>
-          {group.items.map((item) => (
-            <Link
-              className={item.section === activeSection ? "active" : ""}
-              href={item.href}
-              key={item.section}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      ))}
-      <Link className="bridge-legacy-link" href="/editor/legacy">
-        Classic editor
-      </Link>
+    <aside className={`bridge-sidebar${menuOpen ? " menu-open" : ""}`} aria-label="Bridge CMS navigation">
+      <div className="bridge-sidebar-top">
+        <Link href="/editor" className="bridge-brand" onClick={closeMenu}>
+          <span className="brand-mark" aria-hidden="true" />
+          <span>
+            <strong>Old Sea Dogs</strong>
+            <small>Bridge CMS</small>
+          </span>
+        </Link>
+        <button
+          aria-controls="bridge-section-menu"
+          aria-expanded={menuOpen}
+          className="bridge-menu-toggle"
+          onClick={() => setMenuOpen((open) => !open)}
+          type="button"
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+      </div>
+      {menuOpen ? <button aria-label="Close menu" className="bridge-menu-backdrop" onClick={closeMenu} type="button" /> : null}
+      <div className="bridge-menu-panel" id="bridge-section-menu">
+        {navGroups.map((group) => (
+          <nav key={group.label} aria-label={group.label}>
+            <p>{group.label}</p>
+            {group.items.map((item) => (
+              <Link
+                className={item.section === activeSection ? "active" : ""}
+                href={item.href}
+                key={item.section}
+                onClick={closeMenu}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        ))}
+        <Link className="bridge-legacy-link" href="/editor/legacy" onClick={closeMenu}>
+          Classic editor
+        </Link>
+      </div>
     </aside>
   );
 }
@@ -1311,7 +1340,7 @@ function StoryListPage({
             <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected scraped Drafts")} type="button">Delete selected scraped drafts</button>
             <button className="bridge-secondary-action" disabled={actionBusy || unusableScrapedIds.length === 0} onClick={() => void deleteSelectedDrafts(unusableScrapedIds, "Clear rejected/unusable scraped Drafts")} type="button">Clear rejected/unusable scraped stories</button>
           </>
-        ) : (
+        ) : status === "published" ? null : (
           <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected Drafts")} type="button">Delete selected drafts</button>
         )}
       </BridgeHeader>
@@ -1716,7 +1745,7 @@ type MediaUploadDiagnostics = {
   error: string;
 };
 
-const bridgePhotoUploadAccept = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+const bridgePhotoUploadAccept = editorPhotoAccept;
 const bridgeMediaUploadEndpoint = "/api/editor/media/upload";
 const bridgeMediaUploadAction = "uploadMedia";
 const bridgeMediaUploadTimeoutMs = 45_000;
@@ -2050,11 +2079,33 @@ function BridgeMediaPicker({
       return;
     }
 
-    const detectedContentType = photoContentType(file);
+    if (file.size <= 0) {
+      setMessage("That photo is empty. Please choose another.");
+      return;
+    }
+    if (file.size > bridgeMaxPhotoUploadBytes) {
+      const error = `File too large. Please upload an image under ${bridgeMaxPhotoUploadMb} MB.`;
+      setMessage(error);
+      return;
+    }
+
+    let uploadFile = file;
+    let prepareNote = "";
+    try {
+      const prepared = await prepareEditorPhoto(file);
+      uploadFile = prepared.file;
+      prepareNote = prepared.note;
+    } catch (prepareError) {
+      const error = prepareError instanceof Error ? prepareError.message : "This photo could not be prepared.";
+      setMessage(error);
+      return;
+    }
+
+    const detectedContentType = photoContentType(uploadFile);
     const nextDiagnostics: MediaUploadDiagnostics = {
       selectedFileName: file.name,
-      mimeType: file.type || detectedContentType || "Unknown",
-      fileSize: `${formatBytes(file.size)} (${file.size} bytes)`,
+      mimeType: uploadFile.type || detectedContentType || "Unknown",
+      fileSize: `${formatBytes(uploadFile.size)} (${uploadFile.size} bytes)`,
       uploadRequestStarted: "No",
       apiRoute: bridgeMediaUploadEndpoint,
       httpStatus: "No server response yet",
@@ -2069,25 +2120,14 @@ function BridgeMediaPicker({
     setUploadDiagnostics(nextDiagnostics);
 
     if (!detectedContentType) {
-      const error = "Unsupported file type. Please upload a JPG, JPEG, PNG or WebP image.";
+      const error = "Unsupported file type. Please choose a JPEG, PNG, WebP or iPhone photo.";
       setUploadDiagnostics((current) => ({ ...current, error }));
       setMessage(error);
       return;
     }
 
-    if (file.size > bridgeMaxPhotoUploadBytes) {
-      const error = `File too large. Please upload an image under ${bridgeMaxPhotoUploadMb} MB.`;
-      setUploadDiagnostics((current) => ({
-        ...current,
-        httpStatus: "Blocked by Bridge before upload",
-        error,
-      }));
-      setMessage(error);
-      return;
-    }
-
     setUploading(true);
-    setMessage("Uploading image...");
+    setMessage(prepareNote ? `${prepareNote} Uploading…` : "Uploading image...");
     const controller = new AbortController();
     uploadAbortRef.current = controller;
     uploadAbortReasonRef.current = "";
@@ -2095,7 +2135,7 @@ function BridgeMediaPicker({
     try {
       const form = new FormData();
       form.append("action", bridgeMediaUploadAction);
-      form.append("photo", file);
+      form.append("photo", uploadFile);
       form.append("alt", alt);
       setUploadDiagnostics((current) => ({
         ...current,
@@ -2966,7 +3006,7 @@ function WriteStoryEditor({
 
   return (
     <section className="bridge-write-shell" style={{ ["--bridge-editor-width" as string]: `${split}%` }}>
-        <div className="bridge-write-toolbar">
+        <div className="bridge-write-toolbar bridge-desktop-tools">
           <div className="bridge-segmented" aria-label="Preview size">
             {(["desktop", "tablet", "mobile"] as const).map((device) => (
               <button
@@ -4318,31 +4358,44 @@ function MediaLibraryUploader({ onUploaded }: { onUploaded: (assets: MediaAsset[
   const [busy, setBusy] = useState(false);
 
   const uploadFiles = async (files: File[]) => {
-    const accepted = files.filter((file) => photoContentType(file) && file.size > 0 && file.size <= bridgeMaxPhotoUploadBytes);
-    const rejected = files.filter((file) => !accepted.includes(file));
+    const prepared: Array<{ sourceName: string; file: File }> = [];
+    const rejected: Array<{ name: string; message: string }> = [];
+    for (const file of files) {
+      if (file.size <= 0 || file.size > bridgeMaxPhotoUploadBytes) {
+        rejected.push({ name: file.name, message: `Use a photo under ${bridgeMaxPhotoUploadMb} MB.` });
+        continue;
+      }
+      try {
+        const ready = await prepareEditorPhoto(file);
+        prepared.push({ sourceName: file.name, file: ready.file });
+      } catch (error) {
+        rejected.push({ name: file.name, message: error instanceof Error ? error.message : `Use a JPEG, PNG, WebP or iPhone photo under ${bridgeMaxPhotoUploadMb} MB.` });
+      }
+    }
     setRows([
-      ...accepted.map((file) => ({ name: file.name, status: "waiting" as const, message: "Waiting" })),
-      ...rejected.map((file) => ({ name: file.name, status: "failed" as const, message: `Use JPG, PNG or WebP under ${bridgeMaxPhotoUploadMb} MB.` })),
+      ...prepared.map((item) => ({ name: item.sourceName, status: "waiting" as const, message: "Waiting" })),
+      ...rejected.map((item) => ({ name: item.name, status: "failed" as const, message: item.message })),
     ]);
-    if (accepted.length === 0) return;
+    if (prepared.length === 0) return;
     setBusy(true);
     const uploaded: MediaAsset[] = [];
-    for (let index = 0; index < accepted.length; index += 1) {
-      const file = accepted[index];
-      setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "uploading", message: `Uploading ${index + 1} of ${accepted.length}` } : row));
+    for (let index = 0; index < prepared.length; index += 1) {
+      const item = prepared[index];
+      const file = item.file;
+      setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "uploading", message: `Uploading ${index + 1} of ${prepared.length}` } : row));
       try {
         const form = new FormData();
         form.append("action", bridgeMediaUploadAction);
         form.append("photo", file);
-        form.append("alt", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
+        form.append("alt", item.sourceName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
         const response = await fetch(bridgeMediaUploadEndpoint, { method: "POST", body: form });
         const payload = await response.json() as { error?: string; media?: MediaAsset };
         if (!response.ok || !payload.media) throw new Error(payload.error || "Upload failed.");
         uploaded.push({ ...payload.media, thumbnailUrl: payload.media.thumbnailUrl || `/api/media/${payload.media.id}?variant=thumbnail` });
-        setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "complete", message: "Uploaded successfully" } : row));
+        setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "complete", message: "Uploaded successfully" } : row));
         await onUploaded([uploaded[uploaded.length - 1]]);
       } catch (error) {
-        setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "failed", message: error instanceof Error ? error.message : "Upload failed." } : row));
+        setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "failed", message: error instanceof Error ? error.message : "Upload failed." } : row));
       }
     }
     setBusy(false);

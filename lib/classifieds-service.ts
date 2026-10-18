@@ -16,7 +16,7 @@ import {
   type ClassifiedsStore,
 } from "./classifieds-types.ts";
 import { appendLifecycleLog, redactMailLog, sendClassifiedsMail, type MailMessage } from "./classifieds-mail.ts";
-import { ClassifiedPhotoError, processClassifiedPhoto, removeClassifiedPhotoFiles, writeClassifiedPhotoFiles } from "./classifieds-photos.ts";
+import { ClassifiedPhotoError, processClassifiedPhoto, removeClassifiedPhotoFile, removeClassifiedPhotoFiles, writeClassifiedPhotoFiles } from "./classifieds-photos.ts";
 import { toPublicListing, type PublicListing } from "./classifieds-public.ts";
 import { readClassifiedsStore, updateClassifiedsStore } from "./classifieds-store.ts";
 import { endedEmail, enquiryEmail, keepRunningEmail, pendingNotice, reminderEmail, verifyEmail } from "./classifieds-templates.ts";
@@ -303,22 +303,114 @@ export async function moderateBoatListing(action: string, id: string, patch: unk
     const parsed = validateListingSubmission({ ...listing, ...(patch as object), consent: true });
     if (!parsed.ok) throw new ClassifiedsError("Please check the changes.", 400, parsed.errors);
     const fields = omitConsent(parsed.value);
+    const requestedTier = (patch as { tier?: string })?.tier;
     await updateClassifiedsStore((store) => replaceListing(store, id, (current) => ({
       ...current,
       ...fields,
       moderationNote: String((patch as { moderationNote?: string })?.moderationNote || current.moderationNote).slice(0, 500),
-      tier: (patch as { tier?: string })?.tier === "featured" ? "featured" : current.tier,
+      tier: requestedTier === "featured" ? "featured" : requestedTier === "free" ? "free" : current.tier,
       updatedAt: now.toISOString(),
     })));
+  } else if (action === "photos") {
+    await replaceBoatPhotos(id, listing, (patch as { photoIds?: unknown }).photoIds, now);
+  } else if (action === "resend") {
+    await resendFailedBoatMail(id, now);
   } else {
     throw new ClassifiedsError("Unknown moderation action.", 400);
   }
   return getListingById(id);
 }
 
+const resendableMailKinds = new Set(["verify", "moderator", "reminder", "expiry-ask", "ended"]);
+
 export async function editorBoatListings() {
   const store = await readClassifiedsStore();
-  return [...store.listings].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  return [...store.listings]
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+    .map((listing) => ({
+      ...listing,
+      mailFailures: store.deliveries
+        .filter((item) => item.listingId === listing.id && item.status === "failed")
+        .map((item) => ({
+          kind: item.kind,
+          at: item.at,
+          subject: item.subject,
+          canResend: resendableMailKinds.has(item.kind),
+        })),
+    }));
+}
+
+async function replaceBoatPhotos(id: string, listing: ClassifiedListing, photoIds: unknown, now: Date) {
+  if (!Array.isArray(photoIds) || photoIds.some((photoId) => typeof photoId !== "string")) {
+    throw new ClassifiedsError("Choose the photographs to keep.", 400);
+  }
+  const ids = photoIds as string[];
+  if (new Set(ids).size !== ids.length) throw new ClassifiedsError("Each photograph can only appear once.", 400);
+  const known = new Map(listing.photos.map((photo) => [photo.id, photo]));
+  if (ids.some((photoId) => !known.has(photoId))) {
+    throw new ClassifiedsError("Those photographs do not belong to this advertisement.", 400);
+  }
+  const removed = listing.photos.filter((photo) => !ids.includes(photo.id));
+  for (const photo of removed) await removeClassifiedPhotoFile(listing.id, photo.id);
+  await updateClassifiedsStore((store) => replaceListing(store, id, (current) => ({
+    ...current,
+    photos: ids.map((photoId) => current.photos.find((photo) => photo.id === photoId) || known.get(photoId)!),
+    updatedAt: now.toISOString(),
+  })));
+}
+
+export async function resendFailedBoatMail(id: string, now = new Date()) {
+  const listing = await getListingById(id);
+  if (!listing) throw new ClassifiedsError("That advertisement could not be found.", 404);
+  const store = await readClassifiedsStore();
+  const failed = store.deliveries.filter((item) => item.listingId === id && item.status === "failed");
+  if (failed.length === 0) throw new ClassifiedsError("There is no failed email to resend.", 400);
+  const sent: string[] = [];
+  const skipped: string[] = [];
+  for (const delivery of failed) {
+    const message = await messageForFailedDelivery(listing, delivery.kind, now);
+    if (!message) {
+      skipped.push(delivery.kind);
+      continue;
+    }
+    await updateClassifiedsStore((current) => ({
+      ...current,
+      deliveries: current.deliveries.filter((item) => !(item.key === delivery.key && item.status === "failed")),
+    }));
+    const didSend = await deliverOnce({
+      key: delivery.key,
+      listingId: id,
+      kind: delivery.kind,
+      message,
+      now,
+    });
+    if (didSend) sent.push(delivery.kind);
+    else skipped.push(delivery.kind);
+  }
+  if (sent.length === 0) {
+    throw new ClassifiedsError(
+      skipped.includes("enquiry")
+        ? "This enquiry could not be resent. The reader’s message is not kept, so they need to send it again."
+        : "The email could not be resent.",
+      400,
+    );
+  }
+  return { sent, skipped };
+}
+
+async function messageForFailedDelivery(listing: ClassifiedListing, kind: string, now: Date) {
+  if (kind === "verify") return verifyEmail(listing, await signClassifiedsToken("verify", listing.id, now));
+  if (kind === "moderator") return pendingNotice(listing);
+  if (kind === "reminder") return reminderEmail(listing, await signClassifiedsToken("manage", listing.id, now));
+  if (kind === "expiry-ask") {
+    return keepRunningEmail(
+      listing,
+      await signClassifiedsToken("keep", listing.id, now, { generation: listing.lifecycleGeneration, expiresAt: listing.expiresAt || undefined }),
+      await signClassifiedsToken("manage", listing.id, now),
+    );
+  }
+  if (kind === "ended") return endedEmail(listing, await signClassifiedsToken("relist", listing.id, now));
+  return null;
 }
 
 export async function runClassifiedsLifecycle(now = new Date()) {

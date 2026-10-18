@@ -385,6 +385,41 @@ test("the scheduler hook runs the boats lifecycle without replacing story public
   assert.match(hook, /runClassifiedsLifecycle/);
 });
 
+test("the boats desk can edit, reorder photographs and resend a failed seller email", async () => {
+  await resetStore();
+  setClassifiedsMailSinkForTests(() => {
+    throw new Error("smtp down");
+  });
+  try {
+    const draft = await createBoatDraft(started);
+    const first = await saveBoatPhoto({ token: draft.draftToken, bytes: await tinyJpeg(), declaredType: "image/jpeg", now: started });
+    const second = await saveBoatPhoto({ token: draft.draftToken, bytes: await tinyJpeg(), declaredType: "image/jpeg", now: started });
+    await submitBoatAdvertisement(validInput({ title: "Desk Example" }), { token: draft.draftToken, ip: "203.0.113.50", now: started });
+    const failed = await editorBoatListings();
+    assert.equal(failed[0].mailFailures.length, 1);
+    assert.equal(failed[0].mailFailures[0].kind, "verify");
+    assert.equal(failed[0].mailFailures[0].canResend, true);
+    setClassifiedsMailSinkForTests((message) => {
+      mailbox.push(message);
+    });
+    await moderateBoatListing("resend", draft.draftId, {}, started);
+    const resent = await editorBoatListings();
+    assert.equal(resent[0].mailFailures.length, 0);
+    assert.equal(mailbox.some((message) => message.subject.includes("Confirm your email")), true);
+    await moderateBoatListing("photos", draft.draftId, { photoIds: [second.id, first.id] }, started);
+    assert.deepEqual((await getListingById(draft.draftId)).photos.map((photo) => photo.id), [second.id, first.id]);
+    await moderateBoatListing("photos", draft.draftId, { photoIds: [second.id] }, started);
+    assert.deepEqual((await getListingById(draft.draftId)).photos.map((photo) => photo.id), [second.id]);
+    const saved = await moderateBoatListing("save", draft.draftId, { title: "Desk Example Edited", moderationNote: "Checked" }, started);
+    assert.equal(saved.title, "Desk Example Edited");
+    assert.equal(saved.moderationNote, "Checked");
+  } finally {
+    setClassifiedsMailSinkForTests((message) => {
+      mailbox.push(message);
+    });
+  }
+});
+
 test("example boats are refused in production and classifieds writes do not touch the CMS store", async () => {
   const previous = process.env.OLDSEADOGS_ENV;
   process.env.OLDSEADOGS_ENV = "production";

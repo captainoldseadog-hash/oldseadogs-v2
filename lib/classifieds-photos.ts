@@ -94,6 +94,12 @@ export async function removeClassifiedPhotoFiles(listingId: string) {
   await fs.rm(await photoDirectory(listingId), { force: true, recursive: true });
 }
 
+export async function removeClassifiedPhotoFile(listingId: string, photoId: string) {
+  const fs = await nodeFs();
+  await fs.rm(await photoFile(listingId, photoId, "full"), { force: true, recursive: false });
+  await fs.rm(await photoFile(listingId, photoId, "thumb"), { force: true, recursive: false });
+}
+
 async function photoDirectory(listingId: string) {
   const path = await nodePath();
   const { classifiedsDataDir } = await import("./classifieds-store.ts");

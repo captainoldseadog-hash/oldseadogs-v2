@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { GuideImage, InlineGuideImage, MediaAsset } from "./guide-types";
+import { editorPhotoAccept, prepareEditorPhoto } from "../prepare-editor-photo";
 
 type Props = {
   assets: MediaAsset[];
@@ -31,9 +32,10 @@ export function GuideMediaPicker({ assets, hero, gallery, inlineImages, onHero, 
     setUploading(true);
     setMessage("");
     try {
+      const prepared = await prepareEditorPhoto(file);
       const form = new FormData();
       form.append("action", "uploadMedia");
-      form.append("photo", file);
+      form.append("photo", prepared.file);
       form.append("alt", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
       const response = await fetch("/api/editor/media/upload", { method: "POST", body: form });
       const payload = await response.json() as { error?: string; media?: MediaAsset };
@@ -55,7 +57,7 @@ export function GuideMediaPicker({ assets, hero, gallery, inlineImages, onHero, 
     <p className="bridge-muted">Select an existing asset or upload through the existing Media Library pipeline. The public Guide renderer remains unchanged.</p>
     <div className="guide-manager-media-actions">
       <label><span>Search Media Library</span><input placeholder="Search images" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-      <input accept="image/jpeg,image/png,image/webp" hidden ref={inputRef} type="file" onChange={(event) => void upload(event.target.files?.[0])} />
+      <input accept={editorPhotoAccept} hidden ref={inputRef} type="file" onChange={(event) => void upload(event.target.files?.[0])} />
       <button disabled={uploading} type="button" onClick={() => inputRef.current?.click()}>{uploading ? "Uploading…" : "Upload image"}</button>
     </div>
     {hero?.url ? <figure className="guide-manager-selected-hero"><img src={hero.url} alt={hero.alt} /><figcaption>Selected hero · {hero.alt || "Alt text required"}</figcaption></figure> : <p className="bridge-error">No hero image selected.</p>}
