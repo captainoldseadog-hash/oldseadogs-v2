@@ -95,7 +95,13 @@ async function writeClassifiedsStoreNow(store: ClassifiedsStore) {
   try {
     await fs.writeFile(tempPath, payload, { encoding: "utf8", mode: 0o600 });
     JSON.parse(await fs.readFile(tempPath, "utf8"));
-    await fs.rename(tempPath, filePath);
+    try {
+      await fs.rename(tempPath, filePath);
+    } catch (error) {
+      if ((error as { code?: string }).code !== "EEXIST") throw error;
+      await fs.rm(filePath, { force: true });
+      await fs.rename(tempPath, filePath);
+    }
     readCache = null;
   } catch (error) {
     await fs.rm(tempPath, { force: true }).catch(() => undefined);
@@ -107,7 +113,9 @@ async function withClassifiedsLock<T>(operation: () => Promise<T>) {
   const filePath = await classifiedsStorePath();
   const fs = await nodeFs();
   const process = nodeProcess();
+  const { path } = await nodeModules();
   const lockPath = `${filePath}.lock`;
+  await fs.mkdir(path.dirname(lockPath), { recursive: true });
   const token = `${process?.pid ?? "node"}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const startedAt = Date.now();
   const timeoutMs = Math.max(5_000, Number(process?.env?.OLDSEADOGS_STORE_LOCK_TIMEOUT_MS || 30_000));

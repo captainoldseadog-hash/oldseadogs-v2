@@ -161,8 +161,12 @@ export default function BoatsForSaleManager() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
-  const visible = listings.filter((listing) => filter === "all" || listing.status === filter);
-  const selected = listings.find((listing) => listing.id === selectedId) || visible[0] || null;
+  const visible = listings.filter((listing) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return listing.status === "pending" || listing.status === "pending_email";
+    return listing.status === filter;
+  });
+  const selected = visible.find((listing) => listing.id === selectedId) || visible[0] || null;
 
   function choose(id: string) {
     setSelectedId(id);
@@ -245,7 +249,7 @@ export default function BoatsForSaleManager() {
       <div className="boats-helm-filters" aria-label="Advertisement status">
         {["pending", "approved", "rejected", "sold", "expired", "removed", "all"].map((status) => (
           <button aria-pressed={filter === status} className={filter === status ? "is-selected" : ""} key={status} onClick={() => setFilter(status)} type="button">
-            {status} ({status === "all" ? listings.length : listings.filter((listing) => listing.status === status).length})
+            {status} ({status === "all" ? listings.length : listings.filter((listing) => status === "pending" ? listing.status === "pending" || listing.status === "pending_email" : listing.status === status).length})
           </button>
         ))}
       </div>
@@ -257,7 +261,7 @@ export default function BoatsForSaleManager() {
                 {listing.photos?.[0] ? <img alt="" src={photoSrc(listing.photos[0], true)} /> : <span className="boats-helm-nophoto">No photo</span>}
                 <span>
                   <strong>{listing.title || "Untitled"}</strong>
-                  <span>{listing.status} · {listing.sellerType === "trade" ? "Trade" : "Private"} · {listing.sellerName}</span>
+                  <span>{listing.status === "pending_email" ? "awaiting email" : listing.status} · {listing.sellerType === "trade" ? "Trade" : "Private"} · {listing.sellerName}</span>
                   {listing.example ? <span>Example</span> : null}
                   {listing.mailFailures?.length ? <span className="boats-helm-mail-flag">Email failed</span> : null}
                 </span>
