@@ -195,7 +195,7 @@ addCheck(
   "Cookie consent component is installed",
   await fileExists("components/CookieConsent.tsx") &&
     (await read("app/layout.tsx")).includes("CookieConsent"),
-  "GA4 and AdSense scripts are loaded only after consent."
+  "GA4 loads after analytics consent. When AdSense is enabled, its async loader is in the public head and advertising storage stays denied until the banner allows it."
 );
 addCheck(
   "GA4 and AdSense env variables documented",

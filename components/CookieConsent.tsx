@@ -233,11 +233,10 @@ export function CookieConsent({
     }
 
     if (choice.ads && adsenseEnabled && adsenseClientId) {
-      loadScript(
-        "oldseadogs-adsense",
-        `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`,
-        "anonymous"
-      );
+      const adsenseSrc = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`;
+      if (!document.querySelector(`script[src="${adsenseSrc}"]`)) {
+        loadScript("oldseadogs-adsense", adsenseSrc, "anonymous");
+      }
     }
   }, [adsenseClientId, adsenseEnabled, choice, ga4Id, isEditorRoute]);
 

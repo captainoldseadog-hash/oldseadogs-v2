@@ -36,7 +36,8 @@ const protectedFiles = {
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
-  "components/CookieConsent.tsx": "cac08a3a3b15f64064a576eddcafb338b99b3a4f250a9b153b53e39c2bb75748",
+  // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
+  "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",
   // heic-convert turns iPhone HEIC photographs into JPEG when the image library cannot decode HEVC.
   "package.json": "6736523cb9ceb37802bb1f415e74b72cdf3c4a2d795e76a543060336ee183684",
 };
