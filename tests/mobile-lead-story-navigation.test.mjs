@@ -8,7 +8,7 @@ const read = (file) => fs.readFile(path.join(projectDir, file), "utf8");
 
 test("the Homepage Manager lead gets a full-card crawlable Link with full route prefetch", async () => {
   const homepage = await read("app/page.tsx");
-  const leadLink = /<Link\s+aria-label=\{`Read \$\{featuredStory\.title\}`\}\s+className="mobile-lead-story-link"\s+href=\{`\/stories\/\$\{featuredStory\.slug\}`\}\s+prefetch=\{true\}\s*\/>/;
+  const leadLink = /<Link\s+aria-label=\{`Read \$\{featuredStory\.title\}`\}\s+className="mobile-lead-story-link"\s+href=\{publicStoryHref\(featuredStory\.slug\)\}\s+prefetch=\{true\}\s*\/>/;
 
   assert.match(homepage, leadLink);
   assert.doesNotMatch(homepage, /mobile-lead-story-link[\s\S]{0,300}(?:onClick|onTouchStart|preventDefault|router\.push)/);
@@ -21,9 +21,9 @@ test("desktop lead prefetches while ordinary secondary cards keep their existing
 
   assert.match(
     homepage,
-    /<Link href=\{`\/stories\/\$\{featuredStory\.slug\}`\} className="button-primary" prefetch=\{true\}>/,
+    /<Link href=\{publicStoryHref\(featuredStory\.slug\)\} className="button-primary" prefetch=\{true\}>/,
   );
-  assert.match(homepage, /<Link className="story-card-link" href=\{`\/stories\/\$\{story\.slug\}`\}>/);
+  assert.match(homepage, /<Link className="story-card-link" href=\{publicStoryHref\(story\.slug\)\}>/);
   assert.doesNotMatch(homepage, /story-card-link[^>]*prefetch=/);
 });
 

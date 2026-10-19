@@ -52,6 +52,13 @@ test("the story page header renders that publish-date label", () => {
   assert.doesNotMatch(source, /className="article-meta"[\s\S]*?formatArticleDate\(story\.date\)/);
 });
 
+test("the archive placeholder day is not shown on a club or port profile", () => {
+  assert.equal(storyHeaderDateLabel({
+    date: "2025-01-01",
+    publishedAt: "2025-01-01T00:00:00.000Z",
+  }), "");
+});
+
 test("date-only values keep their calendar day when no publish timestamp exists", () => {
   assert.equal(storyHeaderDateLabel({ date: "2026-09-30", publishedAt: "" }), "30 September 2026");
   assert.equal(storyHeaderDateLabel({ date: "2026-01-15", publishedAt: "2026-10-02" }), "2 October 2026");

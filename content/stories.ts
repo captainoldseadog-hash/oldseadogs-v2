@@ -1,3 +1,5 @@
+import { knownStoryDate } from "../lib/story-dates.ts";
+
 export type Story = {
   slug: string;
   title: string;
@@ -137,9 +139,14 @@ export function getStory(slug: string) {
 }
 
 export function formatDate(date: string) {
+  const known = knownStoryDate(date);
+  if (!known) return "";
+  const day = known.includes("T") ? known.slice(0, 10) : known;
+  const instant = new Date(`${day}T12:00:00Z`);
+  if (Number.isNaN(instant.getTime())) return "";
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${date}T12:00:00Z`));
+  }).format(instant);
 }

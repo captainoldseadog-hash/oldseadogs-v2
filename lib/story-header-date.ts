@@ -1,3 +1,5 @@
+import { knownStoryDate } from "./story-dates.ts";
+
 const londonTimeZone = "Europe/London";
 
 // Story headers show the real publish day in Europe/London. The editorial
@@ -36,9 +38,9 @@ function formatLondonDate(instant: Date) {
 }
 
 export function storyHeaderDateLabel(story: StoryHeaderDateSource) {
-  const publishedAt = story.publishedAt?.trim() || "";
-  const date = story.date?.trim() || "";
+  const publishedAt = knownStoryDate(story.publishedAt);
+  const date = knownStoryDate(story.date);
   const instant = parseDisplayInstant(publishedAt) || parseDisplayInstant(date);
-  if (!instant) return publishedAt || date;
+  if (!instant) return "";
   return formatLondonDate(instant);
 }

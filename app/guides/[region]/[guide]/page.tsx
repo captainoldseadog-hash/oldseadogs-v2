@@ -6,6 +6,7 @@ import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 
 import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
 import { latestStoriesForGuide } from "../../../../lib/internal-links.ts";
+import { guideLatestStoryLinks } from "../../../../lib/public-story-href.ts";
 import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../../lib/site-content.ts";
 import { createPageMetadata, metaDescription, pageTitle } from "../../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../../lib/structured-data.ts";
@@ -54,11 +55,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
   if (guidePublicPath(guide) === guideRegionPath(region)) permanentRedirect(guideRegionPath(region));
   const publishedProductGuides = guideProductRecords(allPublished);
   const path = guidePublicPath(guide);
-  const latestStories = latestStoriesForGuide(path, stories).map((story) => ({
-    slug: story.slug,
-    title: story.title,
-    summary: story.summary,
-  }));
+  const latestStories = guideLatestStoryLinks(path, latestStoriesForGuide(path, stories));
   const placeJsonLd = guidePlaceJsonLd(guide);
   const breadcrumbData = breadcrumbJsonLd([
     { name: "Home", path: "/" },

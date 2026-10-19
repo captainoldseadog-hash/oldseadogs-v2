@@ -28,6 +28,7 @@ import {
   getInternalLinkGroups,
   type InternalLinkGroup,
 } from "../../../lib/internal-links";
+import { publicStoryHref } from "../../../lib/public-story-href.ts";
 import {
   getActiveAds,
   getMediaAsset,
@@ -272,7 +273,7 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
             </div>
             <div className="internal-link-list">
               {group.items.map((item) => (
-                <Link href={item.guidePath || `/stories/${item.slug}`} key={item.guidePath || item.slug}>
+                <Link href={item.guidePath || publicStoryHref(item.slug)} key={item.guidePath || item.slug}>
                   <span>{displayCategoryLabel(item.category)}</span>
                   <strong>{item.title}</strong>
                   <small>{item.reason}</small>
@@ -306,7 +307,7 @@ function RelatedArticlesPanel({
       <div className="related-grid">
         {stories.map((item) => (
           <article className="compact-card" key={item.slug}>
-            <Link className="compact-card-link" href={`/stories/${item.slug}`}>
+            <Link className="compact-card-link" href={publicStoryHref(item.slug)}>
               {hasStoryPhoto(item) ? (
                 <ResponsiveStoryImage
                   alt={item.imageAlt || item.title}
@@ -342,12 +343,12 @@ export async function generateMetadata({
   }
 
   const image = hasStoryPhoto(story) ? await storyImageDetails(story.imageUrl) : null;
-  const guideLink = portStoryGuideLink(story.slug);
+  const canonicalPath = publicStoryHref(story.slug).split("#")[0] || `/stories/${story.slug}`;
 
   return createPageMetadata({
     title: story.title,
     description: story.summary,
-    path: guideLink?.canonicalPath || `/stories/${story.slug}`,
+    path: canonicalPath,
     noIndex: !isStorySearchIndexable(story),
     noIndexFollow: true,
     image: hasStoryPhoto(story)
@@ -388,7 +389,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
   const venueDetails = getVenueDetails(story);
   const guideLink = portStoryGuideLink(story.slug);
   const storyPath = `/stories/${story.slug}`;
-  const canonicalPath = guideLink?.canonicalPath || storyPath;
+  const canonicalPath = publicStoryHref(story.slug).split("#")[0] || storyPath;
   const storyUrl = absoluteUrl(storyPath);
 
   return (

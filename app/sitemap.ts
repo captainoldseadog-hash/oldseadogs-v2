@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { manufacturers, storyMatchesManufacturer } from "../content/manufacturers";
-import { storyPrefersGuideCanonical } from "../content/port-story-guides.ts";
+import { publicStoryHref } from "../lib/public-story-href.ts";
+import { knownStoryDate } from "../lib/story-dates.ts";
 import { oldSeaDogsSections } from "../content/sections";
 import { guidePublicPath, guideRegionPath, guideRegionRecords } from "../lib/guides.ts";
 import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
@@ -23,8 +24,9 @@ function lastModifiedDate(...values: Array<string | undefined>) {
   return STATIC_SITEMAP_LASTMOD;
 }
 function contentUpdatedDate(value: string | undefined) {
-  if (!value) return null;
-  const date = new Date(value.includes("T") ? value : `${value}T00:00:00.000Z`);
+  const known = knownStoryDate(value);
+  if (!known) return null;
+  const date = new Date(known.includes("T") ? known : `${known}T00:00:00.000Z`);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 function latestContentUpdate(values: Array<string | undefined>) {
@@ -47,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const stories = publishedStories.filter(
     (story) =>
       isStorySearchIndexable(story) &&
-      !storyPrefersGuideCanonical(story.slug) &&
+      publicStoryHref(story.slug).split("#")[0] === `/stories/${story.slug}` &&
       !isTriageSitemapExcluded(story.slug, story.editorialStatus),
   );
   const productGuides = guideRegionRecords(indexedGuides);

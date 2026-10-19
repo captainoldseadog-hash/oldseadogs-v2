@@ -8,6 +8,7 @@ export const SHARE_IMAGE_WIDTH = 1200;
 
 const NEEDLES_HERO_PATH = "/images/guides/guides-solent-needles-hero-v1.png";
 const DEFAULT_SOCIAL_LOGO_PATH = "/images/old-sea-dogs-logo.png";
+const DEFAULT_SOCIAL_OG_PATH = "/images/old-sea-dogs-og.jpg";
 
 export type ResponsiveImageWidth = (typeof RESPONSIVE_IMAGE_WIDTHS)[number];
 
@@ -111,7 +112,8 @@ export function isNeedlesHeroImage(url: string) {
  */
 export function shareImageUrl(url: string) {
   if (!isRenderableImageReference(url)) return "";
-  if (pathOnly(url) === DEFAULT_SOCIAL_LOGO_PATH || !isDerivativeSource(url)) return url;
+  const path = pathOnly(url);
+  if (path === DEFAULT_SOCIAL_LOGO_PATH || path === DEFAULT_SOCIAL_OG_PATH || !isDerivativeSource(url)) return url;
   return derivativeImageUrl(url, SHARE_IMAGE_WIDTH);
 }
 

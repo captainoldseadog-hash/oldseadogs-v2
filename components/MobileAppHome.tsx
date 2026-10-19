@@ -8,6 +8,7 @@ import { TrackedExternalLink } from "./TrackedExternalLink";
 import { oldSeaDogsSocialPlatforms } from "../content/social-links";
 import { categoryMatchesLabel, displayCategoryLabel, oldSeaDogsSections } from "../content/sections";
 import { formatDate } from "../content/stories";
+import { publicStoryHref } from "../lib/public-story-href.ts";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { TradeBadge } from "./boats/TradeBadge";
 import { boatsHomepageIntro } from "../lib/classifieds-copy";
@@ -70,7 +71,7 @@ export async function MobileAppHome({
       </nav>
 
       <article className="app-lead">
-        <Link className="app-lead-card" href={`/stories/${featuredStory.slug}`} prefetch={true}>
+        <Link className="app-lead-card" href={publicStoryHref(featuredStory.slug)} prefetch={true}>
           {featuredHasPhoto ? (
             <picture className="app-lead-photo">
               <source
@@ -96,7 +97,7 @@ export async function MobileAppHome({
             <span className="app-tag">{displayCategoryLabel(featuredStory.category)}</span>
             <h2>{featuredStory.title}</h2>
             <span className="app-lead-meta">
-              {formatDate(featuredStory.date)} · {featuredStory.readMinutes} min read
+              {formatDate(featuredStory.date) ? `${formatDate(featuredStory.date)} · ` : ""}{featuredStory.readMinutes} min read
             </span>
           </span>
         </Link>
@@ -343,7 +344,7 @@ function StoryCard({ story }: { story: EditableStory }) {
   const logo = photo && isLogoLikeStoryImage(story);
   return (
     <article className={`app-card ${photo ? "" : "is-text"}`}>
-      <Link href={`/stories/${story.slug}`}>
+      <Link href={publicStoryHref(story.slug)}>
         {photo ? (
           <ResponsiveStoryImage
             alt={story.imageAlt || story.title}
@@ -353,7 +354,7 @@ function StoryCard({ story }: { story: EditableStory }) {
           />
         ) : null}
         <span className="app-card-body">
-          <small>{displayCategoryLabel(story.category)} · {cardDate(story.date)}</small>
+          <small>{displayCategoryLabel(story.category)}{cardDate(story.date) ? ` · ${cardDate(story.date)}` : ""}</small>
           <h3>{story.title}</h3>
           {photo ? null : <span className="app-card-go">Read</span>}
         </span>

@@ -12,6 +12,8 @@ test("filename-like alt text is recognised without treating descriptions as file
   assert.equal(isFilenameLikeAlt("New York Yacht Club (NYYC)"), false);
   assert.equal(isFilenameLikeAlt("Version 2.0"), false);
   assert.equal(isFilenameLikeAlt(""), false);
+  assert.equal(isFilenameLikeAlt("Nanny-Cay-Marina"), true);
+  assert.equal(isFilenameLikeAlt("Albany Marina"), false);
 });
 
 test("public alt text keeps a real CMS alt and otherwise uses caption or title", () => {
@@ -45,4 +47,10 @@ test("public alt text keeps a real CMS alt and otherwise uses caption or title",
     title: "",
     fallback: "Old Sea Dogs story image",
   }), "Old Sea Dogs story image");
+
+  assert.equal(publicImageAlt({
+    alt: "Nanny-Cay-Marina",
+    caption: "Nanny Cay Resort & Marina",
+    title: "Nanny-Cay-Marina",
+  }), "Nanny Cay Resort & Marina");
 });

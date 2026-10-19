@@ -1,5 +1,6 @@
 export type PortMapMarker = {
   slug: string;
+  href?: string;
   title: string;
   summary: string;
   imageUrl: string;

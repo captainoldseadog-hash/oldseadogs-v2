@@ -11,7 +11,8 @@ const protectedFiles = {
   // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
-  "app/page.tsx": "d121b702b9b1fcd61be8bc0710b9f44ce0e496c6495fea482b502f9a3b40f4dc",
+  // Public story cards resolve renamed slugs before linking.
+  "app/page.tsx": "5bd991bbe3cb12847ec9c190a2c062c6bcc5cc4897142ad7c9bf5eb8b08b4408",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -26,14 +27,15 @@ const protectedFiles = {
   // story share images pointed at the 1,200px derivative, the
   // Cowes Yacht Haven / Berthon Lymington guide notices, and the
   // data-driven Related guides block.
-  "app/stories/[slug]/page.tsx": "54448e849b30709170ecf9b9651793300a376843f9c4e473c31a6e3c9d4c215b",
+  "app/stories/[slug]/page.tsx": "80309fa08a6b96adcc4d8b04258c441853a7f0efe194199e73142f859defbcac",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
   // /through-the-lens is listed only while galleryPublicRollout is true.
   // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
-  // Thin-story triage slugs and redirected duplicates are omitted.
-  "app/sitemap.ts": "36a6c90278370d0f4a773f1cb621be381ecf2f6b114a12a397bf44ab59538f69",
+  // Thin-story triage slugs, guide-canonical port stories, and redirected duplicates are omitted.
+  // Placeholder 1 Jan 2025 archive dates are left off lastmod.
+  "app/sitemap.ts": "7feecff986ab4b952729c0abce21657bdb3722abcf239769ff0ce53acdf40fce",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
   "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
   // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
@@ -62,7 +64,8 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // A section with only editorial links is kept so area-hub links are not dropped on read.
   // Story search indexing also skips the active thin-story triage wave unless an editor has approved the story.
   // Legacy archive stories use a neutral library method note instead of an editorial-audit queue line.
-  assert.equal(hash(reconstructedBaseline), "800bf14e495fe4f72a3185a08451118e8df079ed3de5b6a433d0ba8f4c45e971");
+  // Undated port and club archive rows no longer receive the dummy 1 Jan 2025 stamp.
+  assert.equal(hash(reconstructedBaseline), "3bc1a5539f0b5a91eb6194fe4ded9f68ff7d212bf7e4e92a551451f9c193fb8c");
 });
 
 test("node production start trusts nginx X-Forwarded-Proto for redirect Locations", async () => {

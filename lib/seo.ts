@@ -72,7 +72,7 @@ type OgImage = {
 };
 
 export const defaultOpenGraphImage: OgImage = {
-  url: "/images/old-sea-dogs-logo.png",
+  url: "/images/old-sea-dogs-og.jpg",
   width: 1200,
   height: 630,
   alt: "Old Sea Dogs boating and yachting stories",
@@ -191,8 +191,12 @@ export function createPageMetadata({
   const publicDescription = metaDescription(description);
   const usableImage = isRenderableImageReference(image.url) ? image : defaultOpenGraphImage;
   const sharedUrl = shareImageUrl(usableImage.url) || defaultOpenGraphImage.url;
+  const usesDefaultShareImage = sharedUrl === defaultOpenGraphImage.url;
   const sharedSize = sharedUrl === usableImage.url
-    ? { width: usableImage.width, height: usableImage.height }
+    ? {
+        width: usableImage.width ?? (usesDefaultShareImage ? defaultOpenGraphImage.width : undefined),
+        height: usableImage.height ?? (usesDefaultShareImage ? defaultOpenGraphImage.height : undefined),
+      }
     : shareImageDimensions(usableImage.width, usableImage.height);
   const imageUrl = absoluteUrl(sharedUrl);
 

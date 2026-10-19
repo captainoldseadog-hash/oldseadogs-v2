@@ -8,6 +8,7 @@ import {
 import { displayCategoryLabel } from "../../../content/sections";
 import { formatDate } from "../../../content/stories";
 import { SiteFooter } from "../../../components/SiteFooter";
+import { publicStoryHref } from "../../../lib/public-story-href.ts";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
 import { createPageMetadata } from "../../../lib/seo";
 import { SiteHeader } from "../../../components/SiteHeader";
@@ -86,7 +87,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                   key={story.id}
                 >
                   {storyHasPhoto ? (
-                    <Link href={`/stories/${story.slug}`} className="image-link">
+                    <Link href={publicStoryHref(story.slug)} className="image-link">
                       <span
                         className="story-image"
                         role="img"
@@ -101,13 +102,13 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      {formatDate(story.date) ? <span>{formatDate(story.date)}</span> : null}
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>
-                      <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                      <Link href={publicStoryHref(story.slug)}>{story.title}</Link>
                     </h3>
-                    <Link href={`/stories/${story.slug}`} className="story-summary-link">
+                    <Link href={publicStoryHref(story.slug)} className="story-summary-link">
                       {story.summary}
                     </Link>
                     <div className="source-row">

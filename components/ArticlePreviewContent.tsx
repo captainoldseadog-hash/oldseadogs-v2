@@ -7,6 +7,7 @@ import { displayCategoryLabel, sectionPathForCategory } from "../content/section
 import type { Advert, EditableStory } from "../lib/site-content";
 import { publicStoryMethodNotes } from "../lib/public-story-method";
 import { storyHeaderDateLabel } from "../lib/story-header-date";
+import { knownStoryDate } from "../lib/story-dates.ts";
 import { cleanStoryTags } from "../lib/tags";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
@@ -70,7 +71,9 @@ function formatArticleDate(value: string) {
 const correctionsEmail = "captainoldseadog@gmail.com";
 
 function formatUpdatedDate(value: string, fallback: string) {
-  return formatArticleDate(value || fallback);
+  const known = knownStoryDate(value) || knownStoryDate(fallback);
+  if (!known) return "";
+  return formatArticleDate(known);
 }
 
 function basisLabel(story: ArticlePreviewContentProps["story"]) {
@@ -327,7 +330,7 @@ export function ArticlePreviewContent({
           <h1>{story.title || "Untitled story"}</h1>
           {story.summary ? <p className="article-summary">{story.summary}</p> : null}
           <div className="article-meta">
-            <span>{storyHeaderDateLabel(story)}</span>
+            {storyHeaderDateLabel(story) ? <span>{storyHeaderDateLabel(story)}</span> : null}
             <span>{story.readMinutes || 3} min read</span>
           </div>
           <div className="article-share-desktop">{socialShare}</div>
@@ -489,7 +492,7 @@ export function ArticlePreviewContent({
 
         <aside className="article-authority-box" aria-label="Written and edited by">
           <div><p className="eyebrow">Written and edited by</p><h2>Michael Hodges</h2><p>Old Sea Dogs editor, Isle of Wight boater, RYA Day Skipper, Powerboat Level 2 holder and practical marina-watcher.</p></div>
-          <dl><div><dt>Author profile</dt><dd><Link href="/authors/michael-hodges">Michael Hodges</Link></dd></div><div><dt>Last updated</dt><dd>{formatUpdatedDate(story.updatedAt, story.date)}</dd></div></dl>
+          <dl><div><dt>Author profile</dt><dd><Link href="/authors/michael-hodges">Michael Hodges</Link></dd></div>{formatUpdatedDate(story.updatedAt, story.date) ? <div><dt>Last updated</dt><dd>{formatUpdatedDate(story.updatedAt, story.date)}</dd></div> : null}</dl>
         </aside>
 
         <aside className="author-bio-box" aria-label="Corrections and contact information">

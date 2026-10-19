@@ -27,6 +27,7 @@ import {
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
+import { knownStoryDate } from "./story-dates.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
 import { publicImageAlt } from "./public-image-alt";
@@ -360,7 +361,7 @@ export const defaultSettings: SiteSettings = {
   socialTikTok: oldSeaDogsSocialLinks.tiktok,
   socialThreads: oldSeaDogsSocialLinks.threads,
   socialLinkedIn: oldSeaDogsSocialLinks.linkedin,
-  defaultSocialImageUrl: "/images/old-sea-dogs-logo.png",
+  defaultSocialImageUrl: "/images/old-sea-dogs-og.jpg",
   defaultSocialImageMediaId: "",
   homepageSocialImageUrl: "",
   mediaCollectionsJson: "[]",
@@ -2288,14 +2289,15 @@ function homepageSnapshotToStory(
 }
 
 function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
-  const stamp = `${story.date || "2025-01-01"}T00:00:00.000Z`;
+  const knownDate = knownStoryDate(story.date);
+  const stamp = knownDate ? `${knownDate.includes("T") ? knownDate.slice(0, 10) : knownDate}T00:00:00.000Z` : "";
   return {
     id: story.id,
     slug: story.slug,
     title: story.title,
     category: story.category,
     sectionSlugs: [getSectionForCategory(story.category)?.slug || "news"],
-    date: story.date || "2025-01-01",
+    date: knownDate.includes("T") ? knownDate.slice(0, 10) : knownDate,
     author: story.author || "Old Sea Dogs",
     sourceType: "Original",
     sourceName: story.sourceName || "Old Sea Dogs archive",

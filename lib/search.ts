@@ -1,4 +1,5 @@
 import { formatDate } from "../content/stories";
+import { publicStoryHref } from "./public-story-href.ts";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import { displayCategoryLabel } from "../content/sections";
 import { getPublishedStories, hasStoryPhoto, type EditableStory } from "./site-content";
@@ -6,6 +7,7 @@ import { normalizeSearchText } from "./text-search";
 
 export type SearchResult = {
   slug: string;
+  href: string;
   title: string;
   category: string;
   date: string;
@@ -89,6 +91,7 @@ export function scoreStoryForSearch(story: EditableStory, query: string) {
 function toSearchResult(story: EditableStory, score: number): SearchResult {
   return {
     slug: story.slug,
+    href: publicStoryHref(story.slug),
     title: story.title,
     category: displayCategoryLabel(story.category),
     date: story.date,

@@ -15,6 +15,7 @@ import {
 import { formatDate } from "../../content/stories";
 import { isLogoLikeStoryImage } from "../../content/story-images";
 import { resolvePublicPage } from "../../lib/public-page";
+import { publicStoryHref } from "../../lib/public-story-href.ts";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
 import { createPageMetadata, robotsMetadata } from "../../lib/seo";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -88,7 +89,9 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
   const pageEnd = Math.min(start + pageSize, stories.length);
   const heroPhoto = getSectionHeroArtwork(section.slug);
   const isPortsSection = section.slug === "ports";
-  const portMapMarkers = isPortsSection ? getPortMapMarkers(stories) : [];
+  const portMapMarkers = isPortsSection
+    ? getPortMapMarkers(stories).map((marker) => ({ ...marker, href: publicStoryHref(marker.slug) }))
+    : [];
   const sectionStoryHeading = isPortsSection
     ? "Ports around the world"
     : "Stories in this section";
@@ -156,7 +159,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                   key={story.id}
                 >
                   {storyHasPhoto ? (
-                    <Link href={`/stories/${story.slug}`} className="image-link">
+                    <Link href={publicStoryHref(story.slug)} className="image-link">
                       <span
                         className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
                         role="img"
@@ -171,13 +174,13 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      {formatDate(story.date) ? <span>{formatDate(story.date)}</span> : null}
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>
-                      <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                      <Link href={publicStoryHref(story.slug)}>{story.title}</Link>
                     </h3>
-                    <Link href={`/stories/${story.slug}`} className="story-summary-link">
+                    <Link href={publicStoryHref(story.slug)} className="story-summary-link">
                       {getClubProfileExcerpt(story)}
                     </Link>
                     <div className="source-row">

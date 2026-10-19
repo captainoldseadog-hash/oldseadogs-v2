@@ -20,6 +20,10 @@ type MapCenter = {
   lng: number;
 };
 
+function markerHref(marker: PortMapMarker) {
+  return marker.href || `/stories/${marker.slug}`;
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -249,7 +253,7 @@ export function PortsInteractiveMap({ markers }: { markers: PortMapMarker[] }) {
               <Link
                 aria-label={`${marker.title} port information`}
                 className={`port-map-marker ${activeMarker?.slug === marker.slug ? "active" : ""}`}
-                href={`/stories/${marker.slug}`}
+                href={markerHref(marker)}
                 key={marker.slug}
                 onClick={(event) => event.stopPropagation()}
                 onFocus={() => setActiveSlug(marker.slug)}
@@ -280,7 +284,7 @@ export function PortsInteractiveMap({ markers }: { markers: PortMapMarker[] }) {
                 <p>{activeMarker.country || "Port"}</p>
                 <h4>{activeMarker.title}</h4>
                 {activeMarker.summary ? <span>{activeMarker.summary}</span> : null}
-                <Link href={`/stories/${activeMarker.slug}`}>Open port page</Link>
+                <Link href={markerHref(activeMarker)}>Open port page</Link>
               </div>
             </article>
           ) : null}
@@ -291,7 +295,7 @@ export function PortsInteractiveMap({ markers }: { markers: PortMapMarker[] }) {
 
       <div className="ports-map-list" aria-label="Mapped ports">
         {markers.map((marker) => (
-          <Link href={`/stories/${marker.slug}`} key={marker.slug}>
+          <Link href={markerHref(marker)} key={marker.slug}>
             {marker.title}
           </Link>
         ))}

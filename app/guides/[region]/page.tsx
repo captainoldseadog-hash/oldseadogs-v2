@@ -24,6 +24,7 @@ import {
 import type { EditableGuide } from "../../../lib/site-content.ts";
 import { publicImageAlt } from "../../../lib/public-image-alt.ts";
 import { latestStoriesForGuide } from "../../../lib/internal-links.ts";
+import { guideLatestStoryLinks } from "../../../lib/public-story-href.ts";
 import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../lib/structured-data.ts";
@@ -94,11 +95,7 @@ function guideLatestStories(
   guide: EditableGuide,
   stories: Awaited<ReturnType<typeof getPublishedStories>>,
 ) {
-  return latestStoriesForGuide(guidePublicPath(guide), stories).map((story) => ({
-    slug: story.slug,
-    title: story.title,
-    summary: story.summary,
-  }));
+  return guideLatestStoryLinks(guidePublicPath(guide), latestStoriesForGuide(guidePublicPath(guide), stories));
 }
 
 export default async function RegionPage({ params }: RegionPageProps) {
@@ -112,7 +109,15 @@ export default async function RegionPage({ params }: RegionPageProps) {
     const placeJsonLd = guidePlaceJsonLd(legacyGuide);
     return (
       <main className="article-shell guides-shell guide-product-shell">
-        <JsonLd data={placeJsonLd ? [guideArticleJsonLd(legacyGuide), placeJsonLd] : guideArticleJsonLd(legacyGuide)} />
+        <JsonLd data={[
+          guideArticleJsonLd(legacyGuide),
+          ...(placeJsonLd ? [placeJsonLd] : []),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Guides", path: "/guides" },
+            { name: legacyGuide.title, path: guidePublicPath(legacyGuide) },
+          ]),
+        ]} />
         <PrimaryNavigation />
         <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} latestStories={guideLatestStories(legacyGuide, stories)} />
         <SiteFooter extraLinks={[{ href: "/guides", label: "Guides" }]} />

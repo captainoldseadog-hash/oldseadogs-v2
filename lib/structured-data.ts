@@ -1,4 +1,5 @@
 import { oldSeaDogsSameAsLinks } from "../content/social-links";
+import { knownStoryDate } from "./story-dates.ts";
 import { contactEmail, absoluteUrl, siteName, siteUrl } from "./seo";
 import { cleanStoryTags } from "./tags";
 
@@ -72,6 +73,15 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   };
 }
 
+function storyDateFields(story: Pick<StructuredStory, "publishedAt" | "updatedAt" | "date">) {
+  const datePublished = knownStoryDate(story.publishedAt || story.date);
+  const dateModified = knownStoryDate(story.updatedAt || story.publishedAt || story.date);
+  return {
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified ? { dateModified } : {}),
+  };
+}
+
 export function articleJsonLd(story: StructuredStory, image?: StructuredImage, mainEntityPath?: string) {
   const authorName = story.author.trim() || "Michael Hodges";
   const author = authorName.toLowerCase() === siteName.toLowerCase()
@@ -95,8 +105,7 @@ export function articleJsonLd(story: StructuredStory, image?: StructuredImage, m
     description: story.summary,
     articleSection: story.category,
     keywords: cleanStoryTags(story.tags),
-    datePublished: story.publishedAt || story.date,
-    dateModified: story.updatedAt || story.publishedAt || story.date,
+    ...storyDateFields(story),
     mainEntityOfPage: absoluteUrl(mainEntityPath || `/stories/${story.slug}`),
     image: image ? [{
       "@type": "ImageObject",

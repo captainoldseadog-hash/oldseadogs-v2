@@ -35,7 +35,7 @@ assert.match(guideRegionPage, /GuidePublicContent/);
 assert.match(guideDetailPage, /GuidePublicContent/);
 
 // Default social image is deterministic and story/guide-specific images remain overrides.
-assert.match(siteContent, /defaultSocialImageUrl: "\/images\/old-sea-dogs-logo\.png"/);
+assert.match(siteContent, /defaultSocialImageUrl: "\/images\/old-sea-dogs-og\.jpg"/);
 
 // Instagram imports can only enter pending review.
 assert.match(await fs.readFile(new URL("../lib/instagram-gallery.ts", import.meta.url), "utf8"), /status: "pending"/);

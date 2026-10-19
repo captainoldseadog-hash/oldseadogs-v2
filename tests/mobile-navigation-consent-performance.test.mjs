@@ -52,8 +52,8 @@ test("privacy defaults stay denied until a valid current-schema choice exists", 
 
 test("homepage story cards expose one canonical native link across image, title and summary", async () => {
   const [homepage, css] = await Promise.all([read("app/page.tsx"), read("app/globals.css")]);
-  assert.match(homepage, /<Link className="story-card-link" href=\{`\/stories\/\$\{story\.slug\}`\}>/);
-  assert.match(homepage, /<Link className="compact-card-link" href=\{`\/stories\/\$\{story\.slug\}`\}>/);
+  assert.match(homepage, /<Link className="story-card-link" href=\{publicStoryHref\(story\.slug\)\}>/);
+  assert.match(homepage, /<Link className="compact-card-link" href=\{publicStoryHref\(story\.slug\)\}>/);
   assert.doesNotMatch(homepage, /onClick=|preventDefault|router\.push|window\.location/);
   assert.match(css, /\.story-card-link,[\s\S]*?\.compact-card-link[\s\S]*?display: flex/);
   assert.match(css, /\.story-card-link:focus-visible/);

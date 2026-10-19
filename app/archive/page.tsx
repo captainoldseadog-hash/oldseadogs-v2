@@ -5,6 +5,7 @@ import { SiteFooter } from "../../components/SiteFooter";
 import { displayCategoryLabel } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { resolvePublicPage } from "../../lib/public-page";
+import { publicStoryHref } from "../../lib/public-story-href.ts";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -123,14 +124,14 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             {pageStories.map((story) => (
               <article className="archive-row" key={story.id}>
                 <div className="story-meta">
-                  <span>{formatDate(story.date)}</span>
+                  {formatDate(story.date) ? <span>{formatDate(story.date)}</span> : null}
                   <span>{displayCategoryLabel(story.category)}</span>
                   {story.imageCredit ? <span>{story.imageCredit}</span> : null}
                 </div>
                 <h3>
-                  <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+                  <Link href={publicStoryHref(story.slug)}>{story.title}</Link>
                 </h3>
-                <Link href={`/stories/${story.slug}`} className="story-summary-link archive-summary-link">
+                <Link href={publicStoryHref(story.slug)} className="story-summary-link archive-summary-link">
                   {story.summary}
                 </Link>
               </article>

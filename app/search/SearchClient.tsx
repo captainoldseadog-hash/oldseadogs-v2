@@ -94,7 +94,7 @@ export function SearchClient({
             key={result.slug}
           >
             {result.imageUrl ? (
-              <Link href={`/stories/${result.slug}`} className="search-result-image-link">
+              <Link href={result.href} className="search-result-image-link">
                 <span
                   className={`search-result-image ${
                     isLogoLikeStoryImage(result) ? "club-logo-image" : ""
@@ -112,13 +112,13 @@ export function SearchClient({
             <div>
               <p className="story-meta">
                 <span>{result.category}</span>
-                <span>{result.displayDate}</span>
+                {result.displayDate ? <span>{result.displayDate}</span> : null}
                 <span>{result.readMinutes} min read</span>
               </p>
               <h2>
-                <Link href={`/stories/${result.slug}`}>{result.title}</Link>
+                <Link href={result.href}>{result.title}</Link>
               </h2>
-              <Link href={`/stories/${result.slug}`} className="story-summary-link">
+              <Link href={result.href} className="story-summary-link">
                 {result.summary}
               </Link>
             </div>

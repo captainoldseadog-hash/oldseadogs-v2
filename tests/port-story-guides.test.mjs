@@ -45,9 +45,9 @@ test("the story page links readers to the guide and uses it as the canonical URL
   ]);
 
   assert.match(page, /portStoryGuideLink\(story\.slug\)/);
-  assert.match(page, /guideLink\?\.canonicalPath \|\| `\/stories\/\$\{story\.slug\}`/);
+  assert.match(page, /publicStoryHref\(story\.slug\)\.split\("#"\)\[0\]/);
   assert.match(page, /<PortStoryGuideNotice link=\{guideLink\} \/>/);
   assert.match(page, /articleJsonLd\(story, storyImage \|\| undefined, canonicalPath\)/);
-  assert.match(sitemap, /storyPrefersGuideCanonical\(story\.slug\)/);
+  assert.match(sitemap, /publicStoryHref\(story\.slug\)\.split\("#"\)\[0\] === `\/stories\/\$\{story\.slug\}`/);
   assert.match(styles, /\.story-guide-notice a/);
 });

@@ -335,7 +335,7 @@ export function GuidePublicContent({
   guide: EditableGuide;
   publishedGuides: EditableGuide[];
   preview?: boolean;
-  latestStories?: Array<{ slug: string; title: string; summary: string }>;
+  latestStories?: Array<{ slug: string; title: string; summary: string; href?: string }>;
 }) {
   const publishedOnly = publishedGuides.filter((item) => item.status === "published");
   const related = relatedGuides(guide, publishedOnly, "relatedGuideSlugs");
@@ -776,13 +776,16 @@ export function GuidePublicContent({
           <h2 id="guide-latest-stories-title">Latest stories</h2>
           <div className="internal-link-group">
             <div className="internal-link-list">
-              {latestStories.map((story) => (
-                <Link href={`/stories/${story.slug}`} key={story.slug}>
-                  <span>Story</span>
-                  <strong>{story.title}</strong>
-                  <small>{story.summary}</small>
-                </Link>
-              ))}
+              {latestStories.map((story) => {
+                const href = story.href || `/stories/${story.slug}`;
+                return (
+                  <Link href={href} key={story.slug}>
+                    <span>{href.startsWith("/guides/") ? "Guide" : "Story"}</span>
+                    <strong>{story.title}</strong>
+                    <small>{story.summary}</small>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -32,6 +32,7 @@ test("share images use the existing 1200px derivative instead of the original fi
     "/img/1200/media/media_0b593c022df942ef86c371c58165250c",
   );
   assert.equal(shareImageUrl("/images/old-sea-dogs-logo.png"), "/images/old-sea-dogs-logo.png");
+  assert.equal(shareImageUrl("/images/old-sea-dogs-og.jpg"), "/images/old-sea-dogs-og.jpg");
   assert.equal(shareImageUrl("https://example.com/photo.png"), "https://example.com/photo.png");
   assert.deepEqual(shareImageDimensions(2044, 1370), { width: 1200, height: 804 });
   assert.deepEqual(shareImageDimensions(1600, 900), { width: 1200, height: 675 });
@@ -77,7 +78,9 @@ test("page metadata publishes the 1200px image on Open Graph and Twitter", () =>
     description: "Boating stories",
     path: "/",
   });
-  assert.equal(pathname(openGraphImage(home).url), "/images/old-sea-dogs-logo.png");
+  assert.equal(pathname(openGraphImage(home).url), "/images/old-sea-dogs-og.jpg");
+  assert.equal(openGraphImage(home).width, 1200);
+  assert.equal(openGraphImage(home).height, 630);
 
   const pending = createPageMetadata({
     title: "Pending photo",
@@ -86,7 +89,16 @@ test("page metadata publishes the 1200px image on Open Graph and Twitter", () =>
     image: { url: "Monaco 1.png", alt: "filename" },
     type: "article",
   });
-  assert.equal(pathname(openGraphImage(pending).url), "/images/old-sea-dogs-logo.png");
+  assert.equal(pathname(openGraphImage(pending).url), "/images/old-sea-dogs-og.jpg");
+  const bareDefault = createPageMetadata({
+    title: "Story without a photo",
+    description: "Falls back to the sized share image",
+    path: "/stories/without-a-photo",
+    image: { url: "/images/old-sea-dogs-og.jpg", alt: "Old Sea Dogs" },
+    type: "article",
+  });
+  assert.equal(openGraphImage(bareDefault).width, 1200);
+  assert.equal(openGraphImage(bareDefault).height, 630);
   assert.equal(shareImageUrl("pending"), "");
   assert.equal(shareImageUrl("javascript:alert(1)"), "");
 });

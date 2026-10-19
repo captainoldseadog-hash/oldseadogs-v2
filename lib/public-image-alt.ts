@@ -1,9 +1,11 @@
 const imageFilenamePattern = /\.(?:avif|bmp|gif|heic|ico|jpe?g|png|svg|tiff?|webp)$/i;
+/** Three or more hyphenated tokens and no spaces, as in a stored slug used as alt text. */
+const slugAltPattern = /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+){2,}$/;
 
 export function isFilenameLikeAlt(value: string) {
   const text = value.replace(/\s+/g, " ").trim();
   if (!text || text.length > 180) return false;
-  return imageFilenamePattern.test(text);
+  return imageFilenamePattern.test(text) || slugAltPattern.test(text);
 }
 
 /**

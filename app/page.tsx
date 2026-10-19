@@ -29,6 +29,7 @@ import {
   getSiteSettings,
   hasStoryPhoto,
 } from "../lib/site-content";
+import { publicStoryHref } from "../lib/public-story-href.ts";
 import {
   createPageMetadata,
 } from "../lib/seo";
@@ -174,7 +175,7 @@ function EditorsPicksBand({
           const storyHasPhoto = hasStoryPhoto(story);
           return (
             <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
-              <Link className="compact-card-link" href={`/stories/${story.slug}`}>
+              <Link className="compact-card-link" href={publicStoryHref(story.slug)}>
                 {storyHasPhoto ? (
                   <ResponsiveStoryImage
                     alt={story.imageAlt || story.title}
@@ -250,7 +251,7 @@ export default async function Home() {
         <Link
           aria-label={`Read ${featuredStory.title}`}
           className="mobile-lead-story-link"
-          href={`/stories/${featuredStory.slug}`}
+          href={publicStoryHref(featuredStory.slug)}
           prefetch={true}
         />
         {featuredHasPhoto ? (
@@ -282,7 +283,7 @@ export default async function Home() {
           <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
           <div className="hero-actions">
-            <Link href={`/stories/${featuredStory.slug}`} className="button-primary" prefetch={true}>
+            <Link href={publicStoryHref(featuredStory.slug)} className="button-primary" prefetch={true}>
               Read the lead story
             </Link>
             <a href="#latest" className="button-secondary">
@@ -295,7 +296,7 @@ export default async function Home() {
           <h2 id="mobile-lead-title">{featuredStory.title}</h2>
           <p>{featuredStory.summary}</p>
           <div className="mobile-story-meta">
-            <span>{formatDate(featuredStory.date)}</span>
+            {formatDate(featuredStory.date) ? <span>{formatDate(featuredStory.date)}</span> : null}
             <span>{featuredStory.readMinutes} min read</span>
             <span>{featuredStory.author}</span>
           </div>
@@ -397,7 +398,7 @@ export default async function Home() {
               const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
               return (
                 <article className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`} key={story.slug}>
-                  <Link className="story-card-link" href={`/stories/${story.slug}`}>
+                  <Link className="story-card-link" href={publicStoryHref(story.slug)}>
                     {storyHasPhoto ? (
                       <ResponsiveStoryImage
                         alt={story.imageAlt || story.title}
@@ -413,7 +414,7 @@ export default async function Home() {
                     <div className="story-card-body">
                       <div className="story-meta">
                         <span>{displayCategoryLabel(story.category)}</span>
-                        <span>{formatDate(story.date)}</span>
+                        {formatDate(story.date) ? <span>{formatDate(story.date)}</span> : null}
                       </div>
                       <h3>{story.title}</h3>
                       <span className="story-summary-link">
@@ -478,7 +479,7 @@ export default async function Home() {
             const storyHasPhoto = hasStoryPhoto(story);
             return (
               <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
-                <Link className="compact-card-link" href={`/stories/${story.slug}`}>
+                <Link className="compact-card-link" href={publicStoryHref(story.slug)}>
                   {storyHasPhoto ? (
                     <ResponsiveStoryImage
                       alt={story.imageAlt || story.title}

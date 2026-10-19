@@ -533,6 +533,8 @@ test("public routes expose search, section navigation, onward routes, privacy ma
   assert.match(region, /Browse all Guides/);
   assert.match(region, /View on map/);
   assert.match(detail, /breadcrumbJsonLd/);
+  assert.match(landing, /breadcrumbJsonLd\(\[/);
+  assert.match(region, /legacyGuide\.title, path: guidePublicPath\(legacyGuide\)/);
   assert.match(content, /GuideSectionNavigation/);
   assert.match(content, /Cruise On/);
   assert.match(content, /Previous Guide/);

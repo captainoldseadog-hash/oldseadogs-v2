@@ -6,6 +6,7 @@ import { SiteFooter } from "../../components/SiteFooter.tsx";
 import type { GuideType } from "../../content/flagship-guides.ts";
 
 import { guideAreaCountLabel, guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
+import { breadcrumbJsonLd } from "../../lib/structured-data.ts";
 import { getIndexedGuides, getPublishedGuides } from "../../lib/site-content.ts";
 import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, needlesHeroImageUrl } from "../../lib/responsive-image.ts";
 import { createPageMetadata } from "../../lib/seo.ts";
@@ -50,7 +51,13 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
 
   return (
     <main className="article-shell guides-shell guide-product-shell">
-      <JsonLd data={guideCollectionJsonLd("Old Sea Dogs", guides)} />
+      <JsonLd data={[
+        guideCollectionJsonLd("Old Sea Dogs", guides),
+        breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Guides", path: "/guides" },
+        ]),
+      ]} />
       <SiteHeader current="guides" />
 
       <header className="guide-library-intro-simple guide-discovery-intro">

@@ -4,6 +4,7 @@ import {
 } from "../content/featured-port-club";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import { categoryMatchesLabel, displayCategoryLabel } from "../content/sections";
+import { publicStoryHref } from "./public-story-href.ts";
 import { hasStoryPhoto, type EditableStory } from "./site-content";
 
 const fallbackFeatureImage = "/images/marina-hero.png";
@@ -61,7 +62,7 @@ export function getFeaturedPortClubItem(
   return {
     story,
     label,
-    href: `/stories/${story.slug}`,
+    href: publicStoryHref(story.slug),
     imageUrl,
     imageAlt: story.imageAlt || story.title,
     excerpt:
