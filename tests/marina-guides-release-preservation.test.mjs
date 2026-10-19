@@ -18,7 +18,8 @@ const protectedFiles = {
   "app/editor/EditorDashboard.tsx": "a902cbd0127b18924de95d04d39192447fa37fa449f39f3f70fd5011887d6237",
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
   // Through the Lens rollout reads galleryPublicRollout instead of a hardcoded false.
-  "app/api/editor/route.ts": "0d9bbf88e1ea9c01f6e9cdfead0fefd8e975912246f205ad849a8c3658748f34",
+  // Recently scrapped restore reads one missing draft from a pre-delete backup.
+  "app/api/editor/route.ts": "affe92e8eeaab6262202f19e7e5a6c39fb955400d2cb4f0d23565d659f03d562",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
   // Discover audit, Boats for Sale, the shared two-row site header,

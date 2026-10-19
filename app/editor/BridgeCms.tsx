@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { GUIDE_TYPES, type GuideType } from "../../content/flagship-guides.ts";
 import { oldSeaDogsSections } from "../../content/sections";
 import { analyzeOldSeaDogsStyle, findBannedPublicationPhrases, getEditorialWarnings } from "../../lib/editorial-quality";
 import { saveEditorStoryRequest } from "../../lib/editor-publication.js";
 import { validateMediaRights } from "../../lib/media-rights";
+import { scrapBackupMessage, scrapConfirmAccepted, scrapConfirmPhrase, scrapConfirmWord } from "../../lib/scrap-draft-confirm";
 import { formatUkDateTime, isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
 import {
   insertStoryBlockAtCursor,
@@ -652,6 +653,7 @@ type BridgeCmsProps = {
   storyId?: string;
   mediaId?: string;
   galleryView?: GalleryView;
+  scrappedNotice?: string;
 };
 
 type GalleryView = "dashboard" | "pending" | "approved" | "rejected" | "categories" | "instagram" | "settings";
@@ -1129,24 +1131,74 @@ function StoryImage({ story }: { story: StorySummary }) {
   );
 }
 
+function ScrapConfirmDialog({
+  title,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const [typed, setTyped] = useState("");
+  const phrase = scrapConfirmPhrase(title);
+  const accepted = scrapConfirmAccepted(typed, title);
+  const headingId = useId();
+  return (
+    <div className="bridge-scrap-dialog-backdrop" onClick={onCancel} role="presentation">
+      <div
+        aria-labelledby={headingId}
+        aria-modal="true"
+        className="bridge-scrap-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <h2 id={headingId}>Scrap “{title.trim() || "Untitled story"}”?</h2>
+        <p>This removes the private draft from the editor. A backup is taken first. Published stories, scheduled stories, and homepage selections cannot be scrapped.</p>
+        <p>Type <strong>{scrapConfirmWord}</strong>{phrase ? <> or the first word of the title, <strong>{phrase}</strong>,</> : null} before the scrap button will turn on.</p>
+        <label>
+          <span>Confirmation</span>
+          <input
+            autoComplete="off"
+            autoFocus
+            onChange={(event) => setTyped(event.target.value)}
+            value={typed}
+          />
+        </label>
+        <div className="bridge-row-actions">
+          <button disabled={busy} onClick={onCancel} type="button">Keep this draft</button>
+          <button className="bridge-scrap-action" disabled={!accepted || busy} onClick={onConfirm} type="button">Scrap this draft</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StoryListPage({
   section,
   title,
   status,
   queue,
+  scrappedNotice = "",
 }: {
   section: BridgeCmsSection;
   title: string;
   status?: string;
   queue?: string;
+  scrappedNotice?: string;
 }) {
   const [query, setQuery] = useState("");
   const [workflowFilter, setWorkflowFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [mediaStoryId, setMediaStoryId] = useState("");
-  const [actionMessage, setActionMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState(scrappedNotice);
   const [actionBusy, setActionBusy] = useState(false);
+  const [scrapCandidate, setScrapCandidate] = useState<{ id: string; title: string } | null>(null);
+  const [scrappedDrafts, setScrappedDrafts] = useState<Array<{ id: string; title: string; backupId: string; backupPath: string }>>([]);
+  const [scrappedNote, setScrappedNote] = useState("");
   const [scrapeDiagnostics, setScrapeDiagnostics] = useState<SourceWatchDiagnostics | null>(null);
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scrapePreview, setScrapePreview] = useState<ScrapedStoryPreview | null>(null);
@@ -1256,31 +1308,90 @@ function StoryListPage({
     }
   };
 
-  const deleteSelectedDrafts = async (ids: string[], label: string) => {
+  const refreshScrappedDrafts = useCallback(async () => {
+    if (status !== "draft" || isScrapedQueue) return;
+    try {
+      const payload = await postBridgeAction<{ stories?: Array<{ id: string; title: string; backupId: string; backupPath: string }>; note?: string }>({
+        action: "listScrappedStories",
+      });
+      setScrappedDrafts(payload.stories || []);
+      setScrappedNote(payload.note || "");
+    } catch (error: unknown) {
+      setScrappedDrafts([]);
+      setScrappedNote(error instanceof Error ? error.message : "Recently scrapped drafts could not be listed.");
+    }
+  }, [isScrapedQueue, status]);
+
+  useEffect(() => {
+    if (status !== "draft" || isScrapedQueue) return;
+    let cancelled = false;
+    postBridgeAction<{ stories?: Array<{ id: string; title: string; backupId: string; backupPath: string }>; note?: string }>({
+      action: "listScrappedStories",
+    }).then((payload) => {
+      if (cancelled) return;
+      setScrappedDrafts(payload.stories || []);
+      setScrappedNote(payload.note || "");
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      setScrappedDrafts([]);
+      setScrappedNote(error instanceof Error ? error.message : "Recently scrapped drafts could not be listed.");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isScrapedQueue, status]);
+
+  const deleteSelectedDrafts = async (ids: string[], label: string, options?: { confirmed?: boolean }) => {
     if (ids.length === 0) {
       setActionMessage("No deletable Drafts are selected.");
       return;
     }
     const selected = (data?.stories || []).filter((story) => ids.includes(story.id));
     const titles = selected.map((story) => `• ${story.title}`).join("\n");
-    if (!window.confirm(`${label} (${ids.length})?\n\n${titles}\n\nOnly private Drafts are eligible. Homepage-selected and referenced stories are protected. A verified backup will be created first. This deletion is permanent.`)) return;
+    if (!options?.confirmed && !window.confirm(`${label} (${ids.length})?\n\n${titles}\n\nOnly private Drafts are eligible. Homepage-selected and referenced stories are protected. A verified backup will be created first. This deletion is permanent.`)) return;
     setActionBusy(true);
     setActionMessage("");
     try {
-      const payload = await postBridgeAction<{ deleted: number; backup?: { backupPath?: string } }>({
+      const payload = await postBridgeAction<{ deleted: number; backup?: { backupPath?: string; backupId?: string } }>({
         action: "deleteStories",
         ids,
         confirm: true,
         backupBeforeDelete: true,
       });
       setSelectedIds([]);
-      setActionMessage(`Deleted ${payload.deleted} Draft stories after backup${payload.backup?.backupPath ? `: ${payload.backup.backupPath}` : "."}`);
+      const backupPath = payload.backup?.backupPath || payload.backup?.backupId || "";
+      const lead = selected.length === 1
+        ? scrapBackupMessage(selected[0]?.title || "The draft", backupPath)
+        : `Deleted ${payload.deleted} drafts. ${backupPath ? `A backup was saved at ${backupPath}.` : "A backup was saved before they were removed."} Recently scrapped can restore one story at a time. The rest of that backup stays untouched.`;
+      setActionMessage(lead);
       reload();
+      void refreshScrappedDrafts();
     } catch (error: unknown) {
       setSelectedIds([]);
       reload();
       const detail = error instanceof Error ? error.message : "Draft cleanup could not be completed. No unsafe story was deleted.";
       setActionMessage(`${detail} The Story list has been refreshed so removed or changed records cannot remain selected.`);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const restoreScrappedDraft = async (item: { id: string; title: string; backupId: string }) => {
+    if (!window.confirm(`Restore “${item.title}” as a private draft? Only this story is copied back.`)) return;
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      await postBridgeAction({
+        action: "restoreScrappedStory",
+        id: item.id,
+        backupId: item.backupId,
+        confirm: true,
+      });
+      setActionMessage(`“${item.title}” is back in Drafts. Only that story was restored.`);
+      reload();
+      void refreshScrappedDrafts();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "That draft could not be restored.");
     } finally {
       setActionBusy(false);
     }
@@ -1347,7 +1458,7 @@ function StoryListPage({
           <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected Drafts")} type="button">Delete selected drafts</button>
         )}
       </BridgeHeader>
-      {actionMessage ? <p className="bridge-save-message">{actionMessage}</p> : null}
+      {actionMessage ? <p className="bridge-save-message" role="status">{actionMessage}</p> : null}
       {isScrapedQueue ? (
         <section className="bridge-panel">
           <div className="bridge-panel-heading">
@@ -1477,7 +1588,7 @@ function StoryListPage({
                       {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
                       {isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
                       {!isScrapedQueue && story.status === "published" && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void unpublishListedStory(story)}>Unpublish</button> : null}
-                      {!isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteSelectedDrafts([story.id], "Scrap draft")}>Scrap</button> : null}
+                      {!isScrapedQueue && story.deletion.eligible ? <button className="bridge-scrap-action" type="button" disabled={actionBusy} onClick={() => setScrapCandidate({ id: story.id, title: story.title })}>Scrap</button> : null}
                       {!isScrapedQueue && !story.deletion.eligible && story.status === "draft" && story.deletion.reasons[0] ? <small>{story.deletion.reasons[0]}</small> : null}
                     </div>
                   </article>
@@ -1519,6 +1630,40 @@ function StoryListPage({
           </div>
         ) : null}
       </section>
+      {status === "draft" && !isScrapedQueue ? (
+        <section className="bridge-panel bridge-scrapped-panel" aria-label="Recently scrapped">
+          <div className="bridge-panel-heading">
+            <div>
+              <h2>Recently scrapped</h2>
+              <p className="bridge-muted">Drafts removed from the editor that are still in a pre-delete backup. Restore puts that one story back as a draft. Homepage settings, media, and every other story stay as they are.</p>
+            </div>
+          </div>
+          {scrappedNote ? <p className="bridge-muted">{scrappedNote}</p> : null}
+          {scrappedDrafts.length > 0 ? (
+            <ul className="bridge-scrapped-list">
+              {scrappedDrafts.map((item) => (
+                <li key={`${item.backupId}:${item.id}`}>
+                  <strong>{item.title}</strong>
+                  <small>{item.backupPath}</small>
+                  <button className="bridge-secondary-action" disabled={actionBusy} onClick={() => void restoreScrappedDraft(item)} type="button">Restore</button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+      {scrapCandidate ? (
+        <ScrapConfirmDialog
+          busy={actionBusy}
+          title={scrapCandidate.title}
+          onCancel={() => setScrapCandidate(null)}
+          onConfirm={() => {
+            const candidate = scrapCandidate;
+            setScrapCandidate(null);
+            void deleteSelectedDrafts([candidate.id], "Scrap draft", { confirmed: true });
+          }}
+        />
+      ) : null}
     </>
   );
 }
@@ -1878,7 +2023,9 @@ function BridgeMediaPicker({
   const [message, setMessage] = useState("");
   const messageRef = useRef<HTMLParagraphElement | null>(null);
   const onNoticeRef = useRef(onNotice);
-  onNoticeRef.current = onNotice;
+  useEffect(() => {
+    onNoticeRef.current = onNotice;
+  }, [onNotice]);
   useEffect(() => {
     onNoticeRef.current?.(message);
     if (message) messageRef.current?.scrollIntoView({ block: "center" });
@@ -2706,6 +2853,7 @@ function WriteStoryEditor({
   const [message, setMessage] = useState("");
   const [photoNotice, setPhotoNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [scrapOpen, setScrapOpen] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
   const [split, setSplit] = useState(52);
@@ -2918,22 +3066,31 @@ function WriteStoryEditor({
   const scrapDraft = async () => {
     if (!story.id) {
       setMessage("Save this story as a draft before scrapping it.");
+      setScrapOpen(false);
       return;
     }
     if (story.deletion && !story.deletion.eligible) {
       setMessage(story.deletion.reasons.join(" ") || "This story cannot be scrapped.");
+      setScrapOpen(false);
       return;
     }
-    const title = story.title.trim() || "this draft";
-    if (!window.confirm(`Scrap “${title}”?\n\nOnly a private Draft can be scrapped. A verified backup is created first. This cannot be undone.`)) return;
+    const title = story.title.trim() || "Untitled story";
     setSaving(true);
     setMessage("");
     try {
-      await postBridgeAction({ action: "deleteStories", ids: [story.id], confirm: true, backupBeforeDelete: true });
-      window.location.assign("/editor/drafts");
+      const payload = await postBridgeAction<{ backup?: { backupPath?: string; backupId?: string } }>({
+        action: "deleteStories",
+        ids: [story.id],
+        confirm: true,
+        backupBeforeDelete: true,
+      });
+      const backup = payload.backup?.backupPath || payload.backup?.backupId || "";
+      const params = new URLSearchParams({ scrapped: "1", title, backup });
+      window.location.assign(`/editor/drafts?${params.toString()}`);
     } catch (scrapError: unknown) {
       setMessage(scrapError instanceof Error ? scrapError.message : "This story could not be scrapped.");
       setSaving(false);
+      setScrapOpen(false);
     }
   };
 
@@ -3451,10 +3608,8 @@ function WriteStoryEditor({
                 <button disabled={saving || !story.scheduledPublishAt} onClick={() => void saveStory("scheduled")} type="button">Schedule</button>
                 <button disabled={saving} onClick={() => void saveStory("published")} type="button">Publish Now</button>
                 {story.status === "published" ? <button disabled={saving} onClick={() => { if (window.confirm("Unpublish this story? It will be removed from public pages until explicitly republished.")) void saveStory("unpublished"); }} type="button">Unpublish</button> : null}
-                {story.id && story.status === "draft" ? <button disabled={saving || story.deletion?.eligible === false} onClick={() => void scrapDraft()} type="button">Scrap draft</button> : null}
               </div>
             </div>
-            {story.deletion && !story.deletion.eligible && story.status === "draft" ? <p className="bridge-muted" role="status">{story.deletion.reasons.join(" ")}</p> : null}
             {displayedEditorialWarnings.length ? (
               <div className="press-warning-box" role="status">
                 <strong>Editorial suggestions are available. You may publish now or review them first.</strong>
@@ -3527,8 +3682,27 @@ function WriteStoryEditor({
                 </button>
               </div>
             ) : null}
-            {message ? <p className="bridge-save-message">{message}</p> : null}
+            {message ? <p className="bridge-save-message" role="status">{message}</p> : null}
+            {story.id && story.status === "draft" ? (
+              <section className="bridge-scrap-danger" aria-label="Scrap this draft">
+                <h2>Danger area</h2>
+                <p>Scrapping removes this draft from the editor. It is separate from publishing. A backup is saved first. Recently scrapped, at the bottom of Drafts, can put this one story back.</p>
+                {story.deletion && !story.deletion.eligible ? (
+                  <p role="status">{story.deletion.reasons.join(" ")}</p>
+                ) : (
+                  <button className="bridge-scrap-action" disabled={saving} onClick={() => setScrapOpen(true)} type="button">Scrap draft</button>
+                )}
+              </section>
+            ) : null}
           </form>
+          {scrapOpen ? (
+            <ScrapConfirmDialog
+              busy={saving}
+              title={story.title}
+              onCancel={() => setScrapOpen(false)}
+              onConfirm={() => void scrapDraft()}
+            />
+          ) : null}
 
           <aside className={`bridge-live-preview ${previewDevice} ${previewTheme}`}>
             <article>
@@ -5115,14 +5289,14 @@ function AnalyticsPage() {
   return <><BridgeHeader section="analytics" /><section className="bridge-panel"><div className="bridge-panel-heading"><div><h2>Google Analytics 4</h2><p className="bridge-muted">Private connection and reporting status. Credentials never appear in the browser.</p></div><label><span>Date range</span><select value={range} onChange={(event) => setRange(event.target.value)}><option value="7">Last 7 days</option><option value="28">Last 28 days</option><option value="90">Last 90 days</option></select></label></div><div className="bridge-flag-list large"><span>Measurement ID: {data.measurementIdValid ? "Valid and ready" : data.measurementIdConfigured ? "Configured but invalid" : "Not configured"}</span><span>GA4 Data API: {data.dataApiConfigured ? "Credentials available" : "Settings required"}</span><span>Editor tracking: Disabled</span><span>Cookie consent: Required</span></div>{!data.dataApiConfigured ? <div className="bridge-error"><strong>Analytics reporting credentials are missing</strong><span>Add {data.missingCredentials.join(", ")} to the private server environment. Add the public Measurement ID as OLDSEADOGS_GA4_ID (NEXT_PUBLIC_GA4_ID remains supported). Restart through safe deployment; never paste credentials into this screen.</span></div> : null}</section><section className="bridge-stat-grid">{cards.map(([label, value]) => <article className="bridge-stat" key={label}><span>{label}</span><strong>{value ?? "—"}</strong></article>)}</section><section className="bridge-dashboard-grid two">{["Top stories", "Traffic sources", "Top landing pages", "Devices", "Countries", "Search terms where available"].map((title) => <article className="bridge-panel" key={title}><h2>{title}</h2><p className="bridge-muted">{data.metrics ? `Reporting for the last ${range} days.` : "Connect the GA4 Data API to show private reporting data here."}</p></article>)}</section></>;
 }
 
-function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) {
+function BridgeBody({ section, storyId, mediaId, galleryView, scrappedNotice }: BridgeCmsProps) {
   if (section === "dashboard") return <DashboardPage />;
   if (section === "stories") return <StoryListPage section="stories" title="All story summaries" />;
   if (section === "write") return <WriteStoryPage storyId={storyId} mediaId={mediaId} />;
   if (section === "guides") return <GuideManager />;
   if (section === "boats") return <BoatsForSaleManager />;
   if (section === "homepage") return <HomepagePage />;
-  if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" />;
+  if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" scrappedNotice={scrappedNotice} />;
   if (section === "published") return <StoryListPage section="published" title="Published stories" status="published" />;
   if (section === "scheduled") return <ScheduledStoriesPage />;
   if (section === "recover") return <StoryListPage section="recover" title="Recovery centre" status="recover" />;
@@ -5141,12 +5315,12 @@ function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) 
   return <DashboardPage />;
 }
 
-export default function BridgeCms({ section, storyId, mediaId, galleryView }: BridgeCmsProps) {
+export default function BridgeCms({ section, storyId, mediaId, galleryView, scrappedNotice }: BridgeCmsProps) {
   return (
     <main className="bridge-cms">
       <BridgeNav activeSection={section} />
       <section className="bridge-main">
-        <BridgeBody section={section} storyId={storyId} mediaId={mediaId} galleryView={galleryView} />
+        <BridgeBody section={section} storyId={storyId} mediaId={mediaId} galleryView={galleryView} scrappedNotice={scrappedNotice} />
       </section>
     </main>
   );

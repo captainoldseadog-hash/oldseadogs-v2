@@ -3527,6 +3527,119 @@
   color: #a12828 !important;
 }
 
+.bridge-cms .bridge-scrap-action {
+  min-height: 30px;
+  margin-inline-start: 16px;
+  border: 1px solid #b42318;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: #b42318;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.bridge-cms .bridge-scrap-danger .bridge-scrap-action,
+.bridge-cms .bridge-scrap-dialog .bridge-scrap-action {
+  margin-inline-start: 0;
+}
+
+.bridge-scrap-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.bridge-scrap-danger {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+  border: 1px solid #f0c4c0;
+  border-top: 4px solid #b42318;
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: #fff8f7;
+}
+
+.bridge-scrap-danger h2 {
+  margin: 0;
+  color: #8f1d14;
+  font-size: 0.95rem;
+}
+
+.bridge-scrap-danger p,
+.bridge-scrapped-panel p {
+  margin: 0;
+}
+
+.bridge-scrapped-panel {
+  margin-top: 22px;
+}
+
+.bridge-scrapped-list {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bridge-scrapped-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  border-top: 1px solid var(--bridge-line);
+  padding-top: 12px;
+}
+
+.bridge-scrapped-list small {
+  color: var(--bridge-muted);
+  overflow-wrap: anywhere;
+}
+
+.bridge-scrap-dialog-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(17, 24, 39, 0.5);
+}
+
+.bridge-scrap-dialog {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 32rem);
+  border-radius: 12px;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(17, 24, 39, 0.25);
+}
+
+.bridge-scrap-dialog h2,
+.bridge-scrap-dialog p {
+  margin: 0;
+}
+
+.bridge-scrap-dialog input {
+  width: 100%;
+  font-size: 16px;
+}
+
+@media (max-width: 760px) {
+  .bridge-cms .bridge-scrap-action {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 0.8rem;
+  }
+
+  .bridge-cms .bridge-row-actions .bridge-scrap-action {
+    min-height: 36px;
+    margin-inline-start: 12px;
+  }
+}
+
 .bridge-media-grid article[role="button"] {
   cursor: pointer;
 }

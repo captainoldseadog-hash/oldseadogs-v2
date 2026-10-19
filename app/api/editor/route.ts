@@ -6,6 +6,8 @@ import {
 import { runSourceWatch, scrapeStoryUrl } from "../../../lib/source-watch-runner";
 import { compareStoriesNewestCreated, storyMatchesWorkflow } from "../../../lib/story-list";
 import { parseCmsIdList, validateDraftCleanup } from "../../../lib/story-cleanup";
+import { listRecentlyScrappedDrafts, readScrappedDraft, scrappedBackupRoots } from "../../../lib/scrapped-story-backup";
+import { getDbOrNull } from "../../../db";
 import { storyDeletionEligibility, storySourceCounts } from "../../../lib/story-management";
 import { getDeploymentInfo } from "../../../lib/deployment-info";
 import { isGalleryPublicRolloutEnabled } from "../../../lib/gallery-public.js";
@@ -1146,6 +1148,7 @@ export async function POST(request: Request) {
       confirm?: boolean;
       allowMissingImage?: boolean;
       backupBeforeDelete?: boolean;
+      backupId?: string;
       sourceWatchOptions?: {
         maxSources?: number;
         maxDraftsPerSource?: number;
@@ -1539,6 +1542,55 @@ export async function POST(request: Request) {
         await deleteStory(id);
       }
       return privateJson({ ok: true, deleted: validation.selected.length, backup });
+    }
+
+    if (payload.action === "listScrappedStories" || payload.action === "restoreScrappedStory") {
+      if (getDbOrNull()) {
+        return privateJson({
+          stories: [],
+          available: false,
+          error: payload.action === "restoreScrappedStory"
+            ? "Restore is unavailable while stories are stored in the database. The pre-delete backup is a full file snapshot, so copying one story out of it could bring back the wrong record."
+            : undefined,
+          note: "Restore is unavailable while stories are stored in the database. The pre-delete backup is a full file snapshot, so copying one story out of it could bring back the wrong record.",
+        }, { status: payload.action === "restoreScrappedStory" ? 409 : 200 });
+      }
+      const roots = scrappedBackupRoots({ OLDSEADOGS_BACKUP_DIR: process.env.OLDSEADOGS_BACKUP_DIR });
+      if (payload.action === "listScrappedStories") {
+        const editorData = await getEditorData();
+        const stories = await listRecentlyScrappedDrafts(new Set(editorData.stories.map((story) => story.id)), roots);
+        return privateJson({
+          stories,
+          available: true,
+          note: stories.length ? "" : "No scrapped drafts are waiting in recent pre-delete backups.",
+        });
+      }
+      if (!payload.confirm) {
+        return privateJson({ error: "Confirm this restore before continuing." }, { status: 400 });
+      }
+      if (!payload.backupId || !payload.id) {
+        return privateJson({ error: "Choose the scrapped draft to restore." }, { status: 400 });
+      }
+      const editorData = await getEditorData();
+      if (editorData.stories.some((story) => story.id === payload.id)) {
+        return privateJson({ error: "That story is already in the editor, so it was not overwritten." }, { status: 409 });
+      }
+      const loaded = await readScrappedDraft(payload.backupId, payload.id, roots);
+      if (!loaded.ok) return privateJson({ error: loaded.error }, { status: 404 });
+      if (loaded.story.status !== "draft") {
+        return privateJson({ error: "That backup copy is not a private draft, so it was not restored." }, { status: 409 });
+      }
+      const restored = await saveStory({
+        ...(loaded.story as Parameters<typeof saveStory>[0]),
+        id: payload.id,
+        status: "draft",
+        editorialStatus: "Draft",
+        publishedAt: "",
+        scheduledPublishAt: "",
+        publicationOverride: undefined,
+        statusChangedBy: getRequestEmail(request) || "Bridge restore",
+      });
+      return privateJson({ story: restored, backupPath: loaded.backupPath });
     }
 
     if (payload.action === "saveSettings") {

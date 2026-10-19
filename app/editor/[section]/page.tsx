@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BridgeCms, { type BridgeCmsSection } from "../BridgeCms";
 import { EditorGate } from "../EditorGate";
+import { scrapBackupMessage } from "../../../lib/scrap-draft-confirm";
 import { createPageMetadata } from "../../../lib/seo";
 
 type EditorSectionPageProps = {
@@ -11,6 +12,9 @@ type EditorSectionPageProps = {
   searchParams?: Promise<{
     story?: string;
     media?: string;
+    scrapped?: string;
+    title?: string;
+    backup?: string;
   }>;
 };
 
@@ -59,7 +63,12 @@ export default async function EditorSectionPage({
 
   return (
     <EditorGate>
-      <BridgeCms section={section as BridgeCmsSection} storyId={query?.story} mediaId={query?.media} />
+      <BridgeCms
+        section={section as BridgeCmsSection}
+        storyId={query?.story}
+        mediaId={query?.media}
+        scrappedNotice={section === "drafts" && query?.scrapped === "1" ? scrapBackupMessage(query.title || "", query.backup || "") : ""}
+      />
     </EditorGate>
   );
 }
