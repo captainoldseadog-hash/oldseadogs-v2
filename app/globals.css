@@ -14842,3 +14842,201 @@ a {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Whole-image frames. Cover crops for large photographs stay on the rules above. */
+.fitted-frame.is-contain {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #123944;
+}
+
+.fitted-frame.is-contain > .fitted-blur {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  object-fit: cover;
+  filter: blur(18px) brightness(0.55) saturate(0.85);
+  transform: scale(1.12);
+  pointer-events: none;
+}
+
+.fitted-frame.is-contain > .fitted-sharp {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, var(--fitted-max-width, 100%));
+  max-height: min(92%, var(--fitted-max-height, 100%));
+  padding: 0;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+}
+
+.hero.is-contain > .hero-image.fitted-frame > .hero-credit,
+.fitted-frame.is-contain > .image-credit-chip {
+  z-index: 2;
+}
+
+.search-result-image-link {
+  display: block;
+  min-height: 100%;
+}
+
+.search-result-image > img,
+.search-result-image > picture,
+.search-result-image > picture > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guide-area-card-image > .fitted-frame,
+.guide-card-image > .fitted-frame,
+.homepage-guides-recent-grid .fitted-frame {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.guide-area-card-image > .fitted-frame {
+  aspect-ratio: 16 / 9;
+  min-height: 190px;
+}
+
+.guide-product-hero figure > .fitted-frame,
+.article-image > .fitted-frame {
+  width: 100%;
+  height: 100%;
+}
+
+.app-card-media.fitted-frame {
+  aspect-ratio: 16 / 10;
+}
+
+.app-card-guide .app-card-media.fitted-frame {
+  aspect-ratio: 3 / 2;
+}
+
+@media (min-width: 1025px) {
+  .hero.is-contain {
+    display: grid;
+    grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+    min-height: 72vh;
+    align-items: stretch;
+  }
+
+  .hero.is-contain > .hero-image {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 72vh;
+  }
+
+  .hero.is-contain > .hero-scrim {
+    display: none;
+  }
+
+  .hero.is-contain > .hero-content {
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 36px 56px;
+    background: linear-gradient(180deg, #16485a 0%, #0c2830 100%);
+  }
+
+  .hero.is-contain .hero-content h1,
+  .hero.is-contain .hero-summary {
+    width: auto;
+    max-width: none;
+    text-shadow: none;
+  }
+
+  .hero.is-contain .hero-content h1 {
+    font-size: clamp(2.8rem, 4vw, 4rem);
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero.is-contain {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .hero.is-contain > .hero-image {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+
+  .hero.is-contain > .hero-scrim {
+    display: none;
+  }
+
+  .hero.is-contain > .mobile-hero-content {
+    width: 100%;
+    margin: 0;
+    padding: 22px 18px 28px;
+    background: linear-gradient(180deg, #16485a 0%, #0c2830 100%);
+  }
+
+  .hero.is-contain .mobile-hero-content h2,
+  .hero.is-contain .mobile-hero-content p {
+    text-shadow: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-lead.is-contain .app-lead-card {
+    min-height: 0;
+    justify-content: flex-start;
+  }
+
+  .app-lead.is-contain .app-lead-photo {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+
+  .app-lead.is-contain .app-lead-shade {
+    display: none;
+  }
+
+  .app-lead.is-contain .app-lead-copy {
+    background: linear-gradient(180deg, #16485a 0%, #0c2830 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fitted-frame.is-contain > .fitted-blur {
+    display: none;
+  }
+}

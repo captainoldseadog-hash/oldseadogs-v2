@@ -6,6 +6,7 @@ import { GUIDE_TYPES, type GuideType } from "../../content/flagship-guides.ts";
 import { oldSeaDogsSections } from "../../content/sections";
 import { analyzeOldSeaDogsStyle, findBannedPublicationPhrases, getEditorialWarnings } from "../../lib/editorial-quality";
 import { saveEditorStoryRequest } from "../../lib/editor-publication.js";
+import { dedupeCredit, normalizeImageFit } from "../../lib/image-fit";
 import { validateMediaRights } from "../../lib/media-rights";
 import { scrapBackupMessage, scrapConfirmAccepted, scrapConfirmPhrase, scrapConfirmWord } from "../../lib/scrap-draft-confirm";
 import { formatUkDateTime, isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
@@ -82,6 +83,8 @@ type StorySummary = {
   imageAlt: string;
   imageCredit: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   videoUrl: string;
   videoCaption: string;
   videoPosition: "top" | "after-intro" | "bottom" | "";
@@ -128,6 +131,8 @@ type EditorStory = StorySummary & {
   originalSourceRef: string;
   originalSourceContent: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   oldSeaDogsView: string;
   sourceNotes: string;
   methodNotes: string;
@@ -173,6 +178,8 @@ type MediaAsset = {
   webKey: string;
   width: number;
   height: number;
+  imageFit?: string;
+  focalPoint?: string;
   posterMediaId: string;
   externalUrl: string;
   description: string;
@@ -1415,7 +1422,9 @@ function StoryListPage({
       imageUrl: selection.url,
       imageAlt: selection.alt,
       imageCaption: selection.caption,
-      imageCredit: selection.credit,
+      imageCredit: dedupeCredit(selection.credit),
+      imageFit: selection.imageFit || "auto",
+      imageFocalPoint: selection.focalPoint || "",
     });
     setActionMessage("Featured image updated.");
     reload();
@@ -1743,6 +1752,8 @@ function blankStory(): EditorStory {
     imageAlt: "",
     imageCredit: "",
     imageCaption: "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
@@ -1870,6 +1881,8 @@ type MediaSelection = {
   usageRestrictions: string;
   location: string;
   dateTaken: string;
+  imageFit?: string;
+  focalPoint?: string;
 };
 
 type ImagePlacement = "featured" | "inline";
@@ -2110,6 +2123,8 @@ function BridgeMediaPicker({
     usageRestrictions: usageRestrictions.trim() || asset.usageRestrictions,
     location: location.trim() || asset.location,
     dateTaken: dateTaken.trim() || asset.dateTaken,
+    imageFit: asset.imageFit || "auto",
+    focalPoint: asset.focalPoint || "",
   });
 
   const selectAsset = (asset: MediaAsset) => {
@@ -2146,6 +2161,8 @@ function BridgeMediaPicker({
       usageRestrictions: asset.usageRestrictions,
       location: asset.location,
       dateTaken: asset.dateTaken,
+      imageFit: asset.imageFit || "auto",
+      focalPoint: asset.focalPoint || "",
     });
     setSavedRightsSignature(JSON.stringify({
       id: asset.id,
@@ -2875,6 +2892,7 @@ function WriteStoryEditor({
       copyrightOwner: asset.copyrightOwner, photographer: asset.photographer, licence: asset.licence,
       permissionNote: asset.permissionNote, permissionReceivedAt: asset.permissionReceivedAt, usageRestrictions: asset.usageRestrictions,
       location: asset.location, dateTaken: asset.dateTaken,
+      imageFit: asset.imageFit || "auto", focalPoint: asset.focalPoint || "",
     } : null;
   });
   const [bodyCursor, setBodyCursor] = useState<number | null>(null);
@@ -2997,7 +3015,7 @@ function WriteStoryEditor({
         ? selectedStoryMedia
         : null;
       const featuredCredit = featuredMedia
-        ? [...new Set([
+        ? dedupeCredit([
             featuredMedia.credit || featuredMedia.creditLine,
             featuredMedia.copyright,
             featuredMedia.copyrightOwner,
@@ -3006,8 +3024,9 @@ function WriteStoryEditor({
             featuredMedia.dateTaken,
           ]
             .map((value) => String(value || "").trim())
-            .filter(Boolean))].join(" · ")
-        : story.imageCredit;
+            .filter(Boolean)
+            .join(" · "))
+        : dedupeCredit(story.imageCredit);
 
       const storyToSave = {
             ...story,
@@ -3141,7 +3160,9 @@ function WriteStoryEditor({
         imageUrl: selection.url,
         imageAlt: selection.alt,
         imageCaption: selection.caption,
-        imageCredit: selection.credit,
+        imageCredit: dedupeCredit(selection.credit),
+        imageFit: normalizeImageFit(selection.imageFit) === "auto" ? story.imageFit : normalizeImageFit(selection.imageFit),
+        imageFocalPoint: selection.focalPoint || story.imageFocalPoint,
       });
       return "Featured image attached locally. Save the story to persist it.";
     }
@@ -3440,6 +3461,25 @@ function WriteStoryEditor({
                 <input value={story.imageCaption} onChange={(event) => updateStory({ imageCaption: event.target.value })} />
               </label>
             </div>
+            <div className="bridge-field-row">
+              <label>
+                <span>Image fit</span>
+                <select value={story.imageFit || "auto"} onChange={(event) => updateStory({ imageFit: normalizeImageFit(event.target.value) })}>
+                  <option value="auto">Auto</option>
+                  <option value="fill">Fill (crop)</option>
+                  <option value="contain">Show whole image</option>
+                </select>
+              </label>
+              <label>
+                <span>Focal point</span>
+                <input
+                  placeholder="50% 50%"
+                  value={story.imageFocalPoint || "50% 50%"}
+                  onChange={(event) => updateStory({ imageFocalPoint: event.target.value })}
+                />
+              </label>
+            </div>
+            <p className="bridge-muted">Auto keeps a large photograph cropped to the frame. It shows the whole image when the file is small, a logo or graphic, or a very different shape. Focal point is used when the image is cropped, for example 50% 30%.</p>
 
             <BridgeMediaPicker
               assets={media}
@@ -3784,6 +3824,7 @@ function blankEditorGuide(guideType: GuideType = "Destination"): EditorGuide {
     imageUrl: "/images/section-heroes/oldseadogs-destinations.webp",
     imageAlt: "",
     imageFocalPoint: "50% 50%",
+    imageFit: "auto",
     artworkCredit: "",
     quickFacts: [],
     sections: [],
@@ -3878,7 +3919,7 @@ function GuideEditor({
   const updateGuide = (patch: Partial<EditorGuide>) => {
     setDraft((current) => ({ ...current, ...patch }));
   };
-  const setFeaturedGuideImage = (asset: MediaAsset) => updateGuide({ imageUrl: asset.url, imageAlt: asset.alt || asset.displayName, imageCaption: asset.caption, imageCredit: asset.creditLine || asset.credit, featuredMediaId: asset.id });
+  const setFeaturedGuideImage = (asset: MediaAsset) => updateGuide({ imageUrl: asset.url, imageAlt: asset.alt || asset.displayName, imageCaption: asset.caption, imageCredit: dedupeCredit(asset.creditLine || asset.credit), featuredMediaId: asset.id, imageFit: normalizeImageFit(asset.imageFit), imageFocalPoint: asset.focalPoint || draft.imageFocalPoint || "50% 50%" });
   const insertGuideImage = (asset: MediaAsset) => updateGuide({ inlineImages: [...draft.inlineImages, { id: `guide-image-${Date.now()}`, mediaId: asset.id, url: asset.url, alt: asset.alt || asset.displayName, caption: asset.caption, credit: asset.creditLine || asset.credit, sectionIndex: 0, paragraphIndex: 0, order: draft.inlineImages.length }] });
   const updateInlineImage = (id: string, patch: Partial<EditorGuide["inlineImages"][number]>) => updateGuide({ inlineImages: draft.inlineImages.map((image) => image.id === id ? { ...image, ...patch } : image) });
   const moveInlineImage = (index: number, offset: number) => { const next = [...draft.inlineImages]; const target = index + offset; if (target < 0 || target >= next.length) return; [next[index], next[target]] = [next[target], next[index]]; updateGuide({ inlineImages: next.map((image, order) => ({ ...image, order })) }); };
@@ -4051,6 +4092,7 @@ function GuideEditor({
       </div>
       <div className="bridge-field-row thirds">
         <label><span>Hero focal point</span><input placeholder="50% 50%" value={draft.imageFocalPoint} onChange={(event) => updateGuide({ imageFocalPoint: event.target.value })} /></label>
+        <label><span>Image fit</span><select value={draft.imageFit || "auto"} onChange={(event) => updateGuide({ imageFit: normalizeImageFit(event.target.value) })}><option value="auto">Auto</option><option value="fill">Fill (crop)</option><option value="contain">Show whole image</option></select></label>
         <label><span>Artwork credit</span><input value={draft.artworkCredit} onChange={(event) => updateGuide({ artworkCredit: event.target.value })} /></label>
         <label><span>Artwork caption</span><input value={draft.imageCaption} onChange={(event) => updateGuide({ imageCaption: event.target.value })} /></label>
       </div>
@@ -4690,7 +4732,7 @@ function MediaPage() {
   };
   const attachToStory = async () => {
     if (!selected || !storyId) { setMessage("Choose a story first."); return; }
-    await postBridgeAction({ action: "saveStoryImage", id: storyId, imageUrl: selected.url, imageAlt: selected.alt, imageCredit: selected.credit, imageCaption: selected.caption });
+    await postBridgeAction({ action: "saveStoryImage", id: storyId, imageUrl: selected.url, imageAlt: selected.alt, imageCredit: dedupeCredit(selected.credit), imageCaption: selected.caption, imageFit: selected.imageFit || "auto", imageFocalPoint: selected.focalPoint || "" });
     setMessage("Photograph set as the selected story's featured image. It was not inserted into the article.");
   };
   const deleteSelected = async () => {
@@ -4758,6 +4800,8 @@ function MediaPage() {
           <label><span>Source</span><input value={selected.source} onChange={(event) => setSelected({ ...selected, source: event.target.value })} /></label>
           <label><span>Licence</span><input value={selected.licence} onChange={(event) => setSelected({ ...selected, licence: event.target.value })} /></label>
           <label><span>Credit Line</span><input value={selected.creditLine} onChange={(event) => setSelected({ ...selected, creditLine: event.target.value, credit: event.target.value })} /></label>
+          <label><span>Image fit</span><select value={selected.imageFit || "auto"} onChange={(event) => setSelected({ ...selected, imageFit: event.target.value })}><option value="auto">Auto</option><option value="fill">Fill (crop)</option><option value="contain">Show whole image</option></select></label>
+          <label><span>Focal point</span><input placeholder="50% 50%" value={selected.focalPoint || "50% 50%"} onChange={(event) => setSelected({ ...selected, focalPoint: event.target.value })} /></label>
           <label><span>Permission note</span><input value={selected.permissionNote} onChange={(event) => setSelected({ ...selected, permissionNote: event.target.value })} /></label>
           <label><span>Usage restrictions</span><input value={selected.usageRestrictions} onChange={(event) => setSelected({ ...selected, usageRestrictions: event.target.value })} /></label>
           <label><span>Date permission received</span><input type="date" value={selected.permissionReceivedAt.slice(0, 10)} onChange={(event) => setSelected({ ...selected, permissionReceivedAt: event.target.value })} /></label>

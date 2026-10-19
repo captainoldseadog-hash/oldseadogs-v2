@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DerivativeImage } from "../../components/DerivativeImage";
+import { ResponsiveStoryImage } from "../../components/ResponsiveStoryImage";
 import { PortsInteractiveMap } from "../../components/PortsInteractiveMap";
 import { SiteFooter } from "../../components/SiteFooter";
 import { getClubProfileExcerpt } from "../../content/club-profiles";
@@ -14,6 +15,8 @@ import {
 } from "../../content/sections";
 import { formatDate } from "../../content/stories";
 import { isLogoLikeStoryImage } from "../../content/story-images";
+import { dedupeCredit } from "../../lib/image-fit";
+import { presentationForStories } from "../../lib/image-presentation";
 import { resolvePublicPage } from "../../lib/public-page";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
 import { createPageMetadata, robotsMetadata } from "../../lib/seo";
@@ -84,6 +87,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
   if (currentPage === null) notFound();
   const start = (currentPage - 1) * pageSize;
   const pageStories = stories.slice(start, start + pageSize);
+  const storyFrames = await presentationForStories(pageStories, "story-card");
   const pageStart = stories.length === 0 ? 0 : start + 1;
   const pageEnd = Math.min(start + pageSize, stories.length);
   const heroPhoto = getSectionHeroArtwork(section.slug);
@@ -125,7 +129,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
         {heroPhoto ? (
           <div className="section-hero-credit">
             <span>{heroPhoto.imageCaption}</span>
-            {heroPhoto.imageCredit ? <small>{heroPhoto.imageCredit}</small> : null}
+            {heroPhoto.imageCredit ? <small>{dedupeCredit(heroPhoto.imageCredit)}</small> : null}
           </div>
         ) : null}
       </header>
@@ -147,9 +151,10 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
 
         {pageStories.length > 0 ? (
           <div className="story-grid section-story-grid">
-            {pageStories.map((story) => {
+            {pageStories.map((story, index) => {
               const storyHasPhoto = hasStoryPhoto(story);
-              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+              const frame = storyFrames[index];
+              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story) && frame?.presentation !== "contain";
               return (
                 <article
                   className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`}
@@ -157,16 +162,22 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                 >
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
-                      <span
+                      <ResponsiveStoryImage
+                        alt={story.imageAlt || story.title}
                         className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
-                        role="img"
-                        aria-label={story.imageAlt}
-                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                        focalPoint={frame?.focalPoint}
+                        height={frame?.height}
+                        presentation={frame?.presentation}
+                        probe={frame?.probe}
+                        sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        slot="story-card"
+                        src={story.imageUrl}
+                        width={frame?.width}
                       >
                         {story.imageCredit ? (
-                          <small className="image-credit-chip">{story.imageCredit}</small>
+                          <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                         ) : null}
-                      </span>
+                      </ResponsiveStoryImage>
                     </Link>
                   ) : null}
                   <div className="story-card-body">

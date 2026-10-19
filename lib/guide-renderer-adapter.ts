@@ -126,6 +126,7 @@ export function adaptManagedGuideForRenderer(input: ManagedGuideInput): Partial<
     imageCaption: hero?.caption ?? input.imageCaption,
     imageCredit: hero?.credit ?? input.imageCredit,
     imageFocalPoint: hero?.focalPoint ?? input.imageFocalPoint,
+    imageFit: hero?.fit ?? input.imageFit,
     featuredMediaId: hero?.mediaId ?? input.featuredMediaId,
     inlineImages: rendererInlineImages(input),
     seoTitle: input.seo?.seoTitle || input.seoTitle,

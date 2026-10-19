@@ -1,3 +1,4 @@
+import { readGraphicSample } from "./image-fit.ts";
 import { nearestResponsiveWidth, type ResponsiveImageWidth } from "./responsive-image.ts";
 
 type NodeProcessLike = {
@@ -131,6 +132,116 @@ export async function readImageSize(url: string) {
   } catch {
     return null;
   }
+}
+
+export type ImageTraits = {
+  width: number;
+  height: number;
+  hasAlpha: boolean;
+  flat: boolean;
+  contentType: string;
+  fit: string;
+  focalPoint: string;
+};
+
+const traitCache = new Map<string, ImageTraits>();
+
+function graphicCandidate(contentType: string, url: string, width: number) {
+  if (/\b(logo|wordmark|burgee|emblem|crest|badge)\b/i.test(url)) return true;
+  if (/svg|png|gif/i.test(contentType)) return true;
+  // Small rasters, including JPEG logo composites, get a 24px sample.
+  // Large photographs skip that decode and stay on stored dimensions.
+  return !width || width < 1600;
+}
+
+export async function readImageTraits(url: string): Promise<ImageTraits | null> {
+  if (!url) return null;
+  const cached = traitCache.get(url);
+  if (cached) return cached;
+
+  const mediaId = url.match(/^\/api\/media\/([A-Za-z0-9_-]+)/)?.[1] || "";
+  let width = 0;
+  let height = 0;
+  let contentType = "";
+  let fit = "auto";
+  let focalPoint = "";
+  if (mediaId) {
+    const { getMediaAsset } = await import("./site-content");
+    const asset = await getMediaAsset(mediaId).catch(() => null);
+    width = Number(asset?.width || 0);
+    height = Number(asset?.height || 0);
+    contentType = asset?.contentType || "";
+    fit = asset?.imageFit || "auto";
+    focalPoint = asset?.focalPoint || "";
+  }
+
+  let hasAlpha = false;
+  let flat = false;
+  if (!width || !height || graphicCandidate(contentType, url, width)) {
+    const inspected = await inspectImageBytes(url).catch(() => null);
+    if (inspected) {
+      width = width || inspected.width;
+      height = height || inspected.height;
+      contentType = contentType || inspected.contentType;
+      hasAlpha = inspected.hasAlpha;
+      flat = inspected.flat;
+    }
+  }
+
+  if (!width && !height && !flat && !hasAlpha) return null;
+  const traits = { width, height, hasAlpha, flat, contentType, fit, focalPoint };
+  traitCache.set(url, traits);
+  if (width && height) sizeCache.set(url, { width, height });
+  return traits;
+}
+
+async function inspectImageBytes(url: string) {
+  const source = await readSourceImage(url).catch(() => null);
+  if (!source) return null;
+  const bytes = await source.load();
+  if (!bytes) return null;
+  const sharp = await loadSharp();
+  const pipeline = sharp(bytes, {
+    failOn: "none",
+    limitInputPixels: MAX_INPUT_PIXELS,
+    sequentialRead: true,
+  }) as unknown as {
+    clone(): {
+      resize(width: number, height: number, options: { fit: "fill" }): {
+        ensureAlpha(): { raw(): { toBuffer(): Promise<Buffer> } };
+      };
+    };
+    metadata(): Promise<{ width?: number; height?: number; format?: string; hasAlpha?: boolean }>;
+  };
+  const meta = await pipeline.metadata();
+  const width = Number(meta.width || 0);
+  const height = Number(meta.height || 0);
+  const format = String(meta.format || "");
+  const contentType = format === "png"
+    ? "image/png"
+    : format === "gif"
+      ? "image/gif"
+      : format === "webp"
+        ? "image/webp"
+        : format === "svg"
+          ? "image/svg+xml"
+          : source.contentType || contentTypeFor("image.jpg");
+  if (/svg/i.test(format) || /svg/i.test(contentType)) {
+    return { width, height, hasAlpha: true, flat: true, contentType };
+  }
+  let hasAlpha = false;
+  let flat = false;
+  if (graphicCandidate(contentType, url, width || 1)) {
+    try {
+      const sample = await pipeline.clone().resize(24, 24, { fit: "fill" }).ensureAlpha().raw().toBuffer();
+      const reading = readGraphicSample(sample);
+      hasAlpha = reading.hasAlpha && /png|gif|webp/i.test(contentType);
+      flat = reading.flat;
+    } catch {
+      hasAlpha = Boolean(meta.hasAlpha) && /png|gif/i.test(contentType);
+    }
+  }
+  return { width, height, hasAlpha, flat, contentType };
 }
 
 export async function renderWebpDerivative(url: string, width: number) {

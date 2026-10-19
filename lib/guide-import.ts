@@ -80,7 +80,7 @@ const nestedKeys: Record<string, Set<string>> = {
 const deepKeys: Record<string, Set<string>> = {
   "editorial.sections": new Set(["id", "heading", "body", "links"]),
   "editorial.warnings": new Set(["text", "severity", "sourceUrl", "verifiedAt", "certainty"]),
-  "media.heroImage": new Set(["mediaId", "url", "alt", "caption", "credit", "focalPoint"]),
+  "media.heroImage": new Set(["mediaId", "url", "alt", "caption", "credit", "focalPoint", "fit"]),
   "media.gallery": new Set(["mediaId", "url", "alt", "caption", "credit", "order"]),
   "verification.sources": new Set(["label", "url", "accessedAt", "supports"]),
   "verification.unresolved": new Set(["field", "reason", "severity"]),

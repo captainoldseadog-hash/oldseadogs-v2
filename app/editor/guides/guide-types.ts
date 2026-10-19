@@ -12,6 +12,7 @@ export type GuideImage = {
   caption?: string;
   credit?: string;
   focalPoint?: string;
+  fit?: "auto" | "fill" | "contain";
   order?: number;
 };
 
@@ -74,6 +75,7 @@ export type EditorGuide = ManagedGuideFields & {
   quality: string;
   imageCaption: string;
   imageCredit: string;
+  imageFit?: "auto" | "fill" | "contain";
   featuredMediaId: string;
   inlineImages: InlineGuideImage[];
 };

@@ -3,8 +3,11 @@ import type { ReactNode } from "react";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { DerivativeImage } from "./DerivativeImage.tsx";
+import { FittedImage } from "./FittedImage";
+import { dedupeCredit } from "../lib/image-fit";
+import { presentationForImage } from "../lib/image-presentation";
 import { readImageSize } from "../lib/image-derivatives.ts";
-import { isNeedlesHeroImage, isRenderableImageReference, mobileSourceSrcSet } from "../lib/responsive-image.ts";
+import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, isRenderableImageReference, mobileSourceSrcSet } from "../lib/responsive-image.ts";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
@@ -300,6 +303,36 @@ async function GuideHeroPicture({ guide }: { guide: EditableGuide }) {
   const size = await readImageSize(guide.imageUrl).catch(() => null);
   const dedicatedMobile = publicMediaVariantUrl(guide.imageUrl, "mobile");
   const needlesHero = isNeedlesHeroImage(guide.imageUrl);
+  const frame = await presentationForImage({
+    url: guide.imageUrl,
+    slot: "guide-hero",
+    fit: guide.imageFit,
+    focalPoint: guide.imageFocalPoint,
+    alt: guide.imageAlt,
+    caption: guide.imageCaption,
+    slug: guide.slug,
+  });
+  if (frame.presentation === "contain") {
+    return (
+      <FittedImage
+        alt={publicImageAlt({
+          alt: guide.imageAlt,
+          caption: guide.imageCaption,
+          title: guide.title,
+        })}
+        className="guide-hero-fit"
+        eager
+        focalPoint={frame.focalPoint || guide.imageFocalPoint}
+        height={frame.height || size?.height}
+        presentation="contain"
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        slot="guide-hero"
+        src={derivativeImageUrl(guide.imageUrl, needlesHero ? 1200 : 1600)}
+        srcSet={derivativeSrcSet(guide.imageUrl, needlesHero ? [768, 1200] : [768, 1200, 1600]) || undefined}
+        width={frame.width || size?.width}
+      />
+    );
+  }
   return (
     <picture>
       <source
@@ -495,8 +528,8 @@ export function GuidePublicContent({
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (
             <figcaption>
               {guide.imageCaption}
-              {guide.imageCredit || guide.artworkCredit
-                ? ` · ${guide.imageCredit || guide.artworkCredit}`
+              {dedupeCredit(guide.imageCredit || guide.artworkCredit || "")
+                ? ` · ${dedupeCredit(guide.imageCredit || guide.artworkCredit || "")}`
                 : ""}
             </figcaption>
           ) : null}
@@ -632,7 +665,7 @@ export function GuidePublicContent({
                           sizes="(max-width: 760px) calc(100vw - 28px), 860px"
                           src={image.url}
                         />
-                        <figcaption>{image.caption}{image.credit ? ` · ${image.credit}` : ""}</figcaption>
+                        <figcaption>{image.caption}{dedupeCredit(image.credit || "") ? ` · ${dedupeCredit(image.credit || "")}` : ""}</figcaption>
                       </figure>
                     ))}
                 </div>

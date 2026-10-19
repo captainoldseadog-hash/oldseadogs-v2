@@ -72,6 +72,7 @@ import {
   type DevelopmentHomepageFixturePolicy,
 } from "./homepage-fixture-policy.js";
 import { isScheduledPublishDue, validateScheduledPublishAt } from "./story-schedule-time";
+import { dedupeCredit, normalizeImageFit } from "./image-fit";
 import { legacyArchiveMethodNotes } from "./public-story-method";
 
 export type EditableStory = {
@@ -92,6 +93,8 @@ export type EditableStory = {
   imageAlt: string;
   imageCredit: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   videoUrl: string;
   videoCaption: string;
   videoPosition: "top" | "after-intro" | "bottom" | "";
@@ -149,6 +152,7 @@ export type EditableGuide = FlagshipGuide & ManagedGuideFields & {
   author: string;
   contributorCredits: string[];
   imageFocalPoint: string;
+  imageFit: "auto" | "fill" | "contain";
   artworkCredit: string;
   location: {
     latitude?: number;
@@ -1020,8 +1024,10 @@ function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
     originalSourceContent: story.originalSourceContent || "",
     imageUrl: story.imageUrl || "",
     imageAlt: story.imageAlt || story.title || "Old Sea Dogs story image",
-    imageCredit: story.imageCredit || "",
+    imageCredit: dedupeCredit(story.imageCredit || ""),
     imageCaption: story.imageCaption || "",
+    imageFit: normalizeImageFit(story.imageFit),
+    imageFocalPoint: String(story.imageFocalPoint || ""),
     videoUrl: story.videoUrl || "",
     videoCaption: story.videoCaption || "",
     videoPosition: story.videoPosition === "top" || story.videoPosition === "after-intro" || story.videoPosition === "bottom"
@@ -1131,6 +1137,7 @@ function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide
     author: guide.author || "Michael Hodges",
     contributorCredits: guide.contributorCredits || [],
     imageFocalPoint: guide.imageFocalPoint || "50% 50%",
+    imageFit: normalizeImageFit((guide as { imageFit?: string }).imageFit),
     artworkCredit: guide.artworkCredit || "",
     location: guide.location || {},
     relatedGuideSlugs: guide.relatedGuideSlugs || [],
@@ -1268,6 +1275,7 @@ export function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): 
     imageUrl: String(guide.imageUrl !== undefined ? guide.imageUrl : fallback.imageUrl).trim(),
     imageAlt: cleanPressReleaseHeadline(guide.imageAlt !== undefined ? guide.imageAlt : fallback.imageAlt),
     imageFocalPoint: String(guide.imageFocalPoint || fallback.imageFocalPoint).trim(),
+    imageFit: normalizeImageFit(guide.imageFit || fallback.imageFit),
     artworkCredit: cleanPressReleaseHeadline(guide.artworkCredit || fallback.artworkCredit),
     quickFacts: normalizeGuideFacts(guide.quickFacts).length > 0 ? normalizeGuideFacts(guide.quickFacts) : fallback.quickFacts,
     sections,
@@ -1552,6 +1560,12 @@ export async function ensureContentSchema() {
         "ALTER TABLE stories ADD image_caption text DEFAULT '' NOT NULL"
       );
       await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD image_fit text DEFAULT 'auto' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD image_focal_point text DEFAULT '' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
         "ALTER TABLE stories ADD video_url text DEFAULT '' NOT NULL"
       );
       await runOptionalSchemaStatement(
@@ -1624,6 +1638,8 @@ export async function ensureContentSchema() {
         "ALTER TABLE media_assets ADD web_key text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD width integer DEFAULT 0 NOT NULL",
         "ALTER TABLE media_assets ADD height integer DEFAULT 0 NOT NULL",
+        "ALTER TABLE media_assets ADD image_fit text DEFAULT 'auto' NOT NULL",
+        "ALTER TABLE media_assets ADD focal_point text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD poster_media_id text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD external_url text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD description text DEFAULT '' NOT NULL",
@@ -1824,6 +1840,8 @@ function normalizeMediaAsset(input: Partial<MediaAsset>): MediaAsset {
     webKey: String(input.webKey || ""),
     width: Number(input.width || 0),
     height: Number(input.height || 0),
+    imageFit: normalizeImageFit(input.imageFit),
+    focalPoint: String(input.focalPoint || ""),
     posterMediaId: String(input.posterMediaId || ""),
     externalUrl: String(input.externalUrl || ""),
     description: String(input.description || input.alt || ""),
@@ -1885,8 +1903,10 @@ function rowToStory(row: typeof storyRows.$inferSelect): EditableStory {
     originalSourceContent: row.originalSourceContent ?? "",
     imageUrl: row.imageUrl,
     imageAlt: row.imageAlt,
-    imageCredit: row.imageCredit ?? "",
+    imageCredit: dedupeCredit(row.imageCredit ?? ""),
     imageCaption: row.imageCaption ?? "",
+    imageFit: normalizeImageFit(row.imageFit),
+    imageFocalPoint: String(row.imageFocalPoint || ""),
     videoUrl: row.videoUrl ?? "",
     videoCaption: row.videoCaption ?? "",
     videoPosition: row.videoPosition === "top" || row.videoPosition === "after-intro" || row.videoPosition === "bottom"
@@ -2171,6 +2191,8 @@ function seedToStoryRow(
     imageAlt: story.imageAlt,
     imageCredit: "",
     imageCaption: "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     oldSeaDogsView: "",
     sourceNotes: story.sourceName || "Old Sea Dogs static story archive.",
     methodNotes: "Seed story carried in source-controlled editorial content.",
@@ -2261,8 +2283,10 @@ function homepageSnapshotToStory(
     originalSourceContent: "",
     imageUrl: story.imageUrl,
     imageAlt: story.imageAlt,
-    imageCredit: story.imageCredit,
+    imageCredit: dedupeCredit(story.imageCredit),
     imageCaption: story.imageCaption,
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
@@ -2305,8 +2329,10 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
     originalSourceContent: "",
     imageUrl: story.imageUrl || "",
     imageAlt: story.imageAlt || story.title,
-    imageCredit: story.imageCredit || "",
+    imageCredit: dedupeCredit(story.imageCredit || ""),
     imageCaption: story.imageCaption || "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
@@ -3832,8 +3858,10 @@ async function saveStoryInternal(
     originalSourceContent: String(input.originalSourceContent ?? existingStory?.originalSourceContent ?? ""),
     imageUrl: input.imageUrl?.trim() || "",
     imageAlt: cleanPressReleaseHeadline(input.imageAlt || input.title || "Old Sea Dogs story image"),
-    imageCredit: cleanPressReleaseHeadline(input.imageCredit || ""),
+    imageCredit: dedupeCredit(cleanPressReleaseHeadline(input.imageCredit || "")),
     imageCaption: cleanPressReleaseText(input.imageCaption || ""),
+    imageFit: normalizeImageFit(input.imageFit ?? existingStory?.imageFit),
+    imageFocalPoint: String(input.imageFocalPoint ?? existingStory?.imageFocalPoint ?? "").trim(),
     videoUrl: input.videoUrl?.trim() || "",
     videoCaption: cleanPressReleaseText(input.videoCaption || ""),
     videoPosition: input.videoPosition === "top" || input.videoPosition === "after-intro" || input.videoPosition === "bottom"
@@ -4046,6 +4074,8 @@ async function saveStoryInternal(
         imageAlt: record.imageAlt,
         imageCredit: record.imageCredit,
         imageCaption: record.imageCaption,
+        imageFit: record.imageFit,
+        imageFocalPoint: record.imageFocalPoint,
         videoUrl: record.videoUrl,
         videoCaption: record.videoCaption,
         videoPosition: record.videoPosition,
@@ -4201,7 +4231,9 @@ export async function saveStoryImage(
   imageUrl: string,
   imageAlt: string,
   imageCredit = "",
-  imageCaption = ""
+  imageCaption = "",
+  imageFit = "auto",
+  imageFocalPoint = ""
 ) {
   const db = getDbOrNull();
   if (!db) {
@@ -4213,8 +4245,10 @@ export async function saveStoryImage(
         ...existing,
         imageUrl,
         imageAlt: imageAlt.trim() || "Old Sea Dogs story image",
-        imageCredit: cleanPressReleaseHeadline(imageCredit),
+        imageCredit: dedupeCredit(cleanPressReleaseHeadline(imageCredit)),
         imageCaption: cleanPressReleaseText(imageCaption),
+        imageFit: normalizeImageFit(imageFit),
+        imageFocalPoint: String(imageFocalPoint || ""),
         updatedAt: nowIso(),
       };
       return {
@@ -4233,8 +4267,10 @@ export async function saveStoryImage(
     .set({
       imageUrl,
       imageAlt: imageAlt.trim() || "Old Sea Dogs story image",
-      imageCredit: cleanPressReleaseHeadline(imageCredit),
+      imageCredit: dedupeCredit(cleanPressReleaseHeadline(imageCredit)),
       imageCaption: cleanPressReleaseText(imageCaption),
+      imageFit: normalizeImageFit(imageFit),
+      imageFocalPoint: String(imageFocalPoint || ""),
       updatedAt: stamp,
     })
     .where(eq(storyRows.id, id));

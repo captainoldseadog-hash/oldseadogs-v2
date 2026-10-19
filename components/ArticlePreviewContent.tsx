@@ -8,6 +8,9 @@ import type { Advert, EditableStory } from "../lib/site-content";
 import { publicStoryMethodNotes } from "../lib/public-story-method";
 import { storyHeaderDateLabel } from "../lib/story-header-date";
 import { cleanStoryTags } from "../lib/tags";
+import { FittedImage } from "./FittedImage";
+import { dedupeCredit } from "../lib/image-fit";
+import type { ImagePresentation } from "../lib/image-fit";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { publicMediaVariantUrl } from "../lib/public-media";
 import { publicOpenSourceUrl } from "../lib/public-source-link";
@@ -47,6 +50,10 @@ type ArticlePreviewContentProps = {
   socialShare?: ReactNode;
   previewOnly?: boolean;
   imageLooksLikeLogo?: boolean;
+  imagePresentation?: ImagePresentation;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageFocalPoint?: string;
   showAdditionalAds?: boolean;
   adsenseConfig?: {
     clientId: string;
@@ -100,7 +107,8 @@ function methodLabel(story: ArticlePreviewContentProps["story"]) {
 }
 
 function imageCreditLabel(story: ArticlePreviewContentProps["story"]) {
-  if (story.imageCredit?.trim()) return story.imageCredit.trim();
+  const credit = dedupeCredit(story.imageCredit || "");
+  if (credit) return credit;
   if (story.imageUrl?.trim()) return "Image credit being checked by the editor.";
   return "No lead image used.";
 }
@@ -281,6 +289,10 @@ export function ArticlePreviewContent({
   socialShare,
   previewOnly = false,
   imageLooksLikeLogo = false,
+  imagePresentation = "cover",
+  imageWidth,
+  imageHeight,
+  imageFocalPoint,
   showAdditionalAds = false,
   adsenseConfig,
 }: ArticlePreviewContentProps) {
@@ -336,8 +348,27 @@ export function ArticlePreviewContent({
         {hasPhoto ? (
           <figure className="article-figure">
             <div
-              className={`article-image ${imageLooksLikeLogo ? "club-logo-image" : ""}`}
+              className={`article-image ${imageLooksLikeLogo && imagePresentation !== "contain" ? "club-logo-image" : ""}`}
             >
+              {imagePresentation === "contain" ? (
+                <FittedImage
+                  alt={publicImageAlt({
+                    alt: story.imageAlt,
+                    caption: story.imageCaption,
+                    title: story.title,
+                  })}
+                  className="article-fit"
+                  eager
+                  focalPoint={imageFocalPoint}
+                  height={imageHeight}
+                  presentation="contain"
+                  sizes="(max-width: 760px) calc(100vw - 40px), 860px"
+                  slot="article"
+                  src={derivativeImageUrl(story.imageUrl, 1600)}
+                  srcSet={derivativeSrcSet(story.imageUrl, [768, 1200, 1600]) || undefined}
+                  width={imageWidth}
+                />
+              ) : (
               <picture>
                 <source
                   media="(max-width: 1024px)"
@@ -358,11 +389,12 @@ export function ArticlePreviewContent({
                   sizes="(max-width: 760px) calc(100vw - 40px), 860px"
                 />
               </picture>
+              )}
             </div>
-            {story.imageCaption || story.imageCredit ? (
+            {story.imageCaption || dedupeCredit(story.imageCredit || "") ? (
               <figcaption>
                 {story.imageCaption ? <span>{story.imageCaption}</span> : null}
-                {story.imageCredit ? <span className="photo-credit">{story.imageCredit}</span> : null}
+                {dedupeCredit(story.imageCredit || "") ? <span className="photo-credit">{dedupeCredit(story.imageCredit || "")}</span> : null}
               </figcaption>
             ) : null}
           </figure>
@@ -393,7 +425,7 @@ export function ArticlePreviewContent({
                   {inlineImage.caption || inlineImage.credit ? (
                     <figcaption>
                       {inlineImage.caption ? <span>{inlineImage.caption}</span> : null}
-                      {inlineImage.credit ? <span className="photo-credit">{inlineImage.credit}</span> : null}
+                      {dedupeCredit(inlineImage.credit) ? <span className="photo-credit">{dedupeCredit(inlineImage.credit)}</span> : null}
                     </figcaption>
                   ) : null}
                 </figure>
@@ -413,7 +445,7 @@ export function ArticlePreviewContent({
                   {inlineVideo.caption || inlineVideo.credit ? (
                     <figcaption>
                       {inlineVideo.caption ? <span>{inlineVideo.caption}</span> : null}
-                      {inlineVideo.credit ? <span className="photo-credit">{inlineVideo.credit}</span> : null}
+                      {dedupeCredit(inlineVideo.credit) ? <span className="photo-credit">{dedupeCredit(inlineVideo.credit)}</span> : null}
                     </figcaption>
                   ) : null}
                 </figure>

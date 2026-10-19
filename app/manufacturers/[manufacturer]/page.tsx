@@ -7,7 +7,10 @@ import {
 } from "../../../content/manufacturers";
 import { displayCategoryLabel } from "../../../content/sections";
 import { formatDate } from "../../../content/stories";
+import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
 import { SiteFooter } from "../../../components/SiteFooter";
+import { dedupeCredit } from "../../../lib/image-fit";
+import { presentationForStories } from "../../../lib/image-presentation";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
 import { createPageMetadata } from "../../../lib/seo";
 import { SiteHeader } from "../../../components/SiteHeader";
@@ -50,6 +53,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
   const stories = (await getPublishedStories()).filter((story) =>
     storyMatchesManufacturer(story, manufacturer)
   );
+  const storyFrames = await presentationForStories(stories, "story-card");
 
   return (
     <main className="article-shell section-shell">
@@ -78,8 +82,9 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
 
         {stories.length > 0 ? (
           <div className="story-grid section-story-grid">
-            {stories.map((story) => {
+            {stories.map((story, index) => {
               const storyHasPhoto = hasStoryPhoto(story);
+              const frame = storyFrames[index];
               return (
                 <article
                   className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`}
@@ -87,16 +92,22 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                 >
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
-                      <span
+                      <ResponsiveStoryImage
+                        alt={story.imageAlt || story.title}
                         className="story-image"
-                        role="img"
-                        aria-label={story.imageAlt}
-                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                        focalPoint={frame?.focalPoint}
+                        height={frame?.height}
+                        presentation={frame?.presentation}
+                        probe={frame?.probe}
+                        sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        slot="story-card"
+                        src={story.imageUrl}
+                        width={frame?.width}
                       >
                         {story.imageCredit ? (
-                          <small className="image-credit-chip">{story.imageCredit}</small>
+                          <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                         ) : null}
-                      </span>
+                      </ResponsiveStoryImage>
                     </Link>
                   ) : null}
                   <div className="story-card-body">

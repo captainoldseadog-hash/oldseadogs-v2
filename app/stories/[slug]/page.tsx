@@ -18,6 +18,7 @@ import {
   type VenueDetails,
 } from "../../../content/venue-details";
 import { isLogoLikeStoryImage } from "../../../content/story-images";
+import { presentationForImage, presentationForStories } from "../../../lib/image-presentation";
 import {
   portStoryGuideLink,
   type PortStoryGuideLink,
@@ -286,12 +287,13 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
   );
 }
 
-function RelatedArticlesPanel({
+async function RelatedArticlesPanel({
   stories,
 }: {
   stories: Awaited<ReturnType<typeof getPublishedStories>>;
 }) {
   if (stories.length === 0) return null;
+  const frames = await presentationForStories(stories, "compact");
 
   return (
     <section className="related-band" aria-labelledby="related-articles-title">
@@ -304,15 +306,21 @@ function RelatedArticlesPanel({
         </p>
       </div>
       <div className="related-grid">
-        {stories.map((item) => (
+        {stories.map((item, index) => (
           <article className="compact-card" key={item.slug}>
             <Link className="compact-card-link" href={`/stories/${item.slug}`}>
               {hasStoryPhoto(item) ? (
                 <ResponsiveStoryImage
                   alt={item.imageAlt || item.title}
                   className="compact-image"
+                  focalPoint={frames[index]?.focalPoint}
+                  height={frames[index]?.height}
+                  presentation={frames[index]?.presentation}
+                  probe={frames[index]?.probe}
                   sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                  slot="compact"
                   src={item.imageUrl}
+                  width={frames[index]?.width}
                 />
               ) : null}
               <div>
@@ -382,6 +390,18 @@ export default async function StoryPage({ params }: StoryPageProps) {
   });
   const storyHasPhoto = hasStoryPhoto(story);
   const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+  const leadFrame = storyHasPhoto
+    ? await presentationForImage({
+        url: story.imageUrl,
+        slot: "article",
+        fit: story.imageFit,
+        focalPoint: story.imageFocalPoint,
+        alt: story.imageAlt,
+        caption: story.imageCaption,
+        category: story.category,
+        slug: story.slug,
+      })
+    : null;
   const storyImage = storyHasPhoto ? await storyImageDetails(story.imageUrl) : null;
   const clubProfile = getClubProfileForStory(story);
   const articleBody = clubProfile ? getClubProfileArticleBody(clubProfile) : story.body;
@@ -422,7 +442,11 @@ export default async function StoryPage({ params }: StoryPageProps) {
             {venueDetails ? <VenuePracticalPanel details={venueDetails} /> : null}
           </>
         }
+        imageFocalPoint={leadFrame?.focalPoint}
+        imageHeight={leadFrame?.height}
         imageLooksLikeLogo={storyImageLooksLikeLogo}
+        imagePresentation={leadFrame?.presentation}
+        imageWidth={leadFrame?.width}
         showAdditionalAds
         socialShare={<SocialShare title={story.title} summary={story.summary} url={storyUrl} />}
         story={{

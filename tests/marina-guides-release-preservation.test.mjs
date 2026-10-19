@@ -11,7 +11,8 @@ const protectedFiles = {
   // Desktop homepage sections, the prefetched lead, the Substack signup,
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
-  "app/page.tsx": "d121b702b9b1fcd61be8bc0710b9f44ce0e496c6495fea482b502f9a3b40f4dc",
+  // Small or flat graphics use a whole-image frame; large photographs stay cover.
+  "app/page.tsx": "e40d9a83174e609cb1853385e1c9bbe5f295c94e55fe9890afa9f74cbb7c375e",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
@@ -19,14 +20,14 @@ const protectedFiles = {
   // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
   // Through the Lens rollout reads galleryPublicRollout instead of a hardcoded false.
   // Recently scrapped restore reads one missing draft from a pre-delete backup.
-  "app/api/editor/route.ts": "affe92e8eeaab6262202f19e7e5a6c39fb955400d2cb4f0d23565d659f03d562",
+  "app/api/editor/route.ts": "c07e424c4ecb465e0af9e3b9c34f01aa94810e11716b6d48f39e15ec44b09680",
   // Story publication plus the Boats for Sale lifecycle tick.
   "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
   // Discover audit, Boats for Sale, the shared two-row site header,
   // story share images pointed at the 1,200px derivative, the
   // Cowes Yacht Haven / Berthon Lymington guide notices, and the
   // data-driven Related guides block.
-  "app/stories/[slug]/page.tsx": "54448e849b30709170ecf9b9651793300a376843f9c4e473c31a6e3c9d4c215b",
+  "app/stories/[slug]/page.tsx": "cb558166703d537fa9f8af82ad1bf1891046a89fb0e88ead0c79d12a7df3cbc1",
   // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
   // Boats for Sale browse, list-your-boat, and live listing URLs are included.
   // Superseded port stories whose canonical URL is a Guide are omitted.
@@ -62,7 +63,7 @@ test("site-content preserves the approved Guide seeds and editor-store derived-d
   // A section with only editorial links is kept so area-hub links are not dropped on read.
   // Story search indexing also skips the active thin-story triage wave unless an editor has approved the story.
   // Legacy archive stories use a neutral library method note instead of an editorial-audit queue line.
-  assert.equal(hash(reconstructedBaseline), "800bf14e495fe4f72a3185a08451118e8df079ed3de5b6a433d0ba8f4c45e971");
+  assert.equal(hash(reconstructedBaseline), "fff8bd2c59785f3f4407d989008459ee6a1e11e49627496f2ee9c1db543ab27f");
 });
 
 test("node production start trusts nginx X-Forwarded-Proto for redirect Locations", async () => {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { FittedImage } from "./FittedImage";
 import { derivativeImageUrl, derivativeSrcSet } from "../lib/responsive-image";
 
 export type GuideBrowserItem = {
@@ -14,6 +15,10 @@ export type GuideBrowserItem = {
   path: string;
   imageUrl: string;
   imageAlt: string;
+  imagePresentation?: "cover" | "contain";
+  imageWidth?: number;
+  imageHeight?: number;
+  imageFocalPoint?: string;
 };
 
 export function GuideCollectionBrowser({
@@ -97,7 +102,20 @@ export function GuideCollectionBrowser({
               return (
               <article className="guide-card" key={guide.slug}>
                 <Link className="guide-card-image" href={guide.path}>
-                  {imageSrc ? <img
+                  {imageSrc && guide.imagePresentation === "contain" ? (
+                    <FittedImage
+                      alt={guide.imageAlt}
+                      className="guide-card-fit"
+                      focalPoint={guide.imageFocalPoint}
+                      height={guide.imageHeight}
+                      presentation="contain"
+                      sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                      slot="guide-card"
+                      src={imageSrc}
+                      srcSet={derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined}
+                      width={guide.imageWidth}
+                    />
+                  ) : imageSrc ? <img
                     alt={guide.imageAlt}
                     decoding="async"
                     loading="lazy"

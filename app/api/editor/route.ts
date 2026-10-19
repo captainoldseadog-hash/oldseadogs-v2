@@ -334,6 +334,8 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
     imageAlt: story.imageAlt,
     imageCredit: story.imageCredit,
     imageCaption: story.imageCaption,
+    imageFit: story.imageFit || "auto",
+    imageFocalPoint: story.imageFocalPoint || "",
     videoUrl: story.videoUrl,
     videoCaption: story.videoCaption,
     videoPosition: story.videoPosition,
@@ -1143,6 +1145,8 @@ export async function POST(request: Request) {
       imageAlt?: string;
       imageCredit?: string;
       imageCaption?: string;
+      imageFit?: string;
+      imageFocalPoint?: string;
       bodyBlock?: string;
       bodyPlacement?: "top" | "bottom";
       confirm?: boolean;
@@ -1414,7 +1418,9 @@ export async function POST(request: Request) {
           payload.imageUrl,
           payload.imageAlt ?? "",
           payload.imageCredit ?? "",
-          payload.imageCaption ?? ""
+          payload.imageCaption ?? "",
+          payload.imageFit ?? "auto",
+          payload.imageFocalPoint ?? ""
         ),
       });
     }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdBlock } from "./AdBlock";
 import { NewsletterSignup } from "./NewsletterSignup";
+import { FittedImage } from "./FittedImage";
 import { ResponsiveStoryImage } from "./ResponsiveStoryImage";
 import { SocialIconLinks } from "./SocialIconLinks";
 import { TrackedExternalLink } from "./TrackedExternalLink";
@@ -9,6 +10,8 @@ import { oldSeaDogsSocialPlatforms } from "../content/social-links";
 import { categoryMatchesLabel, displayCategoryLabel, oldSeaDogsSections } from "../content/sections";
 import { formatDate } from "../content/stories";
 import { isLogoLikeStoryImage } from "../content/story-images";
+import { dedupeCredit } from "../lib/image-fit";
+import { presentationForImage, presentationForStories, type ResolvedImageFrame } from "../lib/image-presentation";
 import { TradeBadge } from "./boats/TradeBadge";
 import { boatsHomepageIntro } from "../lib/classifieds-copy";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
@@ -53,10 +56,44 @@ export async function MobileAppHome({
 }: MobileAppHomeProps) {
   const { featuredStory, latestReviewedOrFallback, editorPicks, reviewStories, practicalStories, featuredPortClub } = content;
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
+  const reviews = uniqueStories([...reviewStories, ...practicalStories]).slice(0, 6);
+  const [leadFrame, latestFrames, pickFrames, reviewFrames, portFrame] = await Promise.all([
+    featuredHasPhoto
+      ? presentationForImage({
+          url: featuredStory.imageUrl,
+          slot: "app-lead",
+          fit: featuredStory.imageFit,
+          focalPoint: featuredStory.imageFocalPoint,
+          alt: featuredStory.imageAlt,
+          caption: featuredStory.imageCaption,
+          category: featuredStory.category,
+          slug: featuredStory.slug,
+        })
+      : Promise.resolve(null),
+    presentationForStories(latestReviewedOrFallback, "app-card"),
+    presentationForStories(editorPicks.slice(0, 6), "app-card"),
+    presentationForStories(reviews, "app-card"),
+    featuredPortClub
+      ? presentationForImage({
+          url: featuredPortClub.imageUrl,
+          slot: "app-card",
+          fit: featuredPortClub.story.imageFit,
+          focalPoint: featuredPortClub.story.imageFocalPoint,
+          alt: featuredPortClub.imageAlt,
+          caption: featuredPortClub.story.imageCaption,
+          category: featuredPortClub.story.category,
+          slug: featuredPortClub.story.slug,
+        })
+      : Promise.resolve(null),
+  ]);
+  const leadContain = leadFrame?.presentation === "contain";
   const listing = (await loadBoatPreview())[0] ?? null;
   const lens = await loadLensTiles(galleryPublic);
-  const reviews = uniqueStories([...reviewStories, ...practicalStories]).slice(0, 6);
   const guideHighlights = homepageGuideHighlights(guides);
+  const guideFrames = await presentationForStories(
+    [...guideHighlights.areas.map((area) => area.guide), ...guideHighlights.recent],
+    "guide-card",
+  );
 
   return (
     <div className="mobile-app-home">
@@ -69,9 +106,23 @@ export async function MobileAppHome({
         ))}
       </nav>
 
-      <article className="app-lead">
+      <article className={`app-lead${leadContain ? " is-contain" : ""}`}>
         <Link className="app-lead-card" href={`/stories/${featuredStory.slug}`} prefetch={true}>
-          {featuredHasPhoto ? (
+          {leadContain && leadFrame ? (
+            <FittedImage
+              alt={featuredStory.imageAlt || featuredStory.title}
+              className="app-lead-photo"
+              eager
+              focalPoint={leadFrame.focalPoint}
+              height={leadFrame.height || heroSize?.height}
+              presentation="contain"
+              sizes="(max-width: 1023px) calc(100vw - 32px), 1px"
+              slot="app-lead"
+              src={derivativeImageUrl(featuredStory.imageUrl, 768)}
+              srcSet={derivativeSrcSet(featuredStory.imageUrl, [480, 768, 1200]) || undefined}
+              width={leadFrame.width || heroSize?.width}
+            />
+          ) : featuredHasPhoto ? (
             <picture className="app-lead-photo">
               <source
                 media="(max-width: 1023px)"
@@ -91,7 +142,7 @@ export async function MobileAppHome({
               />
             </picture>
           ) : null}
-          <span aria-hidden="true" className="app-lead-shade" />
+          {leadContain ? null : <span aria-hidden="true" className="app-lead-shade" />}
           <span className="app-lead-copy">
             <span className="app-tag">{displayCategoryLabel(featuredStory.category)}</span>
             <h2>{featuredStory.title}</h2>
@@ -115,28 +166,25 @@ export async function MobileAppHome({
 
       <AppHeading action="See all" href="/news" id="app-latest-title" title="Latest from the Watch" />
       <Carousel label="Latest from the Watch">
-        {latestReviewedOrFallback.map((story) => (
-          <StoryCard key={story.slug} story={story} />
+        {latestReviewedOrFallback.map((story, index) => (
+          <StoryCard frame={latestFrames[index]} key={story.slug} story={story} />
         ))}
       </Carousel>
 
       <AppHeading action="Browse all guides" href="/guides" id="app-guides-title" title="Guides" />
       <Carousel label="Guides">
-        {guideHighlights.areas.map((area) => {
+        {guideHighlights.areas.map((area, index) => {
           const imageSrc = resizedPublicImageUrl(area.guide.imageUrl, 768);
+          const frame = guideFrames[index];
           return (
             <Link className="app-card app-card-guide" href={area.path} key={area.key}>
               {imageSrc ? (
-                <span className="app-card-media">
-                  <img
-                    alt={area.guide.imageAlt || area.name}
-                    decoding="async"
-                    loading="lazy"
-                    sizes="250px"
-                    src={imageSrc}
-                    srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(area.guide.imageUrl, [480, 768]) || undefined : undefined}
-                  />
-                </span>
+                <GuideThumb
+                  alt={area.guide.imageAlt || area.name}
+                  frame={frame}
+                  src={imageSrc}
+                  srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(area.guide.imageUrl, [480, 768]) || undefined : undefined}
+                />
               ) : null}
               <span className="app-card-body">
                 <small>{guideAreaCountLabel(area.guideCount)}</small>
@@ -146,21 +194,18 @@ export async function MobileAppHome({
             </Link>
           );
         })}
-        {guideHighlights.recent.map((guide) => {
+        {guideHighlights.recent.map((guide, index) => {
           const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
+          const frame = guideFrames[guideHighlights.areas.length + index];
           return (
             <Link className="app-card app-card-guide" href={guidePublicPath(guide)} key={guide.slug}>
               {imageSrc ? (
-                <span className="app-card-media">
-                  <img
-                    alt={guide.imageAlt || guide.title}
-                    decoding="async"
-                    loading="lazy"
-                    sizes="250px"
-                    src={imageSrc}
-                    srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
-                  />
-                </span>
+                <GuideThumb
+                  alt={guide.imageAlt || guide.title}
+                  frame={frame}
+                  src={imageSrc}
+                  srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                />
               ) : null}
               <span className="app-card-body">
                 <small>Recently added</small>
@@ -206,8 +251,8 @@ export async function MobileAppHome({
         <>
           <AppHeading action="More" href="/news" id="app-editors-title" title="Editor's choice" />
           <Carousel label="Editor's choice">
-            {editorPicks.slice(0, 6).map((story) => (
-              <StoryCard key={story.slug} story={story} />
+            {editorPicks.slice(0, 6).map((story, index) => (
+              <StoryCard frame={pickFrames[index]} key={story.slug} story={story} />
             ))}
           </Carousel>
         </>
@@ -217,8 +262,8 @@ export async function MobileAppHome({
         <>
           <AppHeading action="All reviews" href="/reviews" id="app-reviews-title" title="Boat reviews" />
           <Carousel label="Boat reviews">
-            {reviews.map((story) => (
-              <StoryCard key={story.slug} story={story} />
+            {reviews.map((story, index) => (
+              <StoryCard frame={reviewFrames[index]} key={story.slug} story={story} />
             ))}
           </Carousel>
         </>
@@ -228,11 +273,17 @@ export async function MobileAppHome({
         <p className="app-kicker">{featuredPortClub ? featuredPortClub.label : "Ports and Clubs"}</p>
         {featuredPortClub ? (
           <Link className="app-club" href={featuredPortClub.href}>
-            <span className={`app-club-mark ${isLogoLikeStoryImage(featuredPortClub.story) ? "is-logo" : ""}`}>
+            <span className={`app-club-mark ${isLogoLikeStoryImage(featuredPortClub.story) && portFrame?.presentation !== "contain" ? "is-logo" : ""}`}>
               <ResponsiveStoryImage
                 alt={featuredPortClub.imageAlt}
+                focalPoint={portFrame?.focalPoint}
+                height={portFrame?.height}
+                presentation={portFrame?.presentation}
+                probe={portFrame?.probe}
                 sizes="88px"
+                slot="section-thumb"
                 src={featuredPortClub.imageUrl}
+                width={portFrame?.width}
               />
             </span>
             <span>
@@ -338,9 +389,9 @@ function Carousel({ children, label }: { children: ReactNode; label: string }) {
   );
 }
 
-function StoryCard({ story }: { story: EditableStory }) {
+function StoryCard({ frame, story }: { frame?: ResolvedImageFrame | null; story: EditableStory }) {
   const photo = hasStoryPhoto(story);
-  const logo = photo && isLogoLikeStoryImage(story);
+  const logo = photo && isLogoLikeStoryImage(story) && frame?.presentation !== "contain";
   return (
     <article className={`app-card ${photo ? "" : "is-text"}`}>
       <Link href={`/stories/${story.slug}`}>
@@ -348,8 +399,14 @@ function StoryCard({ story }: { story: EditableStory }) {
           <ResponsiveStoryImage
             alt={story.imageAlt || story.title}
             className={`app-card-media ${logo ? "is-logo" : ""}`}
+            focalPoint={frame?.focalPoint}
+            height={frame?.height}
+            presentation={frame?.presentation}
+            probe={frame?.probe}
             sizes="290px"
+            slot="app-card"
             src={story.imageUrl}
+            width={frame?.width}
           />
         ) : null}
         <span className="app-card-body">
@@ -463,8 +520,43 @@ function cardDate(date: string) {
 }
 
 function creditLine(credit: string) {
-  const trimmed = credit.trim();
+  const trimmed = dedupeCredit(credit);
+  if (!trimmed) return "";
   return /^photo\b/i.test(trimmed) ? trimmed : `Photo: ${trimmed}`;
+}
+
+function GuideThumb({
+  alt,
+  frame,
+  src,
+  srcSet,
+}: {
+  alt: string;
+  frame?: ResolvedImageFrame | null;
+  src: string;
+  srcSet?: string;
+}) {
+  if (frame?.presentation === "contain") {
+    return (
+      <FittedImage
+        alt={alt}
+        className="app-card-media"
+        focalPoint={frame.focalPoint}
+        height={frame.height}
+        presentation="contain"
+        sizes="250px"
+        slot="guide-card"
+        src={src}
+        srcSet={srcSet}
+        width={frame.width}
+      />
+    );
+  }
+  return (
+    <span className="app-card-media">
+      <img alt={alt} decoding="async" loading="lazy" sizes="250px" src={src} srcSet={srcSet} />
+    </span>
+  );
 }
 
 function quickIcon(name: (typeof quickLinks)[number]["icon"]) {

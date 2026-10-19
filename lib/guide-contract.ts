@@ -86,6 +86,7 @@ export type ManagedGuideFields = {
       caption?: string;
       credit?: string;
       focalPoint?: string;
+      fit?: "auto" | "fill" | "contain";
     };
     gallery?: Array<{
       mediaId?: string;
@@ -242,6 +243,7 @@ export function normalizeManagedGuideFields(value: Partial<ManagedGuideFields>):
         caption: cleanString(media.heroImage.caption) || undefined,
         credit: cleanString(media.heroImage.credit, 500) || undefined,
         focalPoint: cleanString(media.heroImage.focalPoint, 100) || undefined,
+        fit: cleanString(media.heroImage.fit, 20) === "fill" || cleanString(media.heroImage.fit, 20) === "contain" ? cleanString(media.heroImage.fit, 20) as "fill" | "contain" : cleanString(media.heroImage.fit, 20) === "auto" ? "auto" : undefined,
       } : undefined,
       gallery: Array.isArray(media.gallery) ? media.gallery.flatMap((image) => isObject(image) && cleanString(image.url, 2_000)
         ? [{ mediaId: cleanString(image.mediaId, 200) || undefined, url: cleanString(image.url, 2_000), alt: cleanString(image.alt, 500), caption: cleanString(image.caption) || undefined, credit: cleanString(image.credit, 500) || undefined, order: Number.isFinite(image.order) ? Number(image.order) : undefined }]

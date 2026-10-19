@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FittedImage } from "../../components/FittedImage";
 import { GuideCollectionBrowser } from "../../components/GuideCollectionBrowser.tsx";
 import { JsonLd } from "../../components/JsonLd.tsx";
 import { SiteFooter } from "../../components/SiteFooter.tsx";
@@ -7,6 +8,7 @@ import type { GuideType } from "../../content/flagship-guides.ts";
 
 import { guideAreaCountLabel, guideCollectionJsonLd, guideDiscoveryAreas, guideProductRecords, guidePublicPath } from "../../lib/guides.ts";
 import { getIndexedGuides, getPublishedGuides } from "../../lib/site-content.ts";
+import { presentationForStories } from "../../lib/image-presentation";
 import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, needlesHeroImageUrl } from "../../lib/responsive-image.ts";
 import { createPageMetadata } from "../../lib/seo.ts";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -36,7 +38,11 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
     ? requestedType
     : "All";
   const discoveryAreas = guideDiscoveryAreas(guides);
-  const browserItems = guides.map((guide) => ({
+  const [areaFrames, browserFrames] = await Promise.all([
+    presentationForStories(discoveryAreas.map((area) => area.guide), "guide-card"),
+    presentationForStories(guides, "guide-card"),
+  ]);
+  const browserItems = guides.map((guide, index) => ({
     slug: guide.slug,
     title: guide.title,
     summary: guide.summary,
@@ -46,6 +52,10 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
     path: guidePublicPath(guide),
     imageUrl: guide.imageUrl,
     imageAlt: guide.imageAlt,
+    imagePresentation: browserFrames[index]?.presentation,
+    imageWidth: browserFrames[index]?.width,
+    imageHeight: browserFrames[index]?.height,
+    imageFocalPoint: browserFrames[index]?.focalPoint,
   }));
 
   return (
@@ -75,14 +85,28 @@ export default async function GuidesIndexPage({ searchParams }: GuidesIndexPageP
           </p>
         </div>
         <div className="guide-area-discovery-grid">
-          {discoveryAreas.map((area) => {
+          {discoveryAreas.map((area, index) => {
             const imageSrc = isNeedlesHeroImage(area.guide.imageUrl)
               ? needlesHeroImageUrl(area.guide.imageUrl)
               : derivativeImageUrl(area.guide.imageUrl, 1200);
+            const frame = areaFrames[index];
             return (
             <article className="guide-area-card" key={area.key}>
               <Link className="guide-area-card-image" href={area.path}>
-                {imageSrc ? <img
+                {imageSrc && frame?.presentation === "contain" ? (
+                  <FittedImage
+                    alt={area.guide.imageAlt}
+                    className="guide-area-fit"
+                    focalPoint={frame.focalPoint}
+                    height={frame.height}
+                    presentation="contain"
+                    sizes="(max-width: 760px) calc(100vw - 28px), 560px"
+                    slot="guide-card"
+                    src={imageSrc}
+                    srcSet={derivativeSrcSet(area.guide.imageUrl, [480, 768, 1200]) || undefined}
+                    width={frame.width}
+                  />
+                ) : imageSrc ? <img
                   alt={area.guide.imageAlt}
                   decoding="async"
                   loading="lazy"
