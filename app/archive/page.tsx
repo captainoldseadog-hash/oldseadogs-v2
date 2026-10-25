@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "../../components/SiteFooter";
 import { displayCategoryLabel } from "../../content/sections";
-import { formatDate } from "../../content/stories";
+import { storyListingDateLabel } from "../../lib/story-header-date";
 import { resolvePublicPage } from "../../lib/public-page";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
@@ -123,7 +123,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             {pageStories.map((story) => (
               <article className="archive-row" key={story.id}>
                 <div className="story-meta">
-                  <span>{formatDate(story.date)}</span>
+                  <span>{storyListingDateLabel(story)}</span>
                   <span>{displayCategoryLabel(story.category)}</span>
                   {story.imageCredit ? <span>{story.imageCredit}</span> : null}
                 </div>

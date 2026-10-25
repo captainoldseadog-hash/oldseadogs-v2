@@ -13,7 +13,7 @@ import {
   getSectionHeroArtwork,
   storyMatchesSection,
 } from "../../content/sections";
-import { formatDate } from "../../content/stories";
+import { storyListingDateLabel } from "../../lib/story-header-date";
 import { isLogoLikeStoryImage } from "../../content/story-images";
 import { dedupeCredit } from "../../lib/image-fit";
 import { presentationForStories } from "../../lib/image-presentation";
@@ -182,7 +182,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      <span>{storyListingDateLabel(story)}</span>
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>

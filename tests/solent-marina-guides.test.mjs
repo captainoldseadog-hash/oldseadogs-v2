@@ -231,7 +231,8 @@ test("Phase Two preserves the approved homepage, cookie and story-publication co
     // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
     // The app-style mobile homepage is an extra block, hidden from 1024px up.
     // Small or flat graphics use a whole-image frame; large photographs stay cover.
-    "app/page.tsx": "e40d9a83174e609cb1853385e1c9bbe5f295c94e55fe9890afa9f74cbb7c375e",
+    // Story cards label the Europe/London publish day from publishedAt.
+    "app/page.tsx": "5e7e9f3008c28d437b1d3f612c0a3c409192d6c711e9c208f11cee2e82c4e0f7",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
     "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",

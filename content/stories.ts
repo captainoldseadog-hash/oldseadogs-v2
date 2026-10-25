@@ -136,6 +136,7 @@ export function getStory(slug: string) {
   return stories.find((story) => story.slug === slug);
 }
 
+// Calendar-day helper for a YYYY-MM-DD string. Public cards use storyListingDateLabel.
 export function formatDate(date: string) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",

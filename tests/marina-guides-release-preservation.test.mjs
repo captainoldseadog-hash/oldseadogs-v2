@@ -12,7 +12,8 @@ const protectedFiles = {
   // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
   // The app-style mobile homepage is an extra block, hidden from 1024px up.
   // Small or flat graphics use a whole-image frame; large photographs stay cover.
-  "app/page.tsx": "e40d9a83174e609cb1853385e1c9bbe5f295c94e55fe9890afa9f74cbb7c375e",
+  // Story cards label the Europe/London publish day from publishedAt.
+  "app/page.tsx": "5e7e9f3008c28d437b1d3f612c0a3c409192d6c711e9c208f11cee2e82c4e0f7",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",

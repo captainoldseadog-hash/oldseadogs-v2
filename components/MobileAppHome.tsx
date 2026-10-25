@@ -8,7 +8,7 @@ import { SocialIconLinks } from "./SocialIconLinks";
 import { TrackedExternalLink } from "./TrackedExternalLink";
 import { oldSeaDogsSocialPlatforms } from "../content/social-links";
 import { categoryMatchesLabel, displayCategoryLabel, oldSeaDogsSections } from "../content/sections";
-import { formatDate } from "../content/stories";
+import { storyListingDateLabel } from "../lib/story-header-date";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { dedupeCredit } from "../lib/image-fit";
 import { presentationForImage, presentationForStories, type ResolvedImageFrame } from "../lib/image-presentation";
@@ -147,7 +147,7 @@ export async function MobileAppHome({
             <span className="app-tag">{displayCategoryLabel(featuredStory.category)}</span>
             <h2>{featuredStory.title}</h2>
             <span className="app-lead-meta">
-              {formatDate(featuredStory.date)} · {featuredStory.readMinutes} min read
+              {storyListingDateLabel(featuredStory)} · {featuredStory.readMinutes} min read
             </span>
           </span>
         </Link>
@@ -410,7 +410,7 @@ function StoryCard({ frame, story }: { frame?: ResolvedImageFrame | null; story:
           />
         ) : null}
         <span className="app-card-body">
-          <small>{displayCategoryLabel(story.category)} · {cardDate(story.date)}</small>
+          <small>{displayCategoryLabel(story.category)} · {storyListingDateLabel(story)}</small>
           <h3>{story.title}</h3>
           {photo ? null : <span className="app-card-go">Read</span>}
         </span>
@@ -513,10 +513,6 @@ function uniqueStories(stories: EditableStory[]) {
     seen.add(story.slug);
     return true;
   });
-}
-
-function cardDate(date: string) {
-  return formatDate(date).replace(/ \d{4}$/, "");
 }
 
 function creditLine(credit: string) {

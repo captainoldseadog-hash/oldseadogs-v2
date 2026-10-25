@@ -6,7 +6,7 @@ import {
   storyMatchesManufacturer,
 } from "../../../content/manufacturers";
 import { displayCategoryLabel } from "../../../content/sections";
-import { formatDate } from "../../../content/stories";
+import { storyListingDateLabel } from "../../../lib/story-header-date";
 import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { dedupeCredit } from "../../../lib/image-fit";
@@ -112,7 +112,7 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      <span>{storyListingDateLabel(story)}</span>
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>

@@ -15,7 +15,7 @@ import {
   displayCategoryLabel,
   oldSeaDogsSections,
 } from "../content/sections";
-import { formatDate } from "../content/stories";
+import { storyListingDateLabel } from "../lib/story-header-date";
 import { isLogoLikeStoryImage } from "../content/story-images";
 import { dedupeCredit } from "../lib/image-fit";
 import { presentationForImage, presentationForStories } from "../lib/image-presentation";
@@ -375,7 +375,7 @@ export default async function Home() {
           <h2 id="mobile-lead-title">{featuredStory.title}</h2>
           <p>{featuredStory.summary}</p>
           <div className="mobile-story-meta">
-            <span>{formatDate(featuredStory.date)}</span>
+            <span>{storyListingDateLabel(featuredStory)}</span>
             <span>{featuredStory.readMinutes} min read</span>
             <span>{featuredStory.author}</span>
           </div>
@@ -506,7 +506,7 @@ export default async function Home() {
                     <div className="story-card-body">
                       <div className="story-meta">
                         <span>{displayCategoryLabel(story.category)}</span>
-                        <span>{formatDate(story.date)}</span>
+                        <span>{storyListingDateLabel(story)}</span>
                       </div>
                       <h3>{story.title}</h3>
                       <span className="story-summary-link">
