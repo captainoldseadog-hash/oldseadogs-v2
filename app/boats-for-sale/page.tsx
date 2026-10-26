@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompassRose } from "../../components/boats/BoatsMasthead";
+import { ExternalBoatAds } from "../../components/boats/ExternalBoatAds.tsx";
 import { TradeBadge } from "../../components/boats/TradeBadge";
 import { CRUISING_GROUNDS, KEEL_TYPES, KEEL_LABELS, BOAT_TYPES, BOAT_TYPE_LABELS } from "../../lib/classifieds-types.ts";
 import { filterPublicListings, type ListingQuery, type PublicListing } from "../../lib/classifieds-public.ts";
@@ -29,6 +30,11 @@ export default async function BoatsForSalePage({ searchParams }: BrowseProps) {
   }
   const results = filterPublicListings(listings, query);
   const filtering = Object.values(query).some((value) => String(value || "").trim());
+  const registerFiltered = Boolean(
+    query.q || query.type || query.keel || query.ground ||
+    query.minLength || query.maxLength || query.minPrice || query.maxPrice ||
+    query.minYear || query.maxYear || query.trailerable || query.liveaboard
+  );
   const featured = results[0];
   const cards = results.slice(featured ? 1 : 0);
   const moreOpen = Boolean(query.q || query.keel || query.minYear || query.maxYear || query.minPrice || query.trailerable || query.liveaboard);
@@ -136,6 +142,8 @@ export default async function BoatsForSalePage({ searchParams }: BrowseProps) {
             ) : null}
           </>
         )}
+
+        {registerFiltered ? null : <ExternalBoatAds />}
 
         <div className="boats-section-heading" id="grounds">
           <h2>Where they lie</h2>
