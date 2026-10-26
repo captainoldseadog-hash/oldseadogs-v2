@@ -55,9 +55,11 @@ test("homepage, story, editor, scheduler, search and consent logic match product
 test("site-content preserves the approved Guide seeds and editor-store derived-data reuse", async () => {
   const source = await fs.readFile(path.join(projectDir, "lib/site-content.ts"), "utf8");
   assert.equal((source.match(/solentMarinaGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/westCountryGuideSeeds/g) || []).length, 2);
   const reconstructedBaseline = source
+    .replace('import { westCountryGuideSeeds } from "../content/west-country-guides.ts";\n', "")
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
-    .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
+    .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
   // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
   // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
   // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.

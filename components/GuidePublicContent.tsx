@@ -683,7 +683,10 @@ export function GuidePublicContent({
               {section.links?.length ? (
                 <div className="guide-section-links" aria-label={`Continue from ${section.heading}`}>
                   {section.links.flatMap((link) => {
-                    const linkedGuide = bySlug.get(link.guideSlug);
+                    if (link.href && /^https?:\/\//i.test(link.href)) {
+                      return [<a href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">{link.label} <span aria-hidden="true">→</span></a>];
+                    }
+                    const linkedGuide = link.guideSlug ? bySlug.get(link.guideSlug) : undefined;
                     return linkedGuide
                       ? [<Link href={guidePublicPath(linkedGuide)} key={link.guideSlug}>{link.label} <span aria-hidden="true">→</span></Link>]
                       : [];

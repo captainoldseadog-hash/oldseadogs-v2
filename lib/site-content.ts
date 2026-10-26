@@ -26,6 +26,7 @@ import {
 } from "../content/flagship-guides";
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
+import { westCountryGuideSeeds } from "../content/west-country-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
@@ -207,7 +208,7 @@ export type GuideRevision = {
   createdAt: string;
 };
 
-const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides];
+const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...flagshipGuides];
 const blankGuideSeed: FlagshipGuide = {
   slug: "untitled-guide",
   title: "Untitled Guide",
