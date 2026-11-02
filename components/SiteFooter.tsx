@@ -5,6 +5,7 @@ import {
   oldSeaDogsSocialPlatforms,
   type OldSeaDogsSocialPlatform,
 } from "../content/social-links";
+import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
 import { defaultSettings, getSiteSettings, type SiteSettings } from "../lib/site-content";
 
 type FooterLink = {
@@ -19,6 +20,7 @@ type SiteFooterProps = {
 };
 
 const policyLinks: FooterLink[] = [
+  { href: "/boats-for-sale", label: "Boats for Sale" },
   { href: "/search", label: "Search" },
   { href: "/guides", label: "Guides" },
   { href: "/social", label: "Social" },
@@ -31,7 +33,7 @@ const policyLinks: FooterLink[] = [
   { href: "/terms", label: "Terms of Use" },
 ];
 
-const socialSettingKeys: Record<OldSeaDogsSocialPlatform["key"], keyof SiteSettings> = {
+const socialSettingKeys: Partial<Record<OldSeaDogsSocialPlatform["key"], keyof SiteSettings>> = {
   tiktok: "socialTikTok",
   instagram: "socialInstagram",
   facebook: "socialFacebook",
@@ -50,10 +52,14 @@ function socialHref(value: string, fallbackUrl: string) {
 
 function linksFromSettings(settings: SiteSettings) {
   return oldSeaDogsSocialPlatforms
-    .map((platform) => ({
-      ...platform,
-      href: socialHref(settings[socialSettingKeys[platform.key]], platform.href),
-    }))
+    .map((platform) => {
+      const settingKey = socialSettingKeys[platform.key];
+      const configured = settingKey ? settings[settingKey] : "";
+      return {
+        ...platform,
+        href: socialHref(configured, platform.href),
+      };
+    })
     .filter((platform) => platform.href);
 }
 
@@ -66,7 +72,10 @@ export async function SiteFooter({
   const footerBrandName = brandName ?? settings.brandName ?? defaultSettings.brandName;
   const footerCopy = footerText ?? settings.footerText ?? defaultSettings.footerText;
   const seen = new Set<string>();
-  const links = [...extraLinks, ...policyLinks].filter((link) => {
+  const galleryLink = isGalleryPublicRolloutEnabled(settings.galleryPublicRollout)
+    ? [{ href: "/through-the-lens", label: "Through the Lens" }]
+    : [];
+  const links = [...extraLinks, ...galleryLink, ...policyLinks].filter((link) => {
     if (seen.has(link.href)) return false;
     seen.add(link.href);
     return true;

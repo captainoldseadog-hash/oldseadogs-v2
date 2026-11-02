@@ -13,27 +13,86 @@ RELEASE_ID=""
 SMOKE_PORT="${SMOKE_PORT:-3099}"
 SMOKE_PID=""
 SMOKE_DATA_DIR=""
+STAGING_ROOT=""
+DRY_RUN=0
+LEGACY_SERVER_INSTALL=0
+PROMOTED=0
+STORE_CHECKSUM=""
 
 usage() {
   cat <<'EOF'
-Usage: release-deploy.sh --archive PATH --checksum PATH [--release-id ID] [--smoke-port PORT]
+Usage: release-deploy.sh --archive PATH --checksum PATH [--release-id ID] [--smoke-port PORT] [--dry-run] [--legacy-server-install]
 
-Stages and validates a complete release, installs its dependencies, runs isolated
-smoke tests, atomically promotes it, reloads PM2, and verifies production health.
-It never writes to /var/www/oldseadogs-data.
+Stages a finished release, checks it, and atomically promotes it. The default
+mode is prebuilt: the archive must already contain linux-x64 node_modules,
+including node_modules/.bin/vinext and sharp's glibc binary. This mode does
+not run npm ci, npm install, or a build.
+
+--dry-run checks the archive and leaves current unchanged.
+--legacy-server-install runs npm ci for an old archive that has no
+node_modules. Do not use that flag on the production Droplet.
+
+The script never writes to the live CMS data directory.
 EOF
 }
 
-cleanup() {
-  if [[ -n "$SMOKE_PID" ]] && kill -0 "$SMOKE_PID" 2>/dev/null; then
-    kill "$SMOKE_PID" 2>/dev/null || true
-    wait "$SMOKE_PID" 2>/dev/null || true
+# npm keeps the smoke server alive after the wrapper shell exits. Walk the
+# process tree, children first, so the listener on the temp port stops too.
+kill_process_tree() {
+  local pid="$1"
+  local signal="${2:-TERM}"
+  local child
+  local children=""
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 0
+  if [[ -r "/proc/${pid}/task/${pid}/children" ]]; then
+    children="$(<"/proc/${pid}/task/${pid}/children")"
+  else
+    children="$(ps -o pid= --ppid "$pid" 2>/dev/null || true)"
   fi
+  # Word-splitting is the pid list from /proc or ps.
+  # shellcheck disable=SC2086
+  for child in $children; do
+    kill_process_tree "$child" "$signal"
+  done
+  kill "-${signal}" "$pid" 2>/dev/null || true
+}
+
+stop_smoke_server() {
+  local pid="${SMOKE_PID:-}"
+  local waited=0
+  [[ -n "$pid" ]] || return 0
+  SMOKE_PID=""
+  if ! kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+  kill_process_tree "$pid" TERM
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( waited >= 25 )); then
+      kill_process_tree "$pid" KILL
+      break
+    fi
+    sleep 0.1
+    waited=$((waited + 1))
+  done
+  wait "$pid" 2>/dev/null || true
+}
+
+cleanup() {
+  stop_smoke_server
   if [[ -n "$SMOKE_DATA_DIR" && -d "$SMOKE_DATA_DIR" ]]; then
     rm -rf "$SMOKE_DATA_DIR"
   fi
+  if [[ "$PROMOTED" != "1" && -n "$STAGING_ROOT" && -e "$STAGING_ROOT" ]]; then
+    case "$STAGING_ROOT" in
+      "${RELEASES_DIR}/."*) rm -rf "$STAGING_ROOT" || true ;;
+    esac
+  fi
 }
 trap cleanup EXIT
+
+if [[ "${OLDSEADOGS_DEPLOY_FUNCTIONS_ONLY:-}" == "1" ]]; then
+  return 0 2>/dev/null || exit 0
+fi
 
 while (($#)); do
   case "$1" in
@@ -56,6 +115,14 @@ while (($#)); do
       [[ $# -ge 2 ]] || die "--smoke-port needs a value"
       SMOKE_PORT="$2"
       shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    --legacy-server-install)
+      LEGACY_SERVER_INSTALL=1
+      shift
       ;;
     -h|--help)
       usage
@@ -81,9 +148,15 @@ if [[ -z "$RELEASE_ID" ]]; then
 fi
 [[ "$RELEASE_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die "Unsafe release ID: $RELEASE_ID"
 
-for command_name in node npm tar sha256sum curl pm2 rsync readlink flock awk; do
-  require_command "$command_name"
-done
+if [[ "$DRY_RUN" == "1" ]]; then
+  for command_name in node tar sha256sum readlink flock awk find; do
+    require_command "$command_name"
+  done
+else
+  for command_name in node npm tar sha256sum curl pm2 rsync readlink flock awk find; do
+    require_command "$command_name"
+  done
+fi
 node -e '
   const [major, minor] = process.versions.node.split(".").map(Number);
   if (major < 22 || (major === 22 && minor < 13)) {
@@ -91,22 +164,31 @@ node -e '
   }
 '
 
-pm2_preflight="$(mktemp /tmp/oldseadogs-pm2-preflight.XXXXXX)"
-pm2 jlist >"$pm2_preflight"
-if ! node -e '
-  const fs = require("node:fs");
-  const processes = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-  const legacy = processes.find((entry) => entry.name === "oldseadogs" && entry.pm2_env?.status === "online");
-  if (legacy) process.exit(2);
-' "$pm2_preflight"; then
+if [[ "$DRY_RUN" != "1" ]]; then
+  pm2_preflight="$(mktemp /tmp/oldseadogs-pm2-preflight.XXXXXX)"
+  pm2 jlist >"$pm2_preflight"
+  if ! node -e '
+    const fs = require("node:fs");
+    const processes = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const legacy = processes.find((entry) => entry.name === "oldseadogs" && entry.pm2_env?.status === "online");
+    if (legacy) process.exit(2);
+  ' "$pm2_preflight"; then
+    rm -f "$pm2_preflight"
+    die "Legacy PM2 process oldseadogs is online; establish oldseadogs-web as the sole production process before release deployment"
+  fi
   rm -f "$pm2_preflight"
-  die "Legacy PM2 process oldseadogs is online; establish oldseadogs-web as the sole production process before release deployment"
 fi
-rm -f "$pm2_preflight"
 
 [[ -d "$DATA_DIR" ]] || die "Production data directory is missing: $DATA_DIR"
 [[ -r "$DATA_DIR/editor-store.json" ]] || die "Production editor store is not readable"
 [[ -r "$ENV_FILE" ]] || die "Runtime environment file is not readable: $ENV_FILE"
+STORE_CHECKSUM="$(sha256sum "$DATA_DIR/editor-store.json" | awk 'NR==1 { print $1 }')"
+
+assert_editor_store_unchanged() {
+  local now
+  now="$(sha256sum "$DATA_DIR/editor-store.json" | awk 'NR==1 { print $1 }')"
+  [[ "$now" == "$STORE_CHECKSUM" ]] || die "editor-store.json changed during the deploy. The live CMS file must not be written."
+}
 
 mkdir -p "$RELEASES_DIR" "$SHARED_DIR/logs" "$BACKUP_ROOT"
 exec 9>"$SHARED_DIR/deployment.lock"
@@ -152,23 +234,43 @@ log "Verifying the package's internal payload manifest"
   sha256sum --check SHA256SUMS
 )
 
-if find "$STAGED_RELEASE" -type f \( -name 'editor-store.json' -o -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
-  die "Package contains runtime data or an environment file"
+forbidden_file="$(find_forbidden_runtime_file "$STAGED_RELEASE")"
+if [[ -n "$forbidden_file" ]]; then
+  die "Package contains runtime data, an environment file, a log, or a nested archive: $forbidden_file"
 fi
-if [[ -e "$STAGED_RELEASE/node_modules" || -e "$STAGED_RELEASE/.git" || -e "$STAGED_RELEASE/.next/cache" ]]; then
+if [[ -e "$STAGED_RELEASE/.git" || -e "$STAGED_RELEASE/.next/cache" ]]; then
   die "Package contains excluded build-host or repository state"
 fi
-if find "$STAGED_RELEASE" -type f \( -name '*.log' -o -name '*.tar.gz' \) -print -quit | grep -q .; then
-  die "Package contains a log or nested release archive"
-fi
 
-load_runtime_environment
-log "Installing the exact locked dependency tree in the staged release"
-(
-  cd "$STAGED_RELEASE"
-  npm ci --include=dev --no-audit --no-fund
-)
-[[ -x "$STAGED_RELEASE/node_modules/.bin/vinext" ]] || die "vinext was not installed; the release cannot start"
+if [[ "$LEGACY_SERVER_INSTALL" == "1" ]]; then
+  if [[ -e "$STAGED_RELEASE/node_modules" ]]; then
+    die "Legacy install refuses a package that already contains node_modules. Use the default prebuilt mode instead."
+  fi
+  if [[ "$DRY_RUN" == "1" ]]; then
+    assert_editor_store_unchanged
+    log "Dry run: legacy server install was not executed. npm ci was not run. Nothing was promoted."
+    exit 0
+  fi
+  log "WARNING: --legacy-server-install runs npm ci on this machine. Do not use this flag on the production Droplet."
+  load_runtime_environment
+  (
+    cd "$STAGED_RELEASE"
+    npm ci --include=dev --no-audit --no-fund
+  )
+  validate_prebuilt_runtime "$STAGED_RELEASE"
+else
+  [[ -d "$STAGED_RELEASE/node_modules" ]] || die "Prebuilt mode is the default and does not run npm ci, npm install, or a build. This package has no node_modules, so it cannot start. Build it on linux-x64 with deploy/release-package.sh. --legacy-server-install is an emergency override and is not for the production Droplet."
+  [[ -f "$STAGED_RELEASE/RELEASE_MANIFEST.json" ]] || die "Prebuilt package is missing RELEASE_MANIFEST.json"
+  manifest_commit="$(read_prebuilt_manifest_commit "$STAGED_RELEASE/RELEASE_MANIFEST.json")" || die "Package manifest is not a linux-x64 glibc prebuilt release"
+  validate_prebuilt_runtime "$STAGED_RELEASE"
+  log "Prebuilt package gitCommit: $manifest_commit"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    assert_editor_store_unchanged
+    log "Dry run passed for release $RELEASE_ID (gitCommit $manifest_commit). npm ci was not run. Nothing was promoted. editor-store.json was not changed."
+    exit 0
+  fi
+  load_runtime_environment
+fi
 
 log "Running compiled-package verification before promotion"
 (
@@ -191,6 +293,7 @@ fi
 SMOKE_DATA_DIR="$(mktemp -d /tmp/oldseadogs-release-smoke.XXXXXX)"
 cp --preserve=mode,timestamps "$DATA_DIR/editor-store.json" "$SMOKE_DATA_DIR/editor-store.json"
 mkdir "$SMOKE_DATA_DIR/media"
+assert_editor_store_unchanged
 log "Starting the staged release on isolated port $SMOKE_PORT with a disposable production-data snapshot"
 (
   cd "$STAGED_RELEASE"
@@ -209,13 +312,12 @@ if ! run_content_health_checks "$STAGED_RELEASE" "$SMOKE_BASE_URL" "$SMOKE_DATA_
   tail -n 100 "$STAGING_ROOT/smoke-server.log" >&2 || true
   die "Staged release failed content health checks"
 fi
-kill "$SMOKE_PID"
-wait "$SMOKE_PID" 2>/dev/null || true
-SMOKE_PID=""
+stop_smoke_server
 rm -rf "$SMOKE_DATA_DIR"
 SMOKE_DATA_DIR=""
 rm -f "$STAGING_ROOT/smoke-server.log"
 log "Staged release passed homepage, editor, API, and featured-story checks"
+assert_editor_store_unchanged
 
 log "Creating a read-only-source backup of the production editor store"
 BACKUP_DIR="${BACKUP_ROOT}/${RELEASE_ID}"
@@ -231,6 +333,7 @@ node -e '
   sha256sum editor-store.json >editor-store.json.sha256
   sha256sum --check editor-store.json.sha256
 )
+assert_editor_store_unchanged
 
 if [[ -L "$CURRENT_LINK" ]]; then
   PREVIOUS_RELEASE="$(assert_release_path "$CURRENT_LINK")"
@@ -267,6 +370,7 @@ rollback_failed_promotion() {
 }
 
 log "Atomically promoting $FINAL_RELEASE"
+PROMOTED=1
 atomic_switch_current "$FINAL_RELEASE"
 if ! start_or_reload_release "$FINAL_RELEASE"; then
   rollback_failed_promotion
@@ -277,5 +381,11 @@ fi
 
 write_release_state "$FINAL_RELEASE" "$PREVIOUS_RELEASE"
 pm2 save
+assert_editor_store_unchanged
 log "Deployment complete. Previous release retained at: $PREVIOUS_RELEASE"
 log "Data backup retained at: $BACKUP_DIR"
+if [[ "$LEGACY_SERVER_INSTALL" == "1" ]]; then
+  log "This promotion used --legacy-server-install and ran npm ci in the new release folder."
+else
+  log "npm ci was not used for this promotion."
+fi

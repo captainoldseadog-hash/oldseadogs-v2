@@ -1,0 +1,15 @@
+Example photographs for the development-only classifieds seed.
+These files are not served as public originals. The seed pipeline
+resizes them and strips EXIF, IPTC and XMP before they are stored
+under the data directory. They are never loaded in production.
+
+westerly.jpg — File:Fulmar.jpg — Gerard Versluis — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Fulmar.jpg
+hamble.jpg — File:Yacht Marina on River Hamble - geograph.org.uk - 5838191.jpg — Paul Gillett — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Yacht_Marina_on_River_Hamble_-_geograph.org.uk_-_5838191.jpg
+cockpit.jpg — File:Sailing Yacht Artic Wisdom, Cockpit and Companionway.jpg — Kantorkel — CC BY 4.0 — https://commons.wikimedia.org/wiki/File:Sailing_Yacht_Artic_Wisdom,_Cockpit_and_Companionway.jpg
+cabin.jpg — File:SailboatRearCabin.jpg — Fparrel — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:SailboatRearCabin.jpg
+yacht2.jpg — File:Sailing on Lake Constance (1X7A0062).jpg — Matti Blume — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Sailing_on_Lake_Constance_(1X7A0062).jpg
+saloon.jpg — File:Naga Pelangi cockpit with companion way.jpg — Christoph Swoboda — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Naga_Pelangi_cockpit_with_companion_way.jpg
+deck.jpg — File:Details of a Nordic Folkboat 03.jpg — Kritzolina — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Details_of_a_Nordic_Folkboat_03.jpg
+rivercruiser.jpg — File:Thames Cruiser 1973 (9806201046).jpg — Barry Lewis — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Thames_Cruiser_1973_(9806201046).jpg
+harbour.jpg — File:Lynmouth (Devon, UK), Harbour -- 2013 -- 2.jpg — Dietmar Rabich — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Lynmouth_(Devon,_UK),_Harbour_--_2013_--_2.jpg
+crabber.jpg — File:Le Cornish Crabber Lord Georges (1).JPG — Jean-Pierre Bazard Jpbazard — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Le_Cornish_Crabber_Lord_Georges_(1).JPG

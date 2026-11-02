@@ -2,16 +2,23 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { FittedImage } from "./FittedImage";
+import { derivativeImageUrl, derivativeSrcSet } from "../lib/responsive-image";
 
 export type GuideBrowserItem = {
   slug: string;
   title: string;
   summary: string;
   guideType: string;
+  regionKey: string;
   regionName: string;
   path: string;
   imageUrl: string;
   imageAlt: string;
+  imagePresentation?: "cover" | "contain";
+  imageWidth?: number;
+  imageHeight?: number;
+  imageFocalPoint?: string;
 };
 
 export function GuideCollectionBrowser({
@@ -27,21 +34,29 @@ export function GuideCollectionBrowser({
 }) {
   const [query, setQuery] = useState("");
   const [guideType, setGuideType] = useState(initialGuideType);
+  const [regionKey, setRegionKey] = useState("All");
   const guideTypes = useMemo(
     () => [...new Set(guides.map((guide) => guide.guideType))].sort(),
+    [guides],
+  );
+  const regions = useMemo(
+    () => [...new Map(guides.map((guide) => [guide.regionKey, guide.regionName])).entries()]
+      .filter(([key, name]) => String(key || "").trim() && String(name || "").trim())
+      .sort((left, right) => left[1].localeCompare(right[1])),
     [guides],
   );
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return guides.filter((guide) => {
       const matchesType = guideType === "All" || guide.guideType === guideType;
+      const matchesRegion = regionKey === "All" || guide.regionKey === regionKey;
       const matchesQuery = !needle
         || `${guide.title} ${guide.summary} ${guide.guideType} ${guide.regionName}`
           .toLowerCase()
           .includes(needle);
-      return matchesType && matchesQuery;
+      return matchesType && matchesRegion && matchesQuery;
     });
-  }, [guideType, guides, query]);
+  }, [guideType, guides, query, regionKey]);
 
   return (
     <section className="guide-browser" id="guide-library" aria-labelledby="guide-browser-title">
@@ -61,6 +76,13 @@ export function GuideCollectionBrowser({
           />
         </label>
         <label>
+          <span>Choose a cruising area</span>
+          <select value={regionKey} onChange={(event) => setRegionKey(event.target.value)}>
+            <option value="All">All cruising areas</option>
+            {regions.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+          </select>
+        </label>
+        <label>
           <span>Browse by Guide type</span>
           <select value={guideType} onChange={(event) => setGuideType(event.target.value)}>
             <option value="All">All published types</option>
@@ -69,21 +91,38 @@ export function GuideCollectionBrowser({
         </label>
       </div>
       <p className="guide-browser-status" aria-live="polite">
-        {guideType === "All" ? "The published library" : guideType} · {filtered.length} {filtered.length === 1 ? "Guide" : "Guides"}
+        {regionKey === "All" ? "The published library" : regions.find(([key]) => key === regionKey)?.[1]}
+        {guideType === "All" ? "" : ` · ${guideType}`} · {filtered.length} {filtered.length === 1 ? "Guide" : "Guides"}
       </p>
       {filtered.length ? (
         <>
           <div className="guide-card-grid">
-            {filtered.map((guide) => (
+            {filtered.map((guide) => {
+              const imageSrc = derivativeImageUrl(guide.imageUrl, 768);
+              return (
               <article className="guide-card" key={guide.slug}>
                 <Link className="guide-card-image" href={guide.path}>
-                  <img
+                  {imageSrc && guide.imagePresentation === "contain" ? (
+                    <FittedImage
+                      alt={guide.imageAlt}
+                      className="guide-card-fit"
+                      focalPoint={guide.imageFocalPoint}
+                      height={guide.imageHeight}
+                      presentation="contain"
+                      sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                      slot="guide-card"
+                      src={imageSrc}
+                      srcSet={derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined}
+                      width={guide.imageWidth}
+                    />
+                  ) : imageSrc ? <img
                     alt={guide.imageAlt}
                     decoding="async"
                     loading="lazy"
                     sizes="(max-width: 640px) calc(100vw - 40px), 360px"
-                    src={guide.imageUrl}
-                  />
+                    src={imageSrc}
+                    srcSet={derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined}
+                  /> : null}
                 </Link>
                 <div>
                   <p className="eyebrow">{guide.guideType}</p>
@@ -91,7 +130,8 @@ export function GuideCollectionBrowser({
                   <p>{guide.summary}</p>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
           {guideType !== "All" && filtered.length < 2 ? (
             <p className="guide-collection-growth">

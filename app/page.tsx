@@ -1,22 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdBlock, pickAdvertForPlacement } from "../components/AdBlock";
+import { AdBlock, isOffTopicInvestorAdvert, pickAdvertForPlacement } from "../components/AdBlock";
+import { NewsletterSignup } from "../components/NewsletterSignup";
+import { FittedImage } from "../components/FittedImage";
 import { ResponsiveStoryImage } from "../components/ResponsiveStoryImage";
+import { BoatsForSaleTeaser } from "../components/BoatsForSaleTeaser";
+import { MobileAppHome } from "../components/MobileAppHome";
+import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import {
-  categoryMatchesLabel,
   displayCategoryLabel,
   oldSeaDogsSections,
 } from "../content/sections";
-import { formatDate } from "../content/stories";
+import { storyListingDateLabel } from "../lib/story-header-date";
 import { isLogoLikeStoryImage } from "../content/story-images";
+import { dedupeCredit } from "../lib/image-fit";
+import { presentationForImage, presentationForStories } from "../lib/image-presentation";
 import { HomepageContentProvider } from "../lib/homepage-content-provider";
-import { guidePublicPath } from "../lib/guides";
+import { isGalleryPublicRolloutEnabled } from "../lib/gallery-public.js";
+import { guideAreaCountLabel, guidePublicPath, homepageGuideHighlights } from "../lib/guides";
+import { readImageSize } from "../lib/image-derivatives";
+import { publicMediaVariantUrl } from "../lib/public-media";
+import { derivativeImageUrl, derivativeSrcSet, mobileSourceSrcSet, resizedPublicImageUrl } from "../lib/responsive-image";
 import {
   getActiveAds,
-  getHomepageGuides,
+  getPublishedGuides,
   getPublishedStories,
   getSiteSettings,
   hasStoryPhoto,
@@ -37,25 +47,14 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-// Keep the magazine homepage navigation aligned with the live site. Guides
-// enter through the single editorial promotion below rather than expanding
-// this already dense masthead.
-const sections = oldSeaDogsSections.map((section) => ({
-  href: `/${section.slug}`,
-  label: section.label,
-}));
-
 function GuidePromoBand({
+  guideFrames,
   guides,
 }: {
-  guides: Awaited<ReturnType<typeof getHomepageGuides>>;
+  guideFrames: Awaited<ReturnType<typeof presentationForStories>>;
+  guides: Awaited<ReturnType<typeof getPublishedGuides>>;
 }) {
-  const featuredSlugs = ["the-solent", "river-hamble", "hamble-point-marina"];
-  const featuredGuides = featuredSlugs.flatMap((slug) => {
-    const guide = guides.find((item) => item.slug === slug);
-    return guide ? [guide] : [];
-  });
-  if (featuredGuides.length === 0) return null;
+  const { areas, recent } = homepageGuideHighlights(guides);
 
   return (
     <section className="homepage-guides-promo" aria-labelledby="homepage-guides-title">
@@ -70,16 +69,60 @@ function GuidePromoBand({
           Explore All Guides
         </Link>
       </div>
-      <div className="homepage-guides-list" aria-label="Featured Old Sea Dogs Guides">
-        {featuredGuides.map((guide, index) => (
-          <Link href={guidePublicPath(guide)} key={guide.slug}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <strong>{guide.title}</strong>
-            <small>{guide.guideType} Guide</small>
-            <span aria-hidden="true">→</span>
-          </Link>
-        ))}
+      <div className="homepage-guides-panel">
+        {areas.length ? (
+          <div className="homepage-guides-list" aria-label="Cruising areas">
+            {areas.map((area, index) => (
+              <Link href={area.path} key={area.key}>
+                <span className="homepage-guide-number">{String(index + 1).padStart(2, "0")}</span>
+                <strong className="homepage-guide-title">{area.name}</strong>
+                <small className="homepage-guide-type">{guideAreaCountLabel(area.guideCount)}</small>
+                <span className="homepage-guide-arrow" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        ) : null}
       </div>
+      {recent.length ? (
+        <div className="homepage-guides-recent">
+          <p className="eyebrow">Recently added</p>
+          <div className="homepage-guides-recent-grid">
+            {recent.map((guide, index) => {
+              const imageSrc = resizedPublicImageUrl(guide.imageUrl, 768);
+              const frame = guideFrames[index];
+              const contain = frame?.presentation === "contain";
+              return (
+                <Link href={guidePublicPath(guide)} key={guide.slug}>
+                  {imageSrc && contain ? (
+                    <FittedImage
+                      alt={guide.imageAlt || guide.title}
+                      className="homepage-guide-fit"
+                      focalPoint={frame?.focalPoint}
+                      height={frame?.height}
+                      presentation="contain"
+                      sizes="(min-width: 1025px) 280px, (min-width: 640px) 46vw, 70vw"
+                      slot="guide-card"
+                      src={imageSrc}
+                      srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                      width={frame?.width}
+                    />
+                  ) : imageSrc ? (
+                    <img
+                      alt={guide.imageAlt || guide.title}
+                      decoding="async"
+                      loading="lazy"
+                      sizes="(min-width: 1025px) 280px, (min-width: 640px) 46vw, 70vw"
+                      src={imageSrc}
+                      srcSet={imageSrc.startsWith("/img/") ? derivativeSrcSet(guide.imageUrl, [480, 768]) || undefined : undefined}
+                    />
+                  ) : null}
+                  <strong>{guide.title}</strong>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -89,26 +132,27 @@ function EditorCredibilityBand() {
     <section className="editor-credibility-band" aria-labelledby="editor-credibility-title">
       <div>
         <p className="eyebrow">Edited by Michael Hodges</p>
-        <h2 id="editor-credibility-title">A practical Solent eye on boating stories</h2>
+        <h2 id="editor-credibility-title">
+          For people who love boats, sailing and life on the water
+        </h2>
         <p>
-          Old Sea Dogs is being tightened around attributed sources, corrections,
-          image credits, practical notes and Michael&apos;s own boating judgement:
-          RYA Day Skipper, Powerboat Level 2, years around Cowes and the Hamble,
-          and a taste for details that survive contact with the tide.
+          An independent magazine for everyone who loves boats, sailing and life on the water. Edited by Michael Hodges.
         </p>
-      </div>
-      <div className="editor-credibility-links">
-        <Link href="/about">About Michael</Link>
-        <Link href="/authors/michael-hodges">Author profile</Link>
-        <Link href="/editorial-standards">Editorial standards</Link>
+        <div className="editor-credibility-links">
+          <Link href="/about">About Michael</Link>
+          <Link href="/authors/michael-hodges">Author profile</Link>
+          <Link href="/editorial-standards">Editorial standards</Link>
+        </div>
       </div>
     </section>
   );
 }
 
 function EditorsPicksBand({
+  frames,
   stories,
 }: {
+  frames: Awaited<ReturnType<typeof presentationForStories>>;
   stories: Awaited<ReturnType<typeof getPublishedStories>>;
 }) {
   if (stories.length === 0) return null;
@@ -124,8 +168,9 @@ function EditorsPicksBand({
         </p>
       </div>
       <div className="feature-cards">
-        {stories.slice(0, 4).map((story) => {
+        {stories.slice(0, 4).map((story, index) => {
           const storyHasPhoto = hasStoryPhoto(story);
+          const frame = frames[index];
           return (
             <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
               <Link className="compact-card-link" href={`/stories/${story.slug}`}>
@@ -133,8 +178,14 @@ function EditorsPicksBand({
                   <ResponsiveStoryImage
                     alt={story.imageAlt || story.title}
                     className="compact-image"
+                    focalPoint={frame?.focalPoint}
+                    height={frame?.height}
+                    presentation={frame?.presentation}
+                    probe={frame?.probe}
                     sizes="(max-width: 640px) calc(100vw - 40px), 290px"
+                    slot="compact"
                     src={story.imageUrl}
+                    width={frame?.width}
                   />
                 ) : null}
                 <div>
@@ -152,11 +203,11 @@ function EditorsPicksBand({
 }
 
 export default async function Home() {
-  const [stories, settings, ads, homepageGuides] = await Promise.all([
+  const [stories, settings, ads, publishedGuides] = await Promise.all([
     getPublishedStories(),
     getSiteSettings(),
     getActiveAds(),
-    getHomepageGuides(),
+    getPublishedGuides(),
   ]);
   const {
     featuredStory,
@@ -169,54 +220,129 @@ export default async function Home() {
   } = new HomepageContentProvider(stories, settings).getContent();
   const bannerAd = pickAdvertForPlacement(ads, "banner");
   const featuredClubAd = pickAdvertForPlacement(ads, "homepage-featured-club");
+  // Featured Club band was removed from the homepage on 29 Oct 2026. Keep the investor-ad guard so that slot cannot return.
+  const visibleFeaturedClubAd = featuredClubAd && !isOffTopicInvestorAdvert(featuredClubAd) ? featuredClubAd : null;
+  void visibleFeaturedClubAd;
   const sidebarAds = ads
     .filter((ad) => ad.placement === "homepage-sidebar" || ad.placement === "sidebar")
+    .filter((ad) => !isOffTopicInvestorAdvert(ad))
     .slice(0, 2);
   const homepageBottomAd = pickAdvertForPlacement(ads, "homepage-bottom");
+  const visibleHomepageBottomAd =
+    homepageBottomAd && !isOffTopicInvestorAdvert(homepageBottomAd) ? homepageBottomAd : null;
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
+  const heroSize = featuredHasPhoto ? await readImageSize(featuredStory.imageUrl).catch(() => null) : null;
+  const recentGuides = homepageGuideHighlights(publishedGuides).recent;
+  const [heroFrame, latestFrames, pickFrames, reviewFrames, sectionFrames, recentGuideFrames] = await Promise.all([
+    featuredHasPhoto
+      ? presentationForImage({
+          url: featuredStory.imageUrl,
+          slot: "hero",
+          fit: featuredStory.imageFit,
+          focalPoint: featuredStory.imageFocalPoint,
+          alt: featuredStory.imageAlt,
+          caption: featuredStory.imageCaption,
+          category: featuredStory.category,
+          slug: featuredStory.slug,
+        })
+      : Promise.resolve(null),
+    presentationForStories(latestReviewedOrFallback, "story-card"),
+    presentationForStories(editorPicks.slice(0, 4), "compact"),
+    presentationForStories([...reviewStories, ...practicalStories].slice(0, 2), "compact"),
+    presentationForStories(sectionCards.map((section) => section.photo || { imageUrl: "" }), "section-thumb"),
+    presentationForStories(recentGuides, "guide-card"),
+  ]);
+  const heroContain = heroFrame?.presentation === "contain";
 
   return (
     <main className="site-shell">
-      <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}`}>
-        {featuredHasPhoto ? (
-          <ResponsiveStoryImage
+      <SiteHeader />
+      <MobileAppHome
+        bannerAd={bannerAd}
+        bottomAd={visibleHomepageBottomAd}
+        content={{
+          featuredStory,
+          latestReviewedOrFallback,
+          editorPicks,
+          reviewStories,
+          practicalStories,
+          featuredPortClub,
+          sectionCards,
+        }}
+        galleryPublic={isGalleryPublicRolloutEnabled(settings.galleryPublicRollout)}
+        guides={publishedGuides}
+        heroSize={heroSize}
+      />
+      <header className={`hero ${featuredHasPhoto ? "" : "no-hero-photo"}${heroContain ? " is-contain" : ""}`}>
+        <Link
+          aria-label={`Read ${featuredStory.title}`}
+          className="mobile-lead-story-link"
+          href={`/stories/${featuredStory.slug}`}
+          prefetch={true}
+        />
+        {heroContain && heroFrame ? (
+          <FittedImage
             alt={featuredStory.imageAlt || featuredStory.title}
             className="hero-image"
             eager
+            focalPoint={heroFrame.focalPoint}
+            height={heroFrame.height || heroSize?.height}
+            presentation="contain"
             sizes="100vw"
-            src={featuredStory.imageUrl}
-          />
+            slot="hero"
+            src={derivativeImageUrl(featuredStory.imageUrl, 1600)}
+            srcSet={derivativeSrcSet(featuredStory.imageUrl, [768, 1200, 1600]) || undefined}
+            width={heroFrame.width || heroSize?.width}
+          >
+            {featuredStory.imageCredit ? (
+              <div className="hero-credit">{dedupeCredit(featuredStory.imageCredit)}</div>
+            ) : null}
+          </FittedImage>
+        ) : featuredHasPhoto ? (
+          <picture className="hero-image">
+            <source
+              media="(max-width: 1024px)"
+              sizes="100vw"
+              srcSet={mobileSourceSrcSet(featuredStory.imageUrl, publicMediaVariantUrl(featuredStory.imageUrl, "mobile"))}
+            />
+            <img
+              alt={featuredStory.imageAlt || featuredStory.title}
+              decoding="async"
+              fetchPriority="high"
+              height={heroSize?.height}
+              loading="eager"
+              sizes="100vw"
+              src={derivativeImageUrl(featuredStory.imageUrl, 1600)}
+              srcSet={derivativeSrcSet(featuredStory.imageUrl, [768, 1200, 1600]) || undefined}
+              width={heroSize?.width}
+            />
+          </picture>
         ) : null}
-        {featuredHasPhoto && featuredStory.imageCredit ? (
-          <div className="hero-credit">{featuredStory.imageCredit}</div>
+        {featuredHasPhoto && !heroContain && featuredStory.imageCredit ? (
+          <div className="hero-credit">{dedupeCredit(featuredStory.imageCredit)}</div>
         ) : null}
         <div className="hero-scrim" />
-        <nav className="topbar" aria-label="Primary navigation">
-          <Link href="/" className="brand-lockup" aria-label="Old Sea Dogs home">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>Old Sea Dogs</span>
-          </Link>
-          <div className="nav-links">
-            {sections.map((section) => (
-              <a key={section.label} href={section.href}>
-                {section.label}
-              </a>
-            ))}
-            <Link href="/search">Search</Link>
-          </div>
-        </nav>
-
         <section className="hero-content" aria-labelledby="site-title">
           <p className="eyebrow">{settings.kicker}</p>
           <h1 id="site-title">{settings.brandName}</h1>
           <p className="hero-summary">{featuredStory.summary}</p>
           <div className="hero-actions">
-            <Link href={`/stories/${featuredStory.slug}`} className="button-primary">
+            <Link href={`/stories/${featuredStory.slug}`} className="button-primary" prefetch={true}>
               Read the lead story
             </Link>
             <a href="#latest" className="button-secondary">
               Latest dispatches
             </a>
+          </div>
+        </section>
+        <section className="mobile-hero-content" aria-labelledby="mobile-lead-title">
+          <p className="eyebrow">{displayCategoryLabel(featuredStory.category)}</p>
+          <h2 id="mobile-lead-title">{featuredStory.title}</h2>
+          <p>{featuredStory.summary}</p>
+          <div className="mobile-story-meta">
+            <span>{storyListingDateLabel(featuredStory)}</span>
+            <span>{featuredStory.readMinutes} min read</span>
+            <span>{featuredStory.author}</span>
           </div>
         </section>
       </header>
@@ -236,71 +362,11 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <GuidePromoBand guides={homepageGuides} />
+      <GuidePromoBand guideFrames={recentGuideFrames} guides={publishedGuides} />
+
+      <BoatsForSaleTeaser />
 
       <EditorCredibilityBand />
-
-      <section
-        className="featured-port-club-band featured-port-club-band--compact"
-        aria-labelledby="featured-port-club-title"
-        data-compact-version="featured-club-ad-compact-v2"
-      >
-        <div className="featured-port-club-layout" data-featured-club-row="compact">
-          {featuredPortClub ? (
-            <article className="featured-port-club-card">
-              <Link
-                href={featuredPortClub.href}
-                className={`featured-port-club-media ${
-                  isLogoLikeStoryImage(featuredPortClub.story) ? "club-logo-media" : ""
-                }`}
-              >
-                <ResponsiveStoryImage
-                  alt={featuredPortClub.imageAlt}
-                  className="featured-port-club-media-image"
-                  sizes="(max-width: 640px) calc(100vw - 30px), 480px"
-                  src={featuredPortClub.imageUrl}
-                />
-                {featuredPortClub.story.imageCredit ? (
-                  <small className="image-credit-chip">
-                    {featuredPortClub.story.imageCredit}
-                  </small>
-                ) : null}
-              </Link>
-              <div className="featured-port-club-copy">
-                <p className="eyebrow">{featuredPortClub.label}</p>
-                <h2 id="featured-port-club-title">
-                  <Link href={featuredPortClub.href}>{featuredPortClub.story.title}</Link>
-                </h2>
-                <p>{featuredPortClub.excerpt}</p>
-                <Link href={featuredPortClub.href} className="button-secondary">
-                  Open {categoryMatchesLabel(featuredPortClub.story.category, "Ports") ? "port" : "club"} page
-                </Link>
-              </div>
-            </article>
-          ) : (
-            <div className="featured-port-club-card featured-port-club-empty">
-              <div className="featured-port-club-copy">
-                <p className="eyebrow">Ports and Clubs</p>
-                <h2 id="featured-port-club-title">Harbour notes for the next passage</h2>
-                <p>
-                  Browse marina stops, clubs and practical shore-side notes from
-                  the Old Sea Dogs archive.
-                </p>
-                <Link href="/ports" className="button-secondary">
-                  Explore ports and clubs
-                </Link>
-              </div>
-            </div>
-          )}
-
-          <AdBlock
-            ad={featuredClubAd}
-            className="featured-port-club-ad"
-            placeholderTitle="Featured Club sponsor space"
-            reserveSpace
-          />
-        </div>
-      </section>
 
       <section className="section-grid lead-section" id="latest">
         <div>
@@ -309,9 +375,10 @@ export default async function Home() {
             <h2>Fresh sailing stories, race notes and waterfront news</h2>
           </div>
           <div className="story-grid">
-            {latestReviewedOrFallback.map((story) => {
+            {latestReviewedOrFallback.map((story, index) => {
               const storyHasPhoto = hasStoryPhoto(story);
-              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+              const frame = latestFrames[index];
+              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story) && frame?.presentation !== "contain";
               return (
                 <article className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`} key={story.slug}>
                   <Link className="story-card-link" href={`/stories/${story.slug}`}>
@@ -319,18 +386,24 @@ export default async function Home() {
                       <ResponsiveStoryImage
                         alt={story.imageAlt || story.title}
                         className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
+                        focalPoint={frame?.focalPoint}
+                        height={frame?.height}
+                        presentation={frame?.presentation}
+                        probe={frame?.probe}
                         sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        slot="story-card"
                         src={story.imageUrl}
+                        width={frame?.width}
                       >
                         {story.imageCredit ? (
-                          <small className="image-credit-chip">{story.imageCredit}</small>
+                          <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                         ) : null}
                       </ResponsiveStoryImage>
                     ) : null}
                     <div className="story-card-body">
                       <div className="story-meta">
                         <span>{displayCategoryLabel(story.category)}</span>
-                        <span>{formatDate(story.date)}</span>
+                        <span>{storyListingDateLabel(story)}</span>
                       </div>
                       <h3>{story.title}</h3>
                       <span className="story-summary-link">
@@ -351,16 +424,22 @@ export default async function Home() {
           <p className="eyebrow">Sections</p>
           <h2>Explore Old Sea Dogs</h2>
           <div className="watch-list section-list">
-            {sectionCards.map((section) => (
+            {sectionCards.map((section, index) => (
               <Link href={`/${section.slug}`} className="section-list-item" key={section.slug}>
                 {section.photo ? (
                   <ResponsiveStoryImage
-                    alt=""
+                    alt={section.label}
                     className={`section-list-image ${
-                      isLogoLikeStoryImage(section.photo) ? "club-logo-image" : ""
+                      isLogoLikeStoryImage(section.photo) && sectionFrames[index]?.presentation !== "contain" ? "club-logo-image" : ""
                     }`}
+                    focalPoint={sectionFrames[index]?.focalPoint}
+                    height={sectionFrames[index]?.height}
+                    presentation={sectionFrames[index]?.presentation}
+                    probe={sectionFrames[index]?.probe}
                     sizes="66px"
+                    slot="section-thumb"
                     src={section.photo.imageUrl}
+                    width={sectionFrames[index]?.width}
                   />
                 ) : (
                   <span className="section-list-image section-list-image--placeholder" aria-hidden="true" />
@@ -378,7 +457,7 @@ export default async function Home() {
         </aside>
       </section>
 
-      <EditorsPicksBand stories={editorPicks} />
+      <EditorsPicksBand frames={pickFrames} stories={editorPicks} />
 
       <section className="feature-band" id="reviews">
         <div className="feature-copy">
@@ -391,8 +470,9 @@ export default async function Home() {
           </p>
         </div>
         <div className="feature-cards">
-          {[...reviewStories, ...practicalStories].slice(0, 2).map((story) => {
+          {[...reviewStories, ...practicalStories].slice(0, 2).map((story, index) => {
             const storyHasPhoto = hasStoryPhoto(story);
+            const frame = reviewFrames[index];
             return (
               <article key={story.slug} className={`compact-card ${storyHasPhoto ? "" : "text-only-story"}`}>
                 <Link className="compact-card-link" href={`/stories/${story.slug}`}>
@@ -400,11 +480,17 @@ export default async function Home() {
                     <ResponsiveStoryImage
                       alt={story.imageAlt || story.title}
                       className="compact-image"
+                      focalPoint={frame?.focalPoint}
+                      height={frame?.height}
+                      presentation={frame?.presentation}
+                      probe={frame?.probe}
                       sizes="(max-width: 640px) calc(100vw - 40px), 290px"
+                      slot="compact"
                       src={story.imageUrl}
+                      width={frame?.width}
                     >
                       {story.imageCredit ? (
-                        <small className="image-credit-chip">{story.imageCredit}</small>
+                        <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                       ) : null}
                     </ResponsiveStoryImage>
                   ) : null}
@@ -426,18 +512,20 @@ export default async function Home() {
 
       <SocialFollowBlock />
 
-      {homepageBottomAd ? (
+      {visibleHomepageBottomAd ? (
         <section className="ad-band footer-ad-band" aria-label="Footer advertisement">
           <p className="ad-band-label">Advertisement</p>
           <AdBlock
-            ad={homepageBottomAd}
+            ad={visibleHomepageBottomAd}
             className="homepage-bottom-ad"
-            ctaLabel="Visit www.aNewFN.com"
-            placeholderTitle="Homepage bottom sponsor space"
             showSponsor
           />
         </section>
       ) : null}
+
+      <div className="newsletter-band">
+        <NewsletterSignup placement="homepage" />
+      </div>
 
       <SiteFooter
         brandName={settings.brandName}

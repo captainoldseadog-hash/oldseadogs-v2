@@ -1,4 +1,6 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { pickScheduledHomepageLead, scheduledStoryWantsHomepageLead } from "./homepage-lead-pick.ts";
+export { pickScheduledHomepageLead, scheduledStoryWantsHomepageLead };
 import { getD1BindingOrNull, getDbOrNull } from "../db";
 import {
   ads,
@@ -15,6 +17,7 @@ import {
   stories as storyRows,
 } from "../db/schema";
 import { oldSeaDogsSocialLinks } from "../content/social-links";
+import { toPublicGalleryPhoto, type PublicGalleryPhoto } from "./gallery-public.js";
 import { sourceWatchSites } from "../content/source-watch";
 import { stories as seedStories } from "../content/stories";
 import {
@@ -25,9 +28,21 @@ import {
 } from "../content/flagship-guides";
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
+import { westCountryGuideSeeds } from "../content/west-country-guides.ts";
+import { westCountrySixGuideSeeds } from "../content/west-country-six-guides.ts";
+import { westCountrySecondWaveGuideSeeds } from "../content/west-country-second-wave-guides.ts";
+import { norfolkBroadsGuideSeeds } from "../content/norfolk-broads-guide.ts";
+import { norfolkBroadsStopGuideSeeds } from "../content/norfolk-broads-stops-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
+import { storyCreatedAt } from "./story-list";
+import { makeStoryManagementIndex } from "./story-management";
+import { publicImageAlt } from "./public-image-alt";
+import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
+import { isRenderableImageReference } from "./responsive-image.ts";
 export { validateGuideInput } from "./guide-validation.ts";
+import { normalizeManagedGuideFields, type ManagedGuideFields } from "./guide-contract.ts";
 import legacyStories from "../content/legacy-stories.json";
+import { isEditoriallyApprovedStatus, isTriageNoindex } from "./story-triage.ts";
 import {
   getSectionForCategory,
   normalizeStoryCategory,
@@ -64,6 +79,8 @@ import {
   type DevelopmentHomepageFixturePolicy,
 } from "./homepage-fixture-policy.js";
 import { isScheduledPublishDue, validateScheduledPublishAt } from "./story-schedule-time";
+import { dedupeCredit, normalizeImageFit } from "./image-fit";
+import { legacyArchiveMethodNotes } from "./public-story-method";
 
 export type EditableStory = {
   id: string;
@@ -83,6 +100,8 @@ export type EditableStory = {
   imageAlt: string;
   imageCredit: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   videoUrl: string;
   videoCaption: string;
   videoPosition: "top" | "after-intro" | "bottom" | "";
@@ -100,6 +119,10 @@ export type EditableStory = {
   status: "draft" | "scheduled" | "published" | "unpublished";
   publishedAt: string;
   scheduledPublishAt: string;
+  /** Schedule → homepage headline: promote to live lead when this story publishes. */
+  promoteToHomepageLead?: boolean;
+  /** Editor unticked 'Make homepage headline' on a scheduled story (default is ON). */
+  homepageLeadOptOut?: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -128,7 +151,7 @@ export type StoryRevision = {
 
 export type GuideStatus = "draft" | "published" | "unpublished";
 
-export type EditableGuide = FlagshipGuide & {
+export type EditableGuide = FlagshipGuide & ManagedGuideFields & {
   internalId: string;
   introduction: string;
   guideType: GuideType;
@@ -140,6 +163,7 @@ export type EditableGuide = FlagshipGuide & {
   author: string;
   contributorCredits: string[];
   imageFocalPoint: string;
+  imageFit: "auto" | "fill" | "contain";
   artworkCredit: string;
   location: {
     latitude?: number;
@@ -184,7 +208,17 @@ export type EditableGuide = FlagshipGuide & {
   }>;
 };
 
-const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides];
+export type GuideRevision = {
+  id: string;
+  guideId: string;
+  snapshot: EditableGuide;
+  actor: string;
+  reason: string;
+  source: "cms" | "skill-import" | "bulk-import";
+  createdAt: string;
+};
+
+const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...westCountrySixGuideSeeds, ...westCountrySecondWaveGuideSeeds, ...norfolkBroadsGuideSeeds, ...norfolkBroadsStopGuideSeeds, ...flagshipGuides];
 const blankGuideSeed: FlagshipGuide = {
   slug: "untitled-guide",
   title: "Untitled Guide",
@@ -290,6 +324,8 @@ export type SiteSettings = {
   siteDescription: string;
   homepageLeadStoryId: string;
   homepageLeadStorySlug: string;
+  homepagePendingLeadStoryId: string;
+  homepagePendingLeadStorySlug: string;
   homepageLatestStoryIds: string;
   homepageEditorsChoiceStoryIds: string;
   homepageHiddenStoryIds: string;
@@ -304,6 +340,7 @@ export type SiteSettings = {
   defaultSocialImageMediaId: string;
   homepageSocialImageUrl: string;
   mediaCollectionsJson: string;
+  galleryPublicRollout: string;
 };
 
 export type SocialEvent = typeof socialEvents.$inferSelect;
@@ -330,6 +367,8 @@ export const defaultSettings: SiteSettings = {
     "Boating, yachting, boat reviews, and practical sea stories from Old Sea Dogs.",
   homepageLeadStoryId: "",
   homepageLeadStorySlug: "",
+  homepagePendingLeadStoryId: "",
+  homepagePendingLeadStorySlug: "",
   homepageLatestStoryIds: "[]",
   homepageEditorsChoiceStoryIds: "[]",
   homepageHiddenStoryIds: "[]",
@@ -344,6 +383,7 @@ export const defaultSettings: SiteSettings = {
   defaultSocialImageMediaId: "",
   homepageSocialImageUrl: "",
   mediaCollectionsJson: "[]",
+  galleryPublicRollout: "false",
 };
 
 const defaultGalleryCategoryNames = [
@@ -413,7 +453,7 @@ type RuntimeNodeProcessLike = {
   };
 };
 
-type LocalEditorStore = {
+export type LocalEditorStore = {
   version: 1;
   stories: EditableStory[];
   guides: EditableGuide[];
@@ -428,6 +468,7 @@ type LocalEditorStore = {
   blockedSenders: PressReleaseBlockedSender[];
   publicationOverrides: PublicationOverrideLog[];
   storyRevisions: StoryRevision[];
+  guideRevisions: GuideRevision[];
   updatedAt: string;
 };
 
@@ -508,6 +549,7 @@ function emptyLocalEditorStore(): LocalEditorStore {
     blockedSenders: [],
     publicationOverrides: [],
     storyRevisions: [],
+    guideRevisions: [],
     updatedAt: nowIso(),
   };
 }
@@ -553,7 +595,7 @@ async function readLocalEditorStoreUncached(): Promise<LocalEditorStore> {
     return {
       version: 1,
       stories: Array.isArray(parsed.stories) ? parsed.stories.map(normalizeStoredStory) : [],
-      guides: Array.isArray(parsed.guides) ? mergeLocalGuidesWithStatic(parsed.guides.map(normalizeStoredGuide)) : [],
+      guides: Array.isArray(parsed.guides) ? parsed.guides.map(normalizeStoredGuide) : [],
       media: Array.isArray(parsed.media) ? parsed.media.map(normalizeMediaAsset) : [],
       galleryCategories: Array.isArray(parsed.galleryCategories) && parsed.galleryCategories.length > 0 ? parsed.galleryCategories : defaultGalleryCategories(),
       galleryItems: Array.isArray(parsed.galleryItems) ? parsed.galleryItems.map(normalizeGalleryItem) : [],
@@ -570,6 +612,9 @@ async function readLocalEditorStoreUncached(): Promise<LocalEditorStore> {
         : [],
       storyRevisions: Array.isArray(parsed.storyRevisions)
         ? parsed.storyRevisions.map(normalizeStoryRevision).filter((revision): revision is StoryRevision => Boolean(revision))
+        : [],
+      guideRevisions: Array.isArray(parsed.guideRevisions)
+        ? parsed.guideRevisions.map(normalizeGuideRevision).filter((revision): revision is GuideRevision => Boolean(revision))
         : [],
       updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : nowIso(),
     };
@@ -887,7 +932,7 @@ async function updateLocalEditorStoreUnlocked(
   return nextStore;
 }
 
-async function updateLocalEditorStore(
+export async function updateLocalEditorStore(
   mutator: (store: LocalEditorStore) => LocalEditorStore | Promise<LocalEditorStore>,
   lockAlreadyHeld = false
 ) {
@@ -955,9 +1000,19 @@ export function isPublicStoryNow(
 }
 
 function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
-  const stamp = nowIso();
   const status = normalizeStoryStatus(String(story.status || "published"));
-  const createdAt = story.createdAt || stamp;
+  const createdAt = storyCreatedAt({
+    id: String(story.id || "legacy-story"),
+    slug: story.slug,
+    status,
+    editorialStatus: story.editorialStatus,
+    createdAt: story.createdAt,
+    updatedAt: story.updatedAt,
+    publishedAt: story.publishedAt,
+    scheduledPublishAt: story.scheduledPublishAt,
+    date: story.date,
+    statusHistory: story.statusHistory,
+  });
   const publishedAt =
     status === "published"
       ? story.publishedAt || story.updatedAt || createdAt
@@ -984,8 +1039,10 @@ function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
     originalSourceContent: story.originalSourceContent || "",
     imageUrl: story.imageUrl || "",
     imageAlt: story.imageAlt || story.title || "Old Sea Dogs story image",
-    imageCredit: story.imageCredit || "",
+    imageCredit: dedupeCredit(story.imageCredit || ""),
     imageCaption: story.imageCaption || "",
+    imageFit: normalizeImageFit(story.imageFit),
+    imageFocalPoint: String(story.imageFocalPoint || ""),
     videoUrl: story.videoUrl || "",
     videoCaption: story.videoCaption || "",
     videoPosition: story.videoPosition === "top" || story.videoPosition === "after-intro" || story.videoPosition === "bottom"
@@ -1005,6 +1062,8 @@ function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
     status,
     publishedAt,
     scheduledPublishAt: story.scheduledPublishAt || "",
+    promoteToHomepageLead: Boolean(story.promoteToHomepageLead),
+    homepageLeadOptOut: Boolean(story.homepageLeadOptOut),
     sortOrder: Number(story.sortOrder || 0),
     createdAt,
     updatedAt: story.updatedAt || createdAt,
@@ -1076,6 +1135,11 @@ function guideAnchor(value: string) {
   return makeSlug(value) || "guide-section";
 }
 
+function optionalGuideSlug(value: unknown) {
+  const candidate = String(value || "").trim();
+  return candidate ? makeSlug(candidate) : "";
+}
+
 function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide {
   const editable: EditableGuide = {
     ...guide,
@@ -1090,6 +1154,7 @@ function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide
     author: guide.author || "Michael Hodges",
     contributorCredits: guide.contributorCredits || [],
     imageFocalPoint: guide.imageFocalPoint || "50% 50%",
+    imageFit: normalizeImageFit((guide as { imageFit?: string }).imageFit),
     artworkCredit: guide.artworkCredit || "",
     location: guide.location || {},
     relatedGuideSlugs: guide.relatedGuideSlugs || [],
@@ -1117,7 +1182,7 @@ function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide
     imageCaption: guide.imageCaption || "",
     imageCredit: guide.imageCredit || "",
     featuredMediaId: "",
-    inlineImages: [],
+    inlineImages: (guide.inlineImages || []).map((image) => ({ ...image })),
   };
   if (guideWordCount(editable) < guideMinimumWordCount(editable)) {
     editable.status = "draft";
@@ -1162,7 +1227,7 @@ function normalizeGuideSections(value: unknown): EditableGuide["sections"] {
           : [],
       };
     })
-    .filter((section) => section.heading && section.body.length > 0);
+    .filter((section) => section.heading && (section.body.length > 0 || section.links.length > 0 || section.listItems.length > 0));
 }
 
 function normalizeGuideFacts(value: unknown): EditableGuide["quickFacts"] {
@@ -1191,18 +1256,20 @@ function normalizeGuideLinks(value: unknown): EditableGuide["sourceLinks"] {
     .filter((source) => source.label && source.href);
 }
 
-function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): EditableGuide {
+export function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): EditableGuide {
   const matchedSeed = guideSeeds.find((item) => item.slug === guide.slug);
   const staticMatch = matchedSeed
     ?? (guide.internalId ? blankGuideSeed : guideSeeds[index] ?? guideSeeds[0]);
   const seedIndex = guideSeeds.findIndex((item) => item.slug === staticMatch.slug);
   const fallback = staticGuideDefaults(staticMatch, seedIndex >= 0 ? seedIndex : index);
+  const managed = normalizeManagedGuideFields(guide);
   const sections = normalizeGuideSections(guide.sections).length > 0 ? normalizeGuideSections(guide.sections) : fallback.sections;
   const checklist = Array.isArray(guide.checklist)
     ? guide.checklist.map((item) => cleanPressReleaseText(String(item || ""))).filter(Boolean)
     : fallback.checklist;
   const next: EditableGuide = {
     ...fallback,
+    ...managed,
     internalId: String(guide.internalId || fallback.internalId),
     slug: guide.slug || fallback.slug,
     title: cleanPressReleaseHeadline(guide.title || fallback.title),
@@ -1215,16 +1282,17 @@ function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): Editabl
     regionKey: makeSlug(guide.regionKey || fallback.regionKey),
     regionName: cleanPressReleaseHeadline(guide.regionName || fallback.regionName),
     subregion: cleanPressReleaseHeadline(guide.subregion || fallback.subregion),
-    parentGuideSlug: makeSlug(guide.parentGuideSlug || fallback.parentGuideSlug),
+    parentGuideSlug: optionalGuideSlug(guide.parentGuideSlug || fallback.parentGuideSlug),
     editorialOrder: Math.max(0, Number(guide.editorialOrder ?? fallback.editorialOrder)),
     author: cleanPressReleaseHeadline(guide.author || fallback.author),
     contributorCredits: Array.isArray(guide.contributorCredits)
       ? guide.contributorCredits.map((item) => cleanPressReleaseHeadline(String(item))).filter(Boolean)
       : fallback.contributorCredits,
     updatedAt: guide.updatedAt || fallback.updatedAt,
-    imageUrl: String(guide.imageUrl || fallback.imageUrl).trim(),
-    imageAlt: cleanPressReleaseHeadline(guide.imageAlt || fallback.imageAlt),
+    imageUrl: String(guide.imageUrl !== undefined ? guide.imageUrl : fallback.imageUrl).trim(),
+    imageAlt: cleanPressReleaseHeadline(guide.imageAlt !== undefined ? guide.imageAlt : fallback.imageAlt),
     imageFocalPoint: String(guide.imageFocalPoint || fallback.imageFocalPoint).trim(),
+    imageFit: normalizeImageFit(guide.imageFit || fallback.imageFit),
     artworkCredit: cleanPressReleaseHeadline(guide.artworkCredit || fallback.artworkCredit),
     quickFacts: normalizeGuideFacts(guide.quickFacts).length > 0 ? normalizeGuideFacts(guide.quickFacts) : fallback.quickFacts,
     sections,
@@ -1295,11 +1363,27 @@ function normalizeStoredGuide(guide: Partial<EditableGuide>, index = 0): Editabl
   return next;
 }
 
+function normalizeGuideRevision(item: Partial<GuideRevision>): GuideRevision | null {
+  if (!item || typeof item !== "object" || !item.snapshot || typeof item.snapshot !== "object") return null;
+  const snapshot = normalizeStoredGuide(item.snapshot);
+  const guideId = String(item.guideId || snapshot.id || snapshot.internalId || "");
+  if (!guideId) return null;
+  return {
+    id: String(item.id || makeId("guide-revision")),
+    guideId,
+    snapshot,
+    actor: cleanPressReleaseHeadline(String(item.actor || "Bridge editor")),
+    reason: cleanPressReleaseText(String(item.reason || "Guide edit")),
+    source: item.source === "skill-import" || item.source === "bulk-import" ? item.source : "cms",
+    createdAt: String(item.createdAt || nowIso()),
+  };
+}
+
 function staticGuideRows() {
   return guideSeeds.map(staticGuideDefaults);
 }
 
-function mergeLocalGuidesWithStatic(localGuides: Partial<EditableGuide>[] = []) {
+export function mergeLocalGuidesWithStatic(localGuides: Partial<EditableGuide>[] = []) {
   const localBySlug = new Map(localGuides.map((guide, index) => [String(guide.slug || guideSeeds[index]?.slug || ""), normalizeStoredGuide(guide, index)]));
   const merged = staticGuideRows().map((guide, index) => {
     const local = localBySlug.get(guide.slug);
@@ -1441,6 +1525,8 @@ export async function ensureContentSchema() {
           status text DEFAULT 'published' NOT NULL,
           published_at text DEFAULT '' NOT NULL,
           scheduled_publish_at text DEFAULT '' NOT NULL,
+          promote_to_homepage_lead integer DEFAULT 0 NOT NULL,
+          homepage_lead_opt_out integer DEFAULT 0 NOT NULL,
           sort_order integer DEFAULT 0 NOT NULL,
           created_at text NOT NULL,
           updated_at text NOT NULL
@@ -1493,6 +1579,12 @@ export async function ensureContentSchema() {
         "ALTER TABLE stories ADD image_caption text DEFAULT '' NOT NULL"
       );
       await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD image_fit text DEFAULT 'auto' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD image_focal_point text DEFAULT '' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
         "ALTER TABLE stories ADD video_url text DEFAULT '' NOT NULL"
       );
       await runOptionalSchemaStatement(
@@ -1524,6 +1616,12 @@ export async function ensureContentSchema() {
       );
       await runOptionalSchemaStatement(
         "ALTER TABLE stories ADD scheduled_publish_at text DEFAULT '' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD promote_to_homepage_lead integer DEFAULT 0 NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD homepage_lead_opt_out integer DEFAULT 0 NOT NULL"
       );
       await runSchemaStatement(
         `CREATE TABLE IF NOT EXISTS media_assets (
@@ -1565,6 +1663,8 @@ export async function ensureContentSchema() {
         "ALTER TABLE media_assets ADD web_key text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD width integer DEFAULT 0 NOT NULL",
         "ALTER TABLE media_assets ADD height integer DEFAULT 0 NOT NULL",
+        "ALTER TABLE media_assets ADD image_fit text DEFAULT 'auto' NOT NULL",
+        "ALTER TABLE media_assets ADD focal_point text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD poster_media_id text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD external_url text DEFAULT '' NOT NULL",
         "ALTER TABLE media_assets ADD description text DEFAULT '' NOT NULL",
@@ -1765,6 +1865,8 @@ function normalizeMediaAsset(input: Partial<MediaAsset>): MediaAsset {
     webKey: String(input.webKey || ""),
     width: Number(input.width || 0),
     height: Number(input.height || 0),
+    imageFit: normalizeImageFit(input.imageFit),
+    focalPoint: String(input.focalPoint || ""),
     posterMediaId: String(input.posterMediaId || ""),
     externalUrl: String(input.externalUrl || ""),
     description: String(input.description || input.alt || ""),
@@ -1826,8 +1928,10 @@ function rowToStory(row: typeof storyRows.$inferSelect): EditableStory {
     originalSourceContent: row.originalSourceContent ?? "",
     imageUrl: row.imageUrl,
     imageAlt: row.imageAlt,
-    imageCredit: row.imageCredit ?? "",
+    imageCredit: dedupeCredit(row.imageCredit ?? ""),
     imageCaption: row.imageCaption ?? "",
+    imageFit: normalizeImageFit(row.imageFit),
+    imageFocalPoint: String(row.imageFocalPoint || ""),
     videoUrl: row.videoUrl ?? "",
     videoCaption: row.videoCaption ?? "",
     videoPosition: row.videoPosition === "top" || row.videoPosition === "after-intro" || row.videoPosition === "bottom"
@@ -1847,6 +1951,8 @@ function rowToStory(row: typeof storyRows.$inferSelect): EditableStory {
     status,
     publishedAt,
     scheduledPublishAt: row.scheduledPublishAt || "",
+    promoteToHomepageLead: Boolean(row.promoteToHomepageLead),
+    homepageLeadOptOut: Boolean(row.homepageLeadOptOut),
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -2051,7 +2157,7 @@ function pressReleaseStoryInput(item: PressReleaseEmail, status: "draft" | "publ
     methodNotes: "Email text cleaned for boilerplate, duplicate wording and promotional claims, then edited for Old Sea Dogs readers before publication.",
     contentBasis: "Press release",
     editorialStatus: "Needs improvement",
-    noindex: true,
+    noindex: false,
     imageUrl: imageFields.imageUrl,
     imageAlt: imageFields.imageAlt,
     imageCredit: imageFields.imageCredit,
@@ -2112,6 +2218,8 @@ function seedToStoryRow(
     imageAlt: story.imageAlt,
     imageCredit: "",
     imageCaption: "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     oldSeaDogsView: "",
     sourceNotes: story.sourceName || "Old Sea Dogs static story archive.",
     methodNotes: "Seed story carried in source-controlled editorial content.",
@@ -2202,8 +2310,10 @@ function homepageSnapshotToStory(
     originalSourceContent: "",
     imageUrl: story.imageUrl,
     imageAlt: story.imageAlt,
-    imageCredit: story.imageCredit,
+    imageCredit: dedupeCredit(story.imageCredit),
     imageCaption: story.imageCaption,
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
@@ -2246,14 +2356,16 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
     originalSourceContent: "",
     imageUrl: story.imageUrl || "",
     imageAlt: story.imageAlt || story.title,
-    imageCredit: story.imageCredit || "",
+    imageCredit: dedupeCredit(story.imageCredit || ""),
     imageCaption: story.imageCaption || "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
     oldSeaDogsView: "",
     sourceNotes: story.sourceName || "Old Sea Dogs legacy archive.",
-    methodNotes: "Legacy archive story retained for continuity and queued for editorial audit.",
+    methodNotes: legacyArchiveMethodNotes,
     contentBasis: "Old Sea Dogs archive",
     editorialStatus: "Needs improvement",
     noindex: false,
@@ -2273,7 +2385,8 @@ function legacyToStory(story: LegacyStoryRecord, index: number): EditableStory {
 }
 
 export function hasStoryPhoto(story: Pick<EditableStory, "imageUrl">) {
-  return !placeholderStoryImages.has(story.imageUrl.trim());
+  const imageUrl = story.imageUrl.trim();
+  return isRenderableImageReference(imageUrl) && !placeholderStoryImages.has(imageUrl);
 }
 
 function storyBodyWordCount(story: Pick<EditableStory, "body">) {
@@ -2281,8 +2394,7 @@ function storyBodyWordCount(story: Pick<EditableStory, "body">) {
 }
 
 export function isEditoriallyApprovedStory(story: Pick<EditableStory, "editorialStatus">) {
-  const status = story.editorialStatus.trim().toLowerCase();
-  return status === "ready" || status === "keep live";
+  return isEditoriallyApprovedStatus(story.editorialStatus);
 }
 
 export function isWeakEditorialStory(story: Pick<
@@ -2323,25 +2435,17 @@ export function isWeakEditorialStory(story: Pick<
 
 export function isStorySearchIndexable(story: Pick<
   EditableStory,
-  | "title"
-  | "category"
-  | "sourceType"
-  | "sourceName"
-  | "sourceNotes"
-  | "imageUrl"
-  | "imageCredit"
-  | "oldSeaDogsView"
-  | "body"
-  | "editorialStatus"
   | "status"
   | "publishedAt"
   | "scheduledPublishAt"
   | "noindex"
+  | "slug"
+  | "editorialStatus"
 >) {
-  if (!isPublicStoryNow(story)) return false;
-  if (story.noindex) return false;
+  if (!isPublicStoryNow(story) || story.noindex) return false;
   if (isEditoriallyApprovedStory(story)) return true;
-  return !isWeakEditorialStory(story);
+  if (isTriageNoindex(story.slug)) return false;
+  return true;
 }
 
 export function isPromotedStory(story: Pick<EditableStory, "sortOrder">) {
@@ -2723,13 +2827,15 @@ export async function publishDueScheduledStories() {
       .filter((story) => story.status === "scheduled" && Number.isFinite(Date.parse(story.scheduledPublishAt)))
       .map((story) => story.scheduledPublishAt)
       .sort()[0] || "";
-    return { checkedAt: stamp, published, nextScheduledAt };
+    const promotedLeadStoryId = await promoteScheduledHomepageLead(nextStore.stories.filter((story) => published.includes(story.id)));
+    return { checkedAt: stamp, published, nextScheduledAt, promotedLeadStoryId };
   }
 
   await ensureContentSchema();
   const rows = await db.select().from(storyRows).where(eq(storyRows.status, "scheduled"));
   const dueStories = rows.map(rowToStory).filter((story) => isScheduledPublishDue(story.scheduledPublishAt, now));
   const published: string[] = [];
+  const publishedStories: EditableStory[] = [];
   for (const story of dueStories) {
     const publishedAt = new Date(story.scheduledPublishAt).toISOString();
     const updated = await db
@@ -2746,6 +2852,7 @@ export async function publishDueScheduledStories() {
       .returning({ id: storyRows.id });
     if (updated.length === 0) continue;
     published.push(story.id);
+    publishedStories.push({ ...story, status: "published", publishedAt, scheduledPublishAt: "", editorialStatus: "Published", updatedAt: stamp });
     await db.insert(storyStatusHistory).values({
       id: makeId("story-status"),
       storyId: story.id,
@@ -2762,14 +2869,47 @@ export async function publishDueScheduledStories() {
     .filter((story) => story.status === "scheduled" && !published.includes(story.id) && Number.isFinite(Date.parse(story.scheduledPublishAt)))
     .map((story) => story.scheduledPublishAt)
     .sort()[0] || "";
-  return { checkedAt: stamp, published, nextScheduledAt };
+  const promotedLeadStoryId = await promoteScheduledHomepageLead(publishedStories);
+  return { checkedAt: stamp, published, nextScheduledAt, promotedLeadStoryId };
+}
+
+function presentPublicStory(story: EditableStory): EditableStory {
+  const imageAlt = publicImageAlt({
+    alt: story.imageAlt,
+    caption: story.imageCaption,
+    title: story.title,
+  });
+  return imageAlt === story.imageAlt ? story : { ...story, imageAlt };
+}
+
+function presentPublicStories(stories: EditableStory[]) {
+  return stories.map(presentPublicStory);
+}
+
+function presentPublicGuide(guide: EditableGuide): EditableGuide {
+  const imageAlt = publicImageAlt({
+    alt: guide.imageAlt,
+    caption: guide.imageCaption,
+    title: guide.title,
+  });
+  const inlineImages = (guide.inlineImages || []).map((image) => {
+    const alt = publicImageAlt({
+      alt: image.alt,
+      caption: image.caption,
+      title: guide.title,
+    });
+    return alt === image.alt ? image : { ...image, alt };
+  });
+  const inlineChanged = inlineImages.some((image, index) => image !== guide.inlineImages?.[index]);
+  if (imageAlt === guide.imageAlt && !inlineChanged) return guide;
+  return { ...guide, imageAlt, inlineImages };
 }
 
 export async function getPublishedStories() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    return getLocalPublishedStories(store);
+    return presentPublicStories(await getLocalPublishedStories(store));
   }
 
   try {
@@ -2778,7 +2918,7 @@ export async function getPublishedStories() {
       .select()
       .from(storyRows)
       .orderBy(desc(storyRows.isFeatured), desc(storyRows.date), asc(storyRows.sortOrder));
-    return mergeDbStoriesWithStatic(rows);
+    return presentPublicStories(mergeDbStoriesWithStatic(rows));
   } catch (error) {
     console.error("[OldSeaDogs storage] published CMS stories could not be loaded", {
       errorName: error instanceof Error ? error.name : "",
@@ -2788,7 +2928,7 @@ export async function getPublishedStories() {
       throw new Error("Published CMS stories could not be loaded. Static-only fallback was blocked to prevent newer stories disappearing.", { cause: error });
     }
     const fixture = await loadDevelopmentHomepageFixture(0);
-    return sortStories(staticStories(fixture.stories));
+    return presentPublicStories(sortStories(staticStories(fixture.stories)));
   }
 }
 
@@ -2796,7 +2936,8 @@ export async function getStoryBySlug(slug: string) {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
-    return (await getLocalPublishedStories(store)).find((story) => story.slug === slug) ?? null;
+    const story = (await getLocalPublishedStories(store)).find((item) => item.slug === slug) ?? null;
+    return story ? presentPublicStory(story) : null;
   }
 
   try {
@@ -2808,28 +2949,39 @@ export async function getStoryBySlug(slug: string) {
       .limit(1);
     if (row) {
       const story = rowToStory(row);
-      if (isPublicStoryNow(story)) return story;
+      if (isPublicStoryNow(story)) return presentPublicStory(story);
       if (story.status === "unpublished") return null;
-      return staticStories().find((candidate) => candidate.slug === slug) ?? null;
+      const archived = staticStories().find((candidate) => candidate.slug === slug) ?? null;
+      return archived ? presentPublicStory(archived) : null;
     }
-    return staticStories().find((story) => story.slug === slug) ?? null;
+    const archived = staticStories().find((story) => story.slug === slug) ?? null;
+    return archived ? presentPublicStory(archived) : null;
   } catch (error) {
     if (homepageFixturePolicy(0).productionRuntime) {
       throw new Error("Published CMS story data could not be loaded. Development fixture fallback is blocked in production.", { cause: error });
     }
     const fixture = await loadDevelopmentHomepageFixture(0);
-    return staticStories(fixture.stories).find((story) => story.slug === slug) ?? null;
+    const story = staticStories(fixture.stories).find((item) => item.slug === slug) ?? null;
+    return story ? presentPublicStory(story) : null;
   }
 }
 
+const localGuidesCache = new WeakMap<LocalEditorStore, EditableGuide[]>();
+
 export async function getAllGuides() {
   const store = await readLocalEditorStore();
-  return mergeLocalGuidesWithStatic(store.guides);
+  const cached = localGuidesCache.get(store);
+  if (cached) return cached;
+  const guides = mergeLocalGuidesWithStatic(store.guides);
+  localGuidesCache.set(store, guides);
+  return guides;
 }
 
 export async function getPublishedGuides() {
   const guides = await getAllGuides();
-  return guides.filter((guide) => guide.status === "published");
+  return guides
+    .filter((guide) => guide.status === "published" && !isRetiredMarinaGuideHub(guide))
+    .map(presentPublicGuide);
 }
 
 export async function getIndexedGuides() {
@@ -2849,16 +3001,60 @@ export async function getGuideBySlug(slug: string, options: { includeDrafts?: bo
   const guides = await getAllGuides();
   const guide = guides.find((item) => item.slug === slug) ?? null;
   if (!guide) return null;
-  if (options.includeDrafts) return guide;
-  return guide.status === "published" ? guide : null;
+  if (!options.includeDrafts && guide.status !== "published") return null;
+  return presentPublicGuide(guide);
+}
+
+const localSettingsCache = new WeakMap<LocalEditorStore, SiteSettings>();
+
+export async function getApprovedPublicGalleryPhotos(): Promise<PublicGalleryPhoto[]> {
+  const db = getDbOrNull();
+  const photosFrom = (
+    items: GalleryItem[],
+    mediaById: Map<string, { contentType: string }>,
+  ) => items.flatMap((item) => {
+    const photo = toPublicGalleryPhoto({
+      ...item,
+      contentType: mediaById.get(item.mediaId)?.contentType || "",
+    });
+    return photo ? [photo] : [];
+  });
+
+  if (!db) {
+    const store = await readLocalEditorStore();
+    const mediaById = new Map(store.media.map((asset) => [asset.id, asset]));
+    return photosFrom(
+      store.galleryItems
+        .filter((item) => item.status === "approved")
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id)),
+      mediaById,
+    );
+  }
+
+  await ensureContentSchema();
+  const rows = await db
+    .select()
+    .from(galleryItems)
+    .where(eq(galleryItems.status, "approved"))
+    .orderBy(desc(galleryItems.createdAt), desc(galleryItems.id));
+  if (rows.length === 0) return [];
+  const mediaRows = await db
+    .select({ id: mediaAssets.id, contentType: mediaAssets.contentType })
+    .from(mediaAssets)
+    .where(inArray(mediaAssets.id, [...new Set(rows.map((row) => row.mediaId))]));
+  return photosFrom(rows.map(rowToGalleryItem), new Map(mediaRows.map((asset) => [asset.id, asset])));
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const cached = localSettingsCache.get(store);
+    if (cached) return cached;
     const fixture = await loadDevelopmentHomepageFixture(store.stories.length);
-    return { ...defaultSettings, ...store.settings, ...fixture.settings };
+    const settings = { ...defaultSettings, ...store.settings, ...fixture.settings };
+    localSettingsCache.set(store, settings);
+    return settings;
   }
 
   try {
@@ -2893,6 +3089,161 @@ export function isHomepageLeadSelectable(
   story: Pick<EditableStory, "status" | "slug" | "title" | "publishedAt" | "scheduledPublishAt">
 ) {
   return isPublicStoryNow(story) && Boolean(story.slug.trim()) && Boolean(story.title.trim());
+}
+
+// ——— Schedule → homepage headline (pack 28 Oct 2026, approved by Michael Hodges) ———
+
+async function loadAllStoriesForHomepageLead(): Promise<EditableStory[]> {
+  const db = getDbOrNull();
+  if (!db) {
+    const store = await readLocalEditorStore();
+    return mergeLocalStoriesWithStatic(store.stories, true);
+  }
+  await ensureSeedData();
+  const rows = await db.select().from(storyRows);
+  return mergeDbStoriesWithStatic(rows, true);
+}
+
+export function isHomepagePendingLeadSelectable(story: Pick<EditableStory, "status" | "slug" | "title">) {
+  return story.status === "scheduled" && Boolean(story.slug.trim()) && Boolean(story.title.trim());
+}
+
+export function findHomepagePendingLeadStory(
+  stories: EditableStory[],
+  settings: Pick<SiteSettings, "homepagePendingLeadStoryId" | "homepagePendingLeadStorySlug">
+) {
+  const leadId = (settings.homepagePendingLeadStoryId || "").trim();
+  const leadSlug = (settings.homepagePendingLeadStorySlug || "").trim();
+  if (!leadId && !leadSlug) return null;
+  return stories.find((story) => (leadId && story.id === leadId) || (leadSlug && story.slug === leadSlug)) ?? null;
+}
+
+async function writeHomepageLeadSettingEntries(entries: Partial<SiteSettings>) {
+  const stamp = nowIso();
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({ ...store, settings: { ...defaultSettings, ...store.settings, ...entries } }));
+    return;
+  }
+  await ensureContentSchema();
+  await Promise.all(Object.entries(entries).map(([key, value]) =>
+    db.insert(siteSettings).values({ key, value: String(value ?? ""), updatedAt: stamp }).onConflictDoUpdate({
+      target: siteSettings.key,
+      set: { value: String(value ?? ""), updatedAt: stamp },
+    })
+  ));
+}
+
+/** At most one story carries promoteToHomepageLead, and it is the pending one. */
+async function setPromoteFlagsExclusive(activeStoryId: string | null) {
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({
+      ...store,
+      stories: store.stories.map((story) => ({ ...story, promoteToHomepageLead: Boolean(activeStoryId && story.id === activeStoryId) })),
+    }));
+    return;
+  }
+  await ensureContentSchema();
+  await db.update(storyRows).set({ promoteToHomepageLead: false });
+  if (activeStoryId) await db.update(storyRows).set({ promoteToHomepageLead: true }).where(eq(storyRows.id, activeStoryId));
+}
+
+export async function clearPendingHomepageLead() {
+  await writeHomepageLeadSettingEntries({ homepagePendingLeadStoryId: "", homepagePendingLeadStorySlug: "" });
+  await setPromoteFlagsExclusive(null);
+  return getSiteSettings();
+}
+
+export async function setPendingHomepageLead(input: { storyId: string }) {
+  const storyId = input.storyId.trim();
+  if (!storyId) throw new Error("Choose a scheduled story for the pending homepage headline.");
+  const stories = await loadAllStoriesForHomepageLead();
+  const story = stories.find((candidate) => candidate.id === storyId);
+  if (!story) throw new Error("The selected pending homepage headline story could not be found.");
+  if (!isHomepagePendingLeadSelectable(story)) {
+    throw new Error("Only scheduled stories with a title and slug can be the pending homepage headline.");
+  }
+  await writeHomepageLeadSettingEntries({ homepagePendingLeadStoryId: story.id, homepagePendingLeadStorySlug: story.slug });
+  await setPromoteFlagsExclusive(story.id);
+  return { settings: await getSiteSettings(), story: { ...story, promoteToHomepageLead: true } };
+}
+
+/**
+ * Promote a published story to the live homepage lead (lead keys + isFeatured only).
+ * Approved exception to the Homepage-Manager-only rule for Schedule / Publish Now.
+ * Latest / Editor's Choice / Hidden are not touched. A missing image is allowed so an
+ * automatic scheduled promotion cannot soft-fail.
+ */
+export async function applyPublishedStoryAsHomepageLead(story: EditableStory) {
+  if (!isHomepageLeadSelectable(story)) {
+    throw new Error("Only published stories with public story URLs can become the Homepage Lead Story.");
+  }
+  const leadEntries: Partial<SiteSettings> = {
+    homepageLeadStoryId: story.id,
+    homepageLeadStorySlug: story.slug,
+    homepagePendingLeadStoryId: "",
+    homepagePendingLeadStorySlug: "",
+  };
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({
+      ...store,
+      settings: { ...defaultSettings, ...store.settings, ...leadEntries },
+      stories: store.stories.map((candidate) => ({ ...candidate, isFeatured: candidate.id === story.id, promoteToHomepageLead: false })),
+    }));
+    return { settings: await getSiteSettings(), story };
+  }
+  await writeHomepageLeadSettingEntries(leadEntries);
+  await db.update(storyRows).set({ isFeatured: false, promoteToHomepageLead: false });
+  await db.update(storyRows).set({ isFeatured: true }).where(eq(storyRows.id, story.id));
+  return { settings: await getSiteSettings(), story };
+}
+
+/** Called by publishDueScheduledStories after the store write. Pending id wins over a stray flag. */
+async function promoteScheduledHomepageLead(publishedStories: EditableStory[]) {
+  if (!publishedStories.length) return "";
+  const settings = await getSiteSettings();
+  const pendingId = (settings.homepagePendingLeadStoryId || "").trim();
+  const pendingSlug = (settings.homepagePendingLeadStorySlug || "").trim();
+  // Auto-headline (31 Oct 2026, approved by Michael Hodges): every scheduled story becomes the
+  // homepage headline when it publishes unless the editor unticked it. Several at once: latest wins.
+  const target = pickScheduledHomepageLead(publishedStories, pendingId, pendingSlug);
+  if (!target) return "";
+  try {
+    await applyPublishedStoryAsHomepageLead({ ...target, status: "published", scheduledPublishAt: "", promoteToHomepageLead: false });
+    return target.id;
+  } catch (error) {
+    console.warn("[OldSeaDogs homepage lead] scheduled promotion skipped", { storyId: target.id, error: error instanceof Error ? error.message : String(error) });
+    return "";
+  }
+}
+
+/** Keeps pending / live lead in step with a story save. Runs outside the local store lock. */
+async function syncHomepageLeadPromotionAfterStorySave(saved: EditableStory) {
+  const promoteWanted = Boolean(saved.promoteToHomepageLead);
+  const settings = await getSiteSettings();
+  const wasPending =
+    (Boolean(settings.homepagePendingLeadStoryId) && settings.homepagePendingLeadStoryId === saved.id) ||
+    (Boolean(settings.homepagePendingLeadStorySlug) && settings.homepagePendingLeadStorySlug === saved.slug);
+  if (saved.status === "published") {
+    if (promoteWanted || wasPending) {
+      saved.promoteToHomepageLead = false;
+      return applyPublishedStoryAsHomepageLead({ ...saved, promoteToHomepageLead: false });
+    }
+    return null;
+  }
+  if (saved.status === "scheduled" && promoteWanted) {
+    if (!wasPending) return setPendingHomepageLead({ storyId: saved.id });
+    return null;
+  }
+  if (wasPending && (!promoteWanted || saved.status === "draft" || saved.status === "unpublished")) {
+    await clearPendingHomepageLead();
+  }
+  if (promoteWanted && saved.status !== "scheduled") {
+    // Draft with the box ticked: keep the intent on the story; it becomes pending once scheduled.
+  }
+  return null;
 }
 
 export async function saveHomepageSettings(input: {
@@ -2962,12 +3313,19 @@ export async function saveHomepageSettings(input: {
   return { settings: await getSiteSettings(), story: selectedLead };
 }
 
+const localAdsCache = new WeakMap<LocalEditorStore, { ads: Advert[]; day: string }>();
+
 export async function getActiveAds() {
   const db = getDbOrNull();
   if (!db) {
     const store = await readLocalEditorStore();
+    const day = new Date().toISOString().slice(0, 10);
+    const cached = localAdsCache.get(store);
+    if (cached?.day === day) return cached.ads;
     const adverts = store.ads.length > 0 ? store.ads : defaultAdvertRows();
-    return activeAdvertRows(adverts);
+    const active = activeAdvertRows(adverts);
+    localAdsCache.set(store, { ads: active, day });
+    return active;
   }
 
   try {
@@ -3059,8 +3417,11 @@ export async function getEditorData() {
   if (!db) {
     const store = await readLocalEditorStore();
     const storageStatus = await getEditorStorageStatus();
+    const stories = mergeLocalStoriesWithStatic(store.stories, true);
     return {
-      stories: mergeLocalStoriesWithStatic(store.stories, true),
+      stories,
+      storyManagement: makeStoryManagementIndex(stories, store.stories.map((story) => story.id)),
+      storyStoreVersion: store.updatedAt,
       media: store.media,
       galleryCategories: store.galleryCategories,
       galleryItems: store.galleryItems,
@@ -3090,11 +3451,15 @@ export async function getEditorData() {
     getSocialAnalytics(),
   ]);
 
-  return {
-    stories: mergeDbStoriesWithStatic(storyList, true).map((story) => ({
+  const stories = mergeDbStoriesWithStatic(storyList, true).map((story) => ({
       ...story,
       statusHistory: historyList.filter((entry) => entry.storyId === story.id),
-    })),
+    }));
+
+  return {
+    stories,
+    storyManagement: makeStoryManagementIndex(stories, storyList.map((story) => story.id)),
+    storyStoreVersion: storyList.reduce((latest, story) => story.updatedAt > latest ? story.updatedAt : latest, ""),
     media: media.map(normalizeMediaAsset),
     galleryCategories: categoryList.length > 0 ? categoryList : defaultGalleryCategories(),
     galleryItems: galleryList.map(rowToGalleryItem),
@@ -3619,9 +3984,14 @@ export async function saveStory(input: SaveStoryInput): Promise<EditableStory> {
     // The lock covers the complete read/validate/revision/write transaction.
     // This prevents another Node or PM2 process from calculating a competing
     // story update from the same stale JSON snapshot.
-    return runLocalEditorStoreWriteTransaction(() => saveStoryInternal(input, true));
+    const saved = await runLocalEditorStoreWriteTransaction(() => saveStoryInternal(input, true));
+    // Runs after the store lock is released: the helpers take the lock themselves.
+    await syncHomepageLeadPromotionAfterStorySave(saved);
+    return saved;
   }
-  return saveStoryInternal(input, false);
+  const saved = await saveStoryInternal(input, false);
+  await syncHomepageLeadPromotionAfterStorySave(saved);
+  return saved;
 }
 
 async function saveStoryInternal(
@@ -3679,8 +4049,10 @@ async function saveStoryInternal(
     originalSourceContent: String(input.originalSourceContent ?? existingStory?.originalSourceContent ?? ""),
     imageUrl: input.imageUrl?.trim() || "",
     imageAlt: cleanPressReleaseHeadline(input.imageAlt || input.title || "Old Sea Dogs story image"),
-    imageCredit: cleanPressReleaseHeadline(input.imageCredit || ""),
+    imageCredit: dedupeCredit(cleanPressReleaseHeadline(input.imageCredit || "")),
     imageCaption: cleanPressReleaseText(input.imageCaption || ""),
+    imageFit: normalizeImageFit(input.imageFit ?? existingStory?.imageFit),
+    imageFocalPoint: String(input.imageFocalPoint ?? existingStory?.imageFocalPoint ?? "").trim(),
     videoUrl: input.videoUrl?.trim() || "",
     videoCaption: cleanPressReleaseText(input.videoCaption || ""),
     videoPosition: input.videoPosition === "top" || input.videoPosition === "after-intro" || input.videoPosition === "bottom"
@@ -3702,6 +4074,8 @@ async function saveStoryInternal(
     status,
     publishedAt,
     scheduledPublishAt,
+    promoteToHomepageLead: Boolean(input.promoteToHomepageLead ?? existingStory?.promoteToHomepageLead ?? false),
+    homepageLeadOptOut: Boolean(input.homepageLeadOptOut ?? existingStory?.homepageLeadOptOut ?? false),
     sortOrder: Number(input.sortOrder ?? 0),
     createdAt: input.createdAt || existingStory?.createdAt || stamp,
     updatedAt: stamp,
@@ -3714,7 +4088,9 @@ async function saveStoryInternal(
 
   const prospectiveStory = rowToStory(record as typeof storyRows.$inferSelect);
   const revisionComparable = (story: EditableStory) => {
-    const { updatedAt: _updatedAt, statusHistory: _statusHistory, ...content } = story;
+    const { updatedAt, statusHistory, ...content } = story;
+    void updatedAt;
+    void statusHistory;
     return JSON.stringify(content);
   };
   const publishedContentChanged = Boolean(
@@ -3891,6 +4267,8 @@ async function saveStoryInternal(
         imageAlt: record.imageAlt,
         imageCredit: record.imageCredit,
         imageCaption: record.imageCaption,
+        imageFit: record.imageFit,
+        imageFocalPoint: record.imageFocalPoint,
         videoUrl: record.videoUrl,
         videoCaption: record.videoCaption,
         videoPosition: record.videoPosition,
@@ -3907,6 +4285,8 @@ async function saveStoryInternal(
         status: record.status,
         publishedAt: record.publishedAt,
         scheduledPublishAt: record.scheduledPublishAt,
+        promoteToHomepageLead: record.promoteToHomepageLead,
+        homepageLeadOptOut: record.homepageLeadOptOut,
         sortOrder: record.sortOrder,
         updatedAt: record.updatedAt,
       },
@@ -4046,7 +4426,9 @@ export async function saveStoryImage(
   imageUrl: string,
   imageAlt: string,
   imageCredit = "",
-  imageCaption = ""
+  imageCaption = "",
+  imageFit = "auto",
+  imageFocalPoint = ""
 ) {
   const db = getDbOrNull();
   if (!db) {
@@ -4058,8 +4440,10 @@ export async function saveStoryImage(
         ...existing,
         imageUrl,
         imageAlt: imageAlt.trim() || "Old Sea Dogs story image",
-        imageCredit: cleanPressReleaseHeadline(imageCredit),
+        imageCredit: dedupeCredit(cleanPressReleaseHeadline(imageCredit)),
         imageCaption: cleanPressReleaseText(imageCaption),
+        imageFit: normalizeImageFit(imageFit),
+        imageFocalPoint: String(imageFocalPoint || ""),
         updatedAt: nowIso(),
       };
       return {
@@ -4078,8 +4462,10 @@ export async function saveStoryImage(
     .set({
       imageUrl,
       imageAlt: imageAlt.trim() || "Old Sea Dogs story image",
-      imageCredit: cleanPressReleaseHeadline(imageCredit),
+      imageCredit: dedupeCredit(cleanPressReleaseHeadline(imageCredit)),
       imageCaption: cleanPressReleaseText(imageCaption),
+      imageFit: normalizeImageFit(imageFit),
+      imageFocalPoint: String(imageFocalPoint || ""),
       updatedAt: stamp,
     })
     .where(eq(storyRows.id, id));
@@ -4090,6 +4476,13 @@ export async function saveStoryImage(
 }
 
 export async function deleteStory(id: string) {
+  const result = await deleteStoryRecord(id);
+  const settings = await getSiteSettings();
+  if (settings.homepagePendingLeadStoryId === id) await clearPendingHomepageLead();
+  return result;
+}
+
+async function deleteStoryRecord(id: string) {
   const db = getDbOrNull();
   if (!db) {
     await updateLocalEditorStore((store) => ({
@@ -4112,6 +4505,8 @@ export async function saveSettings(input: Partial<SiteSettings>) {
     "homepageLatestStoryIds",
     "homepageEditorsChoiceStoryIds",
     "homepageHiddenStoryIds",
+    "homepagePendingLeadStoryId",
+    "homepagePendingLeadStorySlug",
   ]);
   const attemptedHomepageKey = Object.keys(input).find((key) => homepageKeys.has(key));
   if (attemptedHomepageKey) {

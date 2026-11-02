@@ -1,0 +1,15 @@
+{
+  "contract": "oldseadogs.guide-draft",
+  "version": 1,
+  "mode": "update-draft",
+  "guides": [{
+    "externalId": "example-fictional-marina-001",
+    "updatedAt": "REPLACE_WITH_CURRENT_UPDATED_AT_TOKEN",
+    "slug": "fictional-west-pier-marina",
+    "title": "Fictional West Pier Marina — revised Draft",
+    "guideType": "Marina",
+    "region": { "key": "example-coast", "name": "Example Coast", "area": "Fictional Harbour" },
+    "editorial": { "standfirst": "Revised fictional Draft.", "introduction": "Still private and unpublished.", "sections": [{ "heading": "Overview", "body": ["Updated example content."] }] },
+    "verification": { "unresolved": [{ "field": "navigation.tidalInformation", "reason": "Not yet checked", "severity": "safety" }] }
+  }]
+}

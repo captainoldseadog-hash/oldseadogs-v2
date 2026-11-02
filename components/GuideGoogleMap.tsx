@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useConsentAccepted } from "./useMapConsent.ts";
 
 type GuideMapLocation = { latitude?: number; longitude?: number; mapMetadata?: { preferredZoom?: number } };
 type GuideGoogleMapProps = { marinaName: string; location: GuideMapLocation };
@@ -23,7 +24,9 @@ function embedUrl(location: GuideMapLocation) {
 }
 
 export function GuideGoogleMap({ marinaName, location }: GuideGoogleMapProps) {
-  const [loaded, setLoaded] = useState(false);
+  const [clicked, setLoaded] = useState(false);
+  const consented = useConsentAccepted();
+  const loaded = clicked || consented;
   const mapLink = externalUrl(location);
   const mapEmbed = embedUrl(location);
   if (!mapLink || !mapEmbed) return null;

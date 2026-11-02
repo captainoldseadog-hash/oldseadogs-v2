@@ -1,7 +1,11 @@
+import { guideFaqsFor } from "../content/guide-faqs.ts";
 import type { EditableGuide } from "./site-content.ts";
+import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
+import { isRenderableImageReference, shareImageUrl } from "./responsive-image.ts";
 import { absoluteUrl } from "./seo.ts";
 
-export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath">) {
+export function guidePublicPath(guide: Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug">) {
+  if (publishesOnRegionHub(guide)) return guideRegionPath(guide.regionKey);
   if (guide.canonicalPath?.startsWith("/guides/")) return guide.canonicalPath;
   return guide.regionKey
     ? `/guides/${guide.regionKey}/${guide.slug}`
@@ -12,14 +16,234 @@ export function guideRegionPath(regionKey: string) {
   return `/guides/${regionKey}`;
 }
 
+/**
+ * The region hub renders this cruising-area article, so a second URL would
+ * repeat the same title, description and body. Stored canonical paths stay
+ * as written in the CMS.
+ */
+function publishesOnRegionHub(guide: Pick<EditableGuide, "slug" | "regionKey" | "guideType" | "parentGuideSlug">) {
+  if (guide.guideType !== "Cruising Area" || guide.parentGuideSlug || !guide.regionKey) return false;
+  return guide.slug === guide.regionKey || guide.slug === `the-${guide.regionKey}`;
+}
+
 export function guideProductRecords(guides: readonly EditableGuide[]) {
-  return guides
-    .filter((guide) => /^OSD-G\d+$/i.test(guide.internalId) && guide.regionKey)
+  const productGuides = guides.filter((guide) => /^OSD-G\d+$/i.test(guide.internalId) && guide.regionKey);
+  const regionOrder = new Map<string, number>();
+  for (const guide of productGuides) {
+    const sequence = Number(guide.internalId.match(/\d+/)?.[0] || Number.MAX_SAFE_INTEGER);
+    regionOrder.set(guide.regionKey, Math.min(regionOrder.get(guide.regionKey) ?? Number.MAX_SAFE_INTEGER, sequence));
+  }
+  return productGuides
     .sort((left, right) =>
-      left.regionName.localeCompare(right.regionName)
+      (regionOrder.get(left.regionKey) ?? Number.MAX_SAFE_INTEGER) - (regionOrder.get(right.regionKey) ?? Number.MAX_SAFE_INTEGER)
       || left.editorialOrder - right.editorialOrder
       || left.title.localeCompare(right.title)
     );
+}
+
+export function guideRegionRecords(guides: readonly EditableGuide[]) {
+  return guideProductRecords(guides).filter((guide) => guide.regionName.trim());
+}
+
+export function guideCollectionPath(guide: Pick<EditableGuide, "regionKey" | "regionName">) {
+  return guide.regionKey.trim() && guide.regionName.trim()
+    ? guideRegionPath(guide.regionKey)
+    : "/guides";
+}
+
+export function guideCruisingArea(regionKey: string, guides: readonly EditableGuide[]) {
+  const candidates = guides.filter((guide) =>
+    guide.regionKey === regionKey
+    && guide.guideType === "Cruising Area"
+    && !guide.parentGuideSlug
+  );
+  return candidates.find((guide) => guide.slug === regionKey) || candidates[0] || null;
+}
+
+/** Guides shown in a collection list. The hub record is the page, not one of those items. */
+export function guideCollectionMembers(regionKey: string, guides: readonly EditableGuide[]) {
+  const regional = guides.filter((guide) => guide.regionKey === regionKey);
+  const lead = guideCruisingArea(regionKey, regional) ?? guideCollectionLead(regionKey, regional);
+  if (!lead) return regional;
+  return regional.filter((guide) => guide.slug !== lead.slug);
+}
+
+/** Cruising-area record for a collection hub, including one that still has a parent slug. */
+export function guideCollectionLead(regionKey: string, guides: readonly EditableGuide[]) {
+  return guideCruisingArea(regionKey, guides) ?? guides.find((guide) =>
+    guide.regionKey === regionKey
+    && guide.guideType === "Cruising Area"
+    && (guide.slug === regionKey || guide.canonicalPath === guideRegionPath(regionKey))
+  ) ?? null;
+}
+
+export function guideAreaChildren(area: EditableGuide, guides: readonly EditableGuide[]) {
+  return guides.filter((guide) =>
+    guide.slug !== area.slug
+    && guide.regionKey === area.regionKey
+    && (
+      guide.parentGuideSlug === area.slug
+      || Boolean(guide.parentGuideId && area.id && guide.parentGuideId === area.id)
+      || Boolean(guide.parentGuideId && area.externalId && guide.parentGuideId === area.externalId)
+    )
+  );
+}
+
+function isGuideChildOf(parent: EditableGuide, child: EditableGuide) {
+  return child.slug !== parent.slug
+    && child.regionKey === parent.regionKey
+    && (
+      child.parentGuideSlug === parent.slug
+      || Boolean(child.parentGuideId && parent.id && child.parentGuideId === parent.id)
+      || Boolean(child.parentGuideId && parent.externalId && child.parentGuideId === parent.externalId)
+    );
+}
+
+export type GuideDiscoveryNode = {
+  guide: EditableGuide;
+  children: EditableGuide[];
+};
+
+export type GuideDiscoveryArea = {
+  key: string;
+  name: string;
+  path: string;
+  guide: EditableGuide;
+  guideCount: number;
+  nodes: GuideDiscoveryNode[];
+  directGuides: EditableGuide[];
+};
+
+export function guideDiscoveryAreas(guides: readonly EditableGuide[], options: { includeDrafts?: boolean } = {}): GuideDiscoveryArea[] {
+  const publishedProductGuides = guideProductRecords([...guides]).filter(
+    (guide) => (options.includeDrafts || guide.status === "published") && guide.regionKey.trim() && guide.regionName.trim(),
+  );
+  const regions = new Map<string, EditableGuide[]>();
+  for (const guide of publishedProductGuides) {
+    regions.set(guide.regionKey, [...(regions.get(guide.regionKey) || []), guide]);
+  }
+
+  return [...regions.entries()].flatMap(([key, regional]) => {
+    const areaGuide = guideCollectionLead(key, regional);
+    if (!areaGuide) return [];
+    const areaChildren = regional.filter((guide) => isGuideChildOf(areaGuide, guide));
+    const nodes = regional.flatMap((guide) => {
+      if (guide.slug === areaGuide.slug) return [];
+      const children = regional.filter((candidate) => isGuideChildOf(guide, candidate));
+      return children.length ? [{ guide, children }] : [];
+    });
+    const nodeSlugs = new Set(nodes.map(({ guide }) => guide.slug));
+
+    return [{
+      key,
+      name: areaGuide.regionName,
+      path: guideRegionPath(key),
+      guide: areaGuide,
+      guideCount: guideCollectionMembers(key, regional).length,
+      nodes,
+      directGuides: areaChildren.filter((guide) => !nodeSlugs.has(guide.slug)),
+    }];
+  });
+}
+
+export type GuideEditorialLinkMatch = { start: number; end: number; label: string; guide: EditableGuide };
+
+function guideEditorialAliases(guide: EditableGuide) {
+  const title = guide.title.trim();
+  const aliases = new Set([title, title.replace(/\s+Guide$/i, "").trim()]);
+  const withoutMarina = title.replace(/\s+Marina(?:\s+Guide)?$/i, "").trim();
+  if (withoutMarina.includes(" ")) aliases.add(withoutMarina);
+  return [...aliases].filter((alias) => alias.length >= 5);
+}
+
+function escapeRegExp(value: string) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+export function guideEditorialLinkMatches(text: string, currentSlug: string, guides: readonly EditableGuide[], alreadyLinked: ReadonlySet<string> = new Set()): GuideEditorialLinkMatch[] {
+  const candidates = guides
+    .filter((guide) => guide.status === "published" && guide.slug !== currentSlug && !alreadyLinked.has(guide.slug) && !isRetiredMarinaGuideHub(guide))
+    .flatMap((guide) => guideEditorialAliases(guide).map((label) => ({ guide, label })));
+  const aliasCounts = new Map<string, number>();
+  for (const { label } of candidates) aliasCounts.set(label.toLowerCase(), (aliasCounts.get(label.toLowerCase()) || 0) + 1);
+  const possible = candidates.flatMap(({ guide, label }) => {
+    if (aliasCounts.get(label.toLowerCase()) !== 1) return [];
+    const match = new RegExp(`(^|[^\\p{L}\\p{N}])(${escapeRegExp(label)})(?=$|[^\\p{L}\\p{N}])`, "iu").exec(text);
+    if (!match || match.index === undefined) return [];
+    const start = match.index + match[1].length;
+    return [{ start, end: start + match[2].length, label: match[2], guide }];
+  }).sort((left, right) => left.start - right.start || (right.end - right.start) - (left.end - left.start));
+  const matches: GuideEditorialLinkMatch[] = [];
+  const usedSlugs = new Set(alreadyLinked);
+  for (const candidate of possible) {
+    if (usedSlugs.has(candidate.guide.slug) || matches.some((match) => candidate.start < match.end && candidate.end > match.start)) continue;
+    matches.push(candidate); usedSlugs.add(candidate.guide.slug);
+  }
+  return matches.sort((left, right) => left.start - right.start);
+}
+
+export function guideAreaCountLabel(count: number) {
+  if (count <= 0) return "Area guide";
+  return `${count} ${count === 1 ? "Guide" : "Guides"}`;
+}
+
+export function mobileGuideMenuLinks(guides: readonly EditableGuide[]) {
+  return [
+    { href: "/guides", label: "All Guides" },
+    ...guideDiscoveryAreas(guides).map((area) => ({ href: area.path, label: area.name })),
+  ];
+}
+
+export type GuideHubLink = { slug: string; label: string; guide: EditableGuide };
+
+/** Published targets saved on an area hub: section links, then related guides. */
+export function guideHubRelatedLinks(guide: EditableGuide, guides: readonly EditableGuide[]): GuideHubLink[] {
+  const bySlug = new Map(
+    guides
+      .filter((item) => item.status === "published" && !isRetiredMarinaGuideHub(item))
+      .map((item) => [item.slug, item]),
+  );
+  const links: GuideHubLink[] = [];
+  const seen = new Set<string>([guide.slug]);
+  const add = (slug: string, label?: string) => {
+    const target = bySlug.get(slug);
+    if (!target || seen.has(target.slug)) return;
+    seen.add(target.slug);
+    links.push({ slug: target.slug, label: label?.trim() || target.title, guide: target });
+  };
+  for (const section of guide.sections || []) {
+    for (const link of section.links || []) add(link.guideSlug, link.label);
+  }
+  for (const slug of guide.relatedGuideSlugs || []) add(slug);
+  return links;
+}
+
+function guideAddedAt(guide: EditableGuide) {
+  const raw = guide.publication?.publishedAt || guide.publication?.createdAt || guide.updatedAt || "";
+  const time = Date.parse(raw);
+  return Number.isFinite(time) ? time : 0;
+}
+
+/** Child guides with paintings, newest publication or creation date first. Area hubs are omitted. */
+export function recentPublicGuides(guides: readonly EditableGuide[], limit = 4) {
+  const hubSlugs = new Set(guideDiscoveryAreas(guides).map((area) => area.guide.slug));
+  return guideProductRecords([...guides])
+    .filter((guide) =>
+      guide.status === "published"
+      && !hubSlugs.has(guide.slug)
+      && !isRetiredMarinaGuideHub(guide)
+      && isRenderableImageReference(guide.imageUrl)
+    )
+    .sort((left, right) =>
+      guideAddedAt(right) - guideAddedAt(left)
+      || left.title.localeCompare(right.title)
+    )
+    .slice(0, limit);
+}
+
+export function homepageGuideHighlights(guides: readonly EditableGuide[]) {
+  return {
+    areas: guideDiscoveryAreas(guides),
+    recent: recentPublicGuides(guides, 4),
+  };
 }
 
 export function relatedGuides(
@@ -27,11 +251,28 @@ export function relatedGuides(
   guides: readonly EditableGuide[],
   relationship: "relatedGuideSlugs" | "cruiseOnGuideSlugs",
 ) {
-  const bySlug = new Map(guides.map((item) => [item.slug, item]));
+  const bySlug = new Map(guides.filter((item) => !isRetiredMarinaGuideHub(item)).map((item) => [item.slug, item]));
   return guide[relationship]
     .map((slug) => bySlug.get(slug))
     .filter((item): item is EditableGuide => Boolean(item))
     .slice(0, relationship === "relatedGuideSlugs" ? 5 : 4);
+}
+
+/** Prefer the real publish date; fall back to verification / updated date so datePublished is never missing. */
+export function guideArticleDateFields(guide: Pick<EditableGuide, "updatedAt" | "publication" | "verification">) {
+  const dateModified = guide.updatedAt || guide.verification?.verifiedAt || undefined;
+  const datePublished = guide.publication?.publishedAt || guide.publication?.createdAt || guide.verification?.verifiedAt || guide.updatedAt || undefined;
+  return { ...(datePublished ? { datePublished } : {}), ...(dateModified ? { dateModified } : {}) };
+}
+
+export function guideFaqJsonLd(guide: Pick<EditableGuide, "slug">) {
+  const faqs = guideFaqsFor(guide.slug).filter((item) => item.question.trim() && item.answer.trim());
+  if (!faqs.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({ "@type": "Question", name: item.question.trim(), acceptedAnswer: { "@type": "Answer", text: item.answer.trim() } })),
+  };
 }
 
 export function guideArticleJsonLd(guide: EditableGuide) {
@@ -44,7 +285,7 @@ export function guideArticleJsonLd(guide: EditableGuide) {
     description: guide.seoDescription || guide.introduction,
     articleSection: guide.guideType,
     mainEntityOfPage: absoluteUrl(path),
-    dateModified: guide.updatedAt,
+    ...guideArticleDateFields(guide),
     author: {
       "@type": "Person",
       name: guide.author || "Michael Hodges",
@@ -55,7 +296,7 @@ export function guideArticleJsonLd(guide: EditableGuide) {
       name: "Old Sea Dogs",
       url: absoluteUrl("/"),
     },
-    image: guide.imageUrl ? [absoluteUrl(guide.imageUrl)] : undefined,
+    image: guide.imageUrl ? [absoluteUrl(shareImageUrl(guide.imageUrl))] : undefined,
     about: guide.regionName ? {
       "@type": "Place",
       name: guide.regionName,
@@ -67,6 +308,23 @@ export function guideArticleJsonLd(guide: EditableGuide) {
           }
         : undefined,
     } : undefined,
+  };
+}
+
+export function guidePlaceJsonLd(guide: EditableGuide) {
+  const latitude = guide.navigation?.latitude ?? guide.location.latitude;
+  const longitude = guide.navigation?.longitude ?? guide.location.longitude;
+  if (!guide.verification?.verifiedAt || !guide.regionName || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: guide.title,
+    url: absoluteUrl(guidePublicPath(guide)),
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude,
+      longitude,
+    },
   };
 }
 

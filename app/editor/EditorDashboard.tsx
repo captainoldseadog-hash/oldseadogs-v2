@@ -30,6 +30,7 @@ import { previewPressReleaseCleaning, type PressReleaseCleaningPreview } from ".
 import { createSafeId } from "../../lib/safe-id";
 import { cleanStoryTags } from "../../lib/tags";
 import { isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
+import { prepareEditorPhoto } from "./prepare-editor-photo";
 
 type StoryStatus = "draft" | "scheduled" | "published" | "unpublished";
 
@@ -709,7 +710,7 @@ const handledReviewSourceTypes = new Set([
 const maxPhotoUploadMb = 25;
 const maxPhotoUploadBytes = maxPhotoUploadMb * 1024 * 1024;
 const maxDirectUploadBytes = 650 * 1024;
-const photoUploadAccept = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+const photoUploadAccept = "image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif";
 const allowedPhotoUploadTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const minimumUsableReviewWords = 100;
 
@@ -1010,11 +1011,14 @@ function canApproveReview(story: Pick<EditorStory, "title" | "summary" | "body" 
 
 function validatePhotoUpload(file: File) {
   const lowerName = file.name.toLowerCase();
+  const declaredType = file.type.toLowerCase();
   const fileLooksSupported =
-    allowedPhotoUploadTypes.has(file.type.toLowerCase()) || /\.(jpe?g|png|webp)$/.test(lowerName);
+    allowedPhotoUploadTypes.has(declaredType)
+    || declaredType.startsWith("image/")
+    || /\.(jpe?g|png|webp|heic|heif|gif|bmp|avif)$/.test(lowerName);
 
-  if (!fileLooksSupported) {
-    return "Unsupported file type. Please upload a JPG, JPEG, PNG or WebP image.";
+  if (!fileLooksSupported || declaredType === "image/svg+xml") {
+    return "Unsupported file type. Please choose a JPEG, PNG, WebP or iPhone photo.";
   }
 
   if (file.size <= 0) {
@@ -1241,7 +1245,7 @@ function storyFromPressRelease(item: PressReleaseEmail): EditorStory {
     methodNotes: "Email text cleaned for boilerplate, duplicate wording and promotional claims, then edited for Old Sea Dogs readers before publication.",
     contentBasis: "Press release",
     editorialStatus: "Needs improvement",
-    noindex: true,
+    noindex: false,
     summary: item.generatedExcerpt || item.preview,
     body,
     tags: [normalizeStoryCategory(item.category || "News")].filter(Boolean),
@@ -1647,6 +1651,7 @@ export default function EditorDashboard() {
   const [sourceCheckResult, setSourceCheckResult] = useState<SourceCheckResult | null>(null);
   const [articlePreviewStory, setArticlePreviewStory] = useState<EditorStory | null>(null);
   const [deleteStoryCandidate, setDeleteStoryCandidate] = useState<EditorStory | null>(null);
+  const [deleteStoryError, setDeleteStoryError] = useState("");
   const [recoveryFilters, setRecoveryFilters] = useState<RecoveryFilters>({
     category: "",
     source: "",
@@ -3122,6 +3127,7 @@ export default function EditorDashboard() {
       setMessage("Save this story before deleting it.");
       return;
     }
+    setDeleteStoryError("");
     setDeleteStoryCandidate(story);
   }
 
@@ -3152,7 +3158,6 @@ export default function EditorDashboard() {
     const nextStory = normalizeEditorStory({
       ...story,
       editorialStatus: status,
-      noindex: status === "Needs improvement" || shouldHide ? true : false,
       status: shouldHide ? "unpublished" : story.status,
       publishedAt: shouldHide ? "" : story.publishedAt,
       scheduledPublishAt: shouldHide ? "" : story.scheduledPublishAt,
@@ -3176,8 +3181,23 @@ export default function EditorDashboard() {
   async function permanentlyDeleteStoryCandidate() {
     if (!deleteStoryCandidate) return;
     const story = deleteStoryCandidate;
-    setDeleteStoryCandidate(null);
-    await deleteStoryById(story.id, "Story deleted successfully.");
+    setBusy(true);
+    setDeleteStoryError("");
+    try {
+      const response = await fetch("/api/editor", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "deleteStories", ids: [story.id], confirm: true, backupBeforeDelete: true }),
+      });
+      await readEditorPayload(response, "Could not scrap this story.");
+      setDeleteStoryCandidate(null);
+      await loadEditor();
+      setMessage("Draft scrapped. A backup was saved first.");
+    } catch (error) {
+      setDeleteStoryError(error instanceof Error ? error.message : "Could not scrap this story.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function deleteCurrentStory() {
@@ -3268,20 +3288,6 @@ export default function EditorDashboard() {
       previewSrc: localPreviewSrc,
     });
 
-    const validationError = validatePhotoUpload(file);
-    if (validationError) {
-      setUploadDebug({
-        ...blankUploadDebug("Upload stopped before sending."),
-        uploadStatus: "Upload stopped before sending.",
-        selectedFileName: file.name,
-        uploadRequestUrl: uploadUrl,
-        previewSrc: localPreviewSrc,
-        error: validationError,
-      });
-      setMessage(validationError);
-      return null;
-    }
-
     setBusy(true);
     setMessage(progressMessage);
     setUploadDebug({
@@ -3292,13 +3298,27 @@ export default function EditorDashboard() {
       previewSrc: localPreviewSrc,
     });
     try {
+      const phoneReady = await prepareEditorPhoto(file);
+      const validationError = validatePhotoUpload(phoneReady.file);
+      if (validationError) {
+        setUploadDebug({
+          ...blankUploadDebug("Upload stopped before sending."),
+          uploadStatus: "Upload stopped before sending.",
+          selectedFileName: file.name,
+          uploadRequestUrl: uploadUrl,
+          previewSrc: localPreviewSrc,
+          error: validationError,
+        });
+        setMessage(validationError);
+        return null;
+      }
       const prepared = options.skipClientPrepare
         ? {
-            file,
-            changed: false,
-            message: `Using selected image directly (${formatBytes(file.size)}).`,
+            file: phoneReady.file,
+            changed: phoneReady.file !== file,
+            message: phoneReady.note || `Using selected image directly (${formatBytes(phoneReady.file.size)}).`,
           }
-        : await preparePhotoForUpload(file);
+        : await preparePhotoForUpload(phoneReady.file);
       const uploadFile = prepared.file;
       setUploadDebug({
         ...blankUploadDebug(prepared.message),
@@ -4483,6 +4503,8 @@ export default function EditorDashboard() {
                 <dd>{displayCategoryLabel(deleteStoryCandidate.category)}</dd>
               </div>
             </dl>
+            {deleteStoryError ? <p role="alert">{deleteStoryError}</p> : null}
+            <p>Only a private draft that has never been published can be scrapped. A verified backup is created first.</p>
             <div className="delete-story-actions">
               <button type="button" className="quiet-button" onClick={() => setDeleteStoryCandidate(null)} disabled={busy}>
                 Cancel
@@ -4491,7 +4513,7 @@ export default function EditorDashboard() {
                 Unpublish instead
               </button>
               <button type="button" className="danger-button" onClick={() => void permanentlyDeleteStoryCandidate()} disabled={busy}>
-                Permanently delete
+                Scrap draft
               </button>
             </div>
           </div>
@@ -5297,8 +5319,8 @@ function StoryForm({
         <label className={`check-row ${story.noindex ? "active" : ""}`}>
           <input type="checkbox" checked={story.noindex} onChange={(event) => setStory({ ...story, noindex: event.target.checked })} />
           <span>
-            <strong>Noindex until improved</strong>
-            <small>Keeps weak, imported or thin stories out of search while editorial work continues.</small>
+            <strong>Exclude from Google</strong>
+            <small>Exceptional override for a public story that must not appear in search.</small>
           </span>
         </label>
       </div>

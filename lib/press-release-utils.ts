@@ -1,5 +1,8 @@
 import { createSafeId } from "./safe-id";
 import { analyzeOldSeaDogsStyle, type OldSeaDogsStyleReport } from "./editorial-quality";
+import { decodeEditorialHtmlEntities as decodeHtmlEntities, normalizeEditorialTypography } from "./editorial-typography";
+
+export { normalizeEditorialTypography } from "./editorial-typography";
 
 export type PressReleaseStatus =
   | "new"
@@ -699,10 +702,11 @@ function decodeBinaryUtf8(value: string) {
 }
 
 function decodeQuotedPrintableText(value: string) {
-  const binary = value
+  return value
     .replace(/=\r?\n/g, "")
-    .replace(/=([a-f0-9]{2})/gi, (_match, code) => String.fromCharCode(parseInt(code, 16)));
-  return decodeBinaryUtf8(binary);
+    .replace(/(?:=[a-f0-9]{2})+/gi, (encodedRun) => decodeBinaryUtf8(
+      encodedRun.replace(/=([a-f0-9]{2})/gi, (_match, code) => String.fromCharCode(parseInt(code, 16))),
+    ));
 }
 
 function stringToBase64(value: string) {
@@ -989,63 +993,7 @@ function normalizeTrustedInlineImageFigure(value: string) {
   return `<figure class="article-inline-image" data-media-id="${escapeHtmlAttribute(mediaId)}" data-caption="${escapeHtmlAttribute(caption)}" data-credit="${escapeHtmlAttribute(credit)}"><img src="${escapeHtmlAttribute(src)}" alt="${escapeHtmlAttribute(alt)}" loading="lazy" />${captionBlock}</figure>`;
 }
 
-function decodeHtmlEntities(value: string) {
-  const named: Record<string, string> = {
-    amp: "&",
-    apos: "'",
-    copy: "\u00a9",
-    euro: "EUR",
-    gt: ">",
-    hellip: "...",
-    laquo: '"',
-    ldquo: '"',
-    lsquo: "'",
-    lt: "<",
-    mdash: "-",
-    ndash: "-",
-    nbsp: " ",
-    pound: "GBP",
-    quot: '"',
-    raquo: '"',
-    rdquo: '"',
-    reg: "\u00ae",
-    rsquo: "'",
-    trade: "TM",
-  };
-
-  return value
-    .replace(/&#x([a-f0-9]+);?/gi, (_match, code) => {
-      const point = parseInt(code, 16);
-      return Number.isFinite(point) ? String.fromCodePoint(point) : "";
-    })
-    .replace(/&#([0-9]+);?/g, (_match, code) => {
-      const point = parseInt(code, 10);
-      return Number.isFinite(point) ? String.fromCodePoint(point) : "";
-    })
-    .replace(/&([a-z][a-z0-9]+);/gi, (match, name) => named[String(name).toLowerCase()] ?? match);
-}
-
-function cleanTextEncoding(value: string) {
-  return decodeHtmlEntities(value)
-    .replace(/\u00a0/g, " ")
-    .replace(/[\u200b-\u200f\ufeff]/g, "")
-    .replace(/[‘’‚‛]/g, "'")
-    .replace(/[“”„‟]/g, '"')
-    .replace(/[–—]/g, "—")
-    .replace(/…/g, "...")
-    .replace(/\uFFFD/g, "")
-    .replace(/Â(?=\s|$)/g, "")
-    .replace(/Â/g, "")
-    .replace(/â€™|â€˜|â€š|â€›/g, "'")
-    .replace(/â€œ|â€�|â€ž|â€Ÿ/g, '"')
-    .replace(/â€“|â€”/g, "—")
-    .replace(/â€¦/g, "...")
-    .replace(/â€¢/g, "-")
-    .replace(/Ã©/g, "e")
-    .replace(/Ã¨/g, "e")
-    .replace(/Ã[^\s]?/g, "")
-    .replace(/&nbsp;?/gi, " ");
-}
+const cleanTextEncoding = normalizeEditorialTypography;
 
 const rawUrlPattern = /\b(?:https?:\/\/|www\.)[^\s<>)\]]+/gi;
 const bracketedUrlPattern = /\s*[\[(]\s*(?:https?:\/\/|www\.)[^\])]+[\])]/gi;

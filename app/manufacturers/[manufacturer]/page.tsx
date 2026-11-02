@@ -5,11 +5,15 @@ import {
   getManufacturerBySlug,
   storyMatchesManufacturer,
 } from "../../../content/manufacturers";
-import { displayCategoryLabel, oldSeaDogsSections } from "../../../content/sections";
-import { formatDate } from "../../../content/stories";
+import { displayCategoryLabel } from "../../../content/sections";
+import { storyListingDateLabel } from "../../../lib/story-header-date";
+import { ResponsiveStoryImage } from "../../../components/ResponsiveStoryImage";
 import { SiteFooter } from "../../../components/SiteFooter";
+import { dedupeCredit } from "../../../lib/image-fit";
+import { presentationForStories } from "../../../lib/image-presentation";
 import { getPublishedStories, hasStoryPhoto } from "../../../lib/site-content";
 import { createPageMetadata } from "../../../lib/seo";
+import { SiteHeader } from "../../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +37,7 @@ export async function generateMetadata({
 
   return createPageMetadata({
     title: `${manufacturer.name} Stories`,
-    description: `Old Sea Dogs stories, reviews, launches, and news involving ${manufacturer.name}.`,
+    description: `Stories, reviews, launches and news from Old Sea Dogs involving ${manufacturer.name}, from new boats to the events around the yard.`,
     path: `/manufacturers/${manufacturer.slug}`,
   });
 }
@@ -49,23 +53,11 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
   const stories = (await getPublishedStories()).filter((story) =>
     storyMatchesManufacturer(story, manufacturer)
   );
+  const storyFrames = await presentationForStories(stories, "story-card");
 
   return (
     <main className="article-shell section-shell">
-      <nav className="article-nav" aria-label="Manufacturer navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
+      <SiteHeader label="Manufacturer navigation" />
 
       <header className="section-page-hero section-page-hero-text">
         <div className="section-page-copy">
@@ -90,8 +82,9 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
 
         {stories.length > 0 ? (
           <div className="story-grid section-story-grid">
-            {stories.map((story) => {
+            {stories.map((story, index) => {
               const storyHasPhoto = hasStoryPhoto(story);
+              const frame = storyFrames[index];
               return (
                 <article
                   className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`}
@@ -99,21 +92,27 @@ export default async function ManufacturerPage({ params }: ManufacturerPageProps
                 >
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
-                      <span
+                      <ResponsiveStoryImage
+                        alt={story.imageAlt || story.title}
                         className="story-image"
-                        role="img"
-                        aria-label={story.imageAlt}
-                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                        focalPoint={frame?.focalPoint}
+                        height={frame?.height}
+                        presentation={frame?.presentation}
+                        probe={frame?.probe}
+                        sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        slot="story-card"
+                        src={story.imageUrl}
+                        width={frame?.width}
                       >
                         {story.imageCredit ? (
-                          <small className="image-credit-chip">{story.imageCredit}</small>
+                          <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                         ) : null}
-                      </span>
+                      </ResponsiveStoryImage>
                     </Link>
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      <span>{storyListingDateLabel(story)}</span>
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>

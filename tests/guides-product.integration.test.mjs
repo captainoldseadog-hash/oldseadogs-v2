@@ -73,11 +73,12 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.ok(promoStart >= 0 && promoEnd > promoStart);
   const promoHtml = homepageHtml.slice(promoStart, promoEnd);
   assert.match(promoHtml, /Discover Old Sea Dogs Guides/);
-  assert.match(promoHtml, /href="\/guides\/solent\/the-solent"/);
-  assert.match(promoHtml, /href="\/guides\/solent\/river-hamble"/);
-  assert.match(promoHtml, /href="\/guides\/solent\/hamble-point-marina"/);
+  assert.match(promoHtml, /href="\/guides\/solent"/);
+  assert.match(promoHtml, /22(?:<!-- -->)?\s*(?:<!-- -->)?Guides/);
+  assert.match(promoHtml, /Recently added/);
+  assert.match(promoHtml, /href="\/guides\/solent\//);
   assert.match(promoHtml, /Explore All Guides/);
-  assert.equal((promoHtml.match(/href="\/guides\/solent\//g) || []).length, 3);
+  assert.ok((promoHtml.match(/href="\/guides\/solent\//g) || []).length >= 1);
 
   const landing = await request("/guides");
   assert.equal(landing.status, 200);
@@ -85,10 +86,9 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Old Sea Dogs Guides/);
   assert.match(landingHtml, /Practical marina, harbour and cruising information/);
   assert.doesNotMatch(landingHtml, /guide-library-hero-image|Featured Guide · The opening chapter/);
-  assert.match(landingHtml, /Marina &amp; Harbour Guides/);
-  assert.match(landingHtml, /href="\/guides\?type=Marina#guide-library"/);
-  assert.match(landingHtml, /Browse by region/);
-  assert.match(landingHtml, /Browse rivers and anchorages/);
+  assert.match(landingHtml, /Where do you want to sail/);
+  assert.match(landingHtml, /Start with the water/);
+  assert.match(landingHtml, /Find a particular harbour, marina or destination/);
   assert.match(landingHtml, /Hamble Point Marina/);
   assert.match(landingHtml, /River Hamble/);
   assert.match(landingHtml, /Cowes/);
@@ -97,16 +97,21 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(landingHtml, /Portsmouth Harbour/);
   assert.match(landingHtml, /Southampton Water/);
   assert.match(landingHtml, /Beaulieu River/);
-  assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise|solent-marina-guide/);
+  assert.doesNotMatch(landingHtml, /Useful sailing pages|rewritten noise/);
+  assert.doesNotMatch(landingHtml, /solent-marina-guide|Read the Solent Marina Guide/);
+  assert.match(landingHtml, /Find a particular place/);
+  assert.match(landingHtml, /eyebrow">22(?:<!-- -->)?\s*(?:<!-- -->)?Guides<\/p><h3><a href="\/guides\/solent">The Solent/);
   assert.match(landingHtml, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(landingHtml, /The Solent/);
 
   const region = await request("/guides/solent");
   assert.equal(region.status, 200);
   const regionHtml = await region.text();
-  assert.match(regionHtml, /Browse by type/);
-  assert.match(regionHtml, /Browse all Guides/);
-  assert.match(regionHtml, /View on map/);
+  assert.match(regionHtml, /Guide relationships/);
+  assert.match(regionHtml, /In this collection/);
+  assert.match(regionHtml, /Explore The Solent/);
+  assert.doesNotMatch(regionHtml, /solent-marina-guide|Read the Solent Marina Guide/);
+  assert.match(regionHtml, /The published library(?:<!-- -->)? · (?:<!-- -->)?22(?:<!-- -->)? (?:<!-- -->)?Guides/);
   assert.match(regionHtml, /River Hamble/);
 
   for (const record of solentMarinaGuideRecords) {
@@ -142,20 +147,20 @@ test("Guide library, Solent collection and Guide detail render the complete publ
     assert.match(html, new RegExp(record.media.primaryImage.split("/").at(-1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 
+  assert.match(regionHtml, /most concentrated cruising ground/);
+  assert.match(regionHtml, /Jump to section/);
+  assert.match(regionHtml, /Why the Solent Matters/);
+  assert.match(regionHtml, /Old Sea Dogs View/);
+  assert.match(regionHtml, /Cruise On/);
+  assert.match(regionHtml, /Know this area/);
+  assert.match(regionHtml, /Load Google Map/);
+  assert.doesNotMatch(regionHtml, /<iframe/);
+  assert.match(regionHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent"/);
+  assert.match(regionHtml, /"@type":"Article"/);
+  assert.match(regionHtml, /"@type":"BreadcrumbList"/);
   const detail = await request("/guides/solent/the-solent");
-  assert.equal(detail.status, 200);
-  const detailHtml = await detail.text();
-  assert.match(detailHtml, /most concentrated cruising ground/);
-  assert.match(detailHtml, /Jump to section/);
-  assert.match(detailHtml, /Why the Solent Matters/);
-  assert.match(detailHtml, /Old Sea Dogs View/);
-  assert.match(detailHtml, /Cruise On/);
-  assert.match(detailHtml, /Know this area/);
-  assert.match(detailHtml, /Load Google Map/);
-  assert.doesNotMatch(detailHtml, /<iframe/);
-  assert.match(detailHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent\/the-solent"/);
-  assert.match(detailHtml, /"@type":"Article"/);
-  assert.match(detailHtml, /"@type":"BreadcrumbList"/);
+  assert.equal(detail.status, 308);
+  assert.match(detail.headers.get("location") || "", /\/guides\/solent$/);
 
   const marina = await request("/guides/solent/hamble-point-marina");
   assert.equal(marina.status, 200);
@@ -280,7 +285,8 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(portsmouthHtml, /Haslar Marina/);
   assert.match(portsmouthHtml, /Gosport Marina/);
   assert.match(portsmouthHtml, /Port Solent/);
-  assert.match(portsmouthHtml, /Diesel and petrol are available at Port Solent Marina and Gosport Marina/);
+  assert.match(portsmouthHtml, /href="\/guides\/solent\/port-solent-marina"[^>]*>Port Solent Marina<\/a>/);
+  assert.match(portsmouthHtml, /href="\/guides\/solent\/gosport-marina"[^>]*>Gosport Marina<\/a>/);
   assert.match(portsmouthHtml, /guide-section-navigation guide-section-navigation--wrapped/);
   assert.match(portsmouthHtml, /portsmouth-navigation-warning-panel/);
   assert.match(portsmouthHtml, /portsmouth-information-panel/);
@@ -366,13 +372,18 @@ test("Guide library, Solent collection and Guide detail render the complete publ
   assert.match(beaulieuHtml, /Information checked against official sources/);
   assert.doesNotMatch(beaulieuHtml, /To be verified|do not claim|should be claimed|do not infer|according to the record|before relying on it|internal editorial/i);
 
-  const legacy = await request("/guides/solent-marina-guide");
-  assert.equal(legacy.status, 200);
-  const legacyHtml = await legacy.text();
-  assert.match(legacyHtml, /Legacy overview/);
-  assert.match(legacyHtml, /Hamble Point Marina Guide/);
-  assert.match(legacyHtml, /guides\?type=Marina#guide-library/);
-  assert.match(legacyHtml, /rel="canonical" href="https:\/\/oldseadogs\.com\/guides\/solent-marina-guide"/);
+  const sitemap = await request("/sitemap.xml");
+  assert.equal(sitemap.status, 200);
+  const sitemapXml = await sitemap.text();
+  assert.match(sitemapXml, /\/guides\/solent</);
+  assert.doesNotMatch(sitemapXml, /\/guides\/solent\/the-solent</);
+  assert.doesNotMatch(sitemapXml, /solent-marina-guide/);
+  assert.doesNotMatch(sitemapXml, /<loc>[^<]*\/marina-guide</);
+  for (const pathname of ["/guides/solent-marina-guide", "/guides/solent-marina-guide/", "/marina-guide", "/marina-guide/"]) {
+    const legacy = await request(pathname);
+    assert.equal(legacy.status, 301, pathname);
+    assert.match(legacy.headers.get("location") || "", /^(?:https?:\/\/[^/]+)?\/guides\/solent$/, pathname);
+  }
 });
 
 test("invalid and draft Guides are protected while authenticated preview remains accurate", async () => {

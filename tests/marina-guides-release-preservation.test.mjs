@@ -8,22 +8,44 @@ const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 const hash = (contents) => crypto.createHash("sha256").update(contents).digest("hex");
 
 const protectedFiles = {
-  // c9e5068: approved responsive/lazy story images and one canonical link per story card.
-  "app/page.tsx": "4f65e1c5f48d91b05bbc8914b94e9a4eb5c12ce2385ba4c082ba5d522e0b5342",
+  // Desktop homepage sections, the prefetched lead, the Substack signup,
+  // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
+  // The app-style mobile homepage is an extra block, hidden from 1024px up.
+  // Small or flat graphics use a whole-image frame; large photographs stay cover.
+  // Story cards label the Europe/London publish day from publishedAt.
+  // Homepage intro shortened 29 Oct 2026; Featured Club band removed from the desktop homepage.
+  "app/page.tsx": "60bae41560c790adba7a44f5290631ec306ea9a1cecdf0e468289753c1d143d0",
   "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
   "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",
   "lib/editor-publication.d.ts": "98ca74fe051dbb9bcb5b6505c39518b58f5ca02475f184bdd92bf521343c6c6b",
-  "app/editor/EditorDashboard.tsx": "489a9915d6dc8c33bd859b7e8a80af31fd5532be54a2a2f55bb02a78e2afd369",
-  "app/api/editor/route.ts": "7e23efa26c359894b45a2cee5167110b32a4592e7e0c85e20eeb74f3ee174b9c",
-  "scripts/story-scheduler-hook.mjs": "6403da7b36da7f4943ae6895af3c8fb3f65c74c3ea9f4cf357cbfed052dd31cf",
-  // c9e5068: approved responsive/lazy related-story images and one canonical link per card.
-  "app/stories/[slug]/page.tsx": "e6cf24c7b778c1f9784493de016d7c92d2169fbf6909c6bf39e5276c47eaadec",
-  "app/sitemap.ts": "af0ab8838cd658fea02ae8da4780dc738b2ae5392fe742b8d6fe6dd66735b557",
+  "app/editor/EditorDashboard.tsx": "a902cbd0127b18924de95d04d39192447fa37fa449f39f3f70fd5011887d6237",
+  // Helm health: retain the approved route plus creation sorting and protected Draft cleanup.
+  // Through the Lens rollout reads galleryPublicRollout instead of a hardcoded false.
+  // Recently scrapped restore reads one missing draft from a pre-delete backup.
+  // Schedule-to-homepage headline (pack 5) and the auto-headline untick (pack 8).
+  "app/api/editor/route.ts": "abb5b67cc464bef7621325a3d3a12da81266b6c160a494eea549b2d18fe3c1cf",
+  // Story publication plus the Boats for Sale lifecycle tick.
+  "scripts/story-scheduler-hook.mjs": "ebf8268ec50718e77408237950df4baa98066ec570fd342e93e78ce8d6db746d",
+  // Discover audit, Boats for Sale, the shared two-row site header,
+  // story share images pointed at the 1,200px derivative, the
+  // Cowes Yacht Haven / Berthon Lymington guide notices, and the
+  // data-driven Related guides block.
+  "app/stories/[slug]/page.tsx": "cb558166703d537fa9f8af82ad1bf1891046a89fb0e88ead0c79d12a7df3cbc1",
+  // Guide audit cleanup: only named geographic regions receive collection sitemap entries.
+  // Boats for Sale browse, list-your-boat, and live listing URLs are included.
+  // Superseded port stories whose canonical URL is a Guide are omitted.
+  // /through-the-lens is listed only while galleryPublicRollout is true.
+  // Retired Solent Marina Guide overview URLs redirect to /guides/solent and are omitted.
+  // Thin-story triage slugs and redirected duplicates are omitted.
+  // Hourly sitemap cache plus Harbour TV page URLs.
+  "app/sitemap.ts": "c835ef2d605f38bd564580195b132db675f71150675753c9567585dc17c4059c",
   "app/api/search/route.ts": "ec4b5361aba63a21b250b0963aaeb04fdea5fba84ffac7046a3335628522ff75",
-  "ecosystem.config.cjs": "fe3383626bfe201588151db888b621e50f0bb8825226d317b7611c5c9e1ccfbc",
-  // c9e5068: approved versioned local storage with secure first-party cookie fallback.
-  "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
-  "package.json": "20996dd1befedd6511126c8f53469bf55a649eba8467096a44d4c86f2abce686",
+  "ecosystem.config.cjs": "81ada662f64f60d544641e74e1397c01345a829cb1ca03771c9a15164fcfffad",
+  // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
+  // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
+  "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",
+  // heic-convert turns iPhone HEIC photographs into JPEG when the image library cannot decode HEVC.
+  "package.json": "6736523cb9ceb37802bb1f415e74b72cdf3c4a2d795e76a543060336ee183684",
 };
 
 test("homepage, story, editor, scheduler, search and consent logic match production", async () => {
@@ -36,11 +58,35 @@ test("homepage, story, editor, scheduler, search and consent logic match product
 test("site-content preserves the approved Guide seeds and editor-store derived-data reuse", async () => {
   const source = await fs.readFile(path.join(projectDir, "lib/site-content.ts"), "utf8");
   assert.equal((source.match(/solentMarinaGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/westCountryGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/westCountrySixGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/westCountrySecondWaveGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/norfolkBroadsGuideSeeds/g) || []).length, 2);
+  assert.equal((source.match(/norfolkBroadsStopGuideSeeds/g) || []).length, 2);
   const reconstructedBaseline = source
+    .replace('import { westCountryGuideSeeds } from "../content/west-country-guides.ts";\n', "")
+    .replace('import { westCountrySixGuideSeeds } from "../content/west-country-six-guides.ts";\n', "")
+    .replace('import { westCountrySecondWaveGuideSeeds } from "../content/west-country-second-wave-guides.ts";\n', "")
+    .replace('import { norfolkBroadsGuideSeeds } from "../content/norfolk-broads-guide.ts";\n', "")
+    .replace('import { norfolkBroadsStopGuideSeeds } from "../content/norfolk-broads-stops-guides.ts";\n', "")
     .replace('import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";\n', "")
-    .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
-  // c9e5068: approved reuse of normalized static stories and cached local published stories.
-  assert.equal(hash(reconstructedBaseline), "cfb5451a654e7375d82f7a51604c3d6e039021f9dffc8ddf32ff1233ad99ba95");
+    .replace("[...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...westCountrySixGuideSeeds, ...westCountrySecondWaveGuideSeeds, ...norfolkBroadsGuideSeeds, ...norfolkBroadsStopGuideSeeds, ...flagshipGuides]", "[...guideProductSeeds, ...flagshipGuides]");
+  // Phase 1 retains static Guide merging while keeping stored rows raw until an explicit Guide operation.
+  // Poole keeps an intentionally empty pending hero and an empty optional parent relationship.
+  // Public alt fallback, the in-memory guide, settings, and advert caches, and galleryPublicRollout are included.
+  // A section with only editorial links is kept so area-hub links are not dropped on read.
+  // Story search indexing also skips the active thin-story triage wave unless an editor has approved the story.
+  // Legacy archive stories use a neutral library method note instead of an editorial-audit queue line.
+  assert.equal(hash(reconstructedBaseline), "c40322e4a2d44e2bf939808ef73eb8713861e272de61c9274b4a9328ebbe3a0c");
+});
+
+test("node production start trusts nginx X-Forwarded-Proto for redirect Locations", async () => {
+  const [packageJson, ecosystem] = await Promise.all([
+    fs.readFile(path.join(projectDir, "package.json"), "utf8").then(JSON.parse),
+    fs.readFile(path.join(projectDir, "ecosystem.config.cjs"), "utf8"),
+  ]);
+  assert.match(packageJson.scripts["start:do"], /(?:^|\s)VINEXT_TRUST_PROXY=1(?:\s|$)/);
+  assert.match(ecosystem, /VINEXT_TRUST_PROXY:\s*"1"/);
 });
 
 test("the release tree contains no production data or uploads and retains the external data path", async () => {

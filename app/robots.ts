@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, productionSiteUrl, searchIndexingEnabled, siteUrl } from "../lib/seo";
+import { absoluteUrl, productionSiteUrl, searchIndexingEnabled } from "../lib/seo";
+
+const publicCrawlers = ["*", "GPTBot", "PerplexityBot", "ClaudeBot", "Google-Extended"];
 
 const privateRoutes = [
   "/editor",
@@ -9,6 +11,13 @@ const privateRoutes = [
   "/api/editor/",
   "/api/search",
   "/api/search/",
+  "/api/social/track",
+  "/api/boats",
+  "/api/boats/",
+  "/boats-for-sale/manage",
+  "/boats-for-sale/verify",
+  "/boats-for-sale/keep",
+  "/boats-for-sale/relist",
 ];
 
 export default function robots(): MetadataRoute.Robots {
@@ -24,16 +33,14 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: privateRoutes,
-      },
+    rules: {
+      userAgent: publicCrawlers,
+      allow: "/",
+      disallow: privateRoutes,
+    },
+    sitemap: [
+      searchIndexingEnabled ? `${productionSiteUrl}/sitemap.xml` : absoluteUrl("/sitemap.xml"),
+      searchIndexingEnabled ? `${productionSiteUrl}/sitemap-videos.xml` : absoluteUrl("/sitemap-videos.xml"),
     ],
-    sitemap: searchIndexingEnabled
-      ? `${productionSiteUrl}/sitemap.xml`
-      : absoluteUrl("/sitemap.xml"),
-    host: siteUrl,
   };
 }

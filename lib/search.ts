@@ -1,4 +1,4 @@
-import { formatDate } from "../content/stories";
+import { storyListingDateLabel } from "./story-header-date";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import { displayCategoryLabel } from "../content/sections";
 import { getPublishedStories, hasStoryPhoto, type EditableStory } from "./site-content";
@@ -92,7 +92,7 @@ function toSearchResult(story: EditableStory, score: number): SearchResult {
     title: story.title,
     category: displayCategoryLabel(story.category),
     date: story.date,
-    displayDate: formatDate(story.date),
+    displayDate: storyListingDateLabel(story),
     summary: getClubProfileExcerpt(story),
     imageUrl: hasStoryPhoto(story) ? story.imageUrl : "",
     imageAlt: story.imageAlt,

@@ -18,6 +18,11 @@ import {
   type VenueDetails,
 } from "../../../content/venue-details";
 import { isLogoLikeStoryImage } from "../../../content/story-images";
+import { presentationForImage, presentationForStories } from "../../../lib/image-presentation";
+import {
+  portStoryGuideLink,
+  type PortStoryGuideLink,
+} from "../../../content/port-story-guides";
 import { JsonLd } from "../../../components/JsonLd";
 import {
   findRelatedStories,
@@ -26,12 +31,17 @@ import {
 } from "../../../lib/internal-links";
 import {
   getActiveAds,
+  getMediaAsset,
+  getPublishedGuides,
   getPublishedStories,
   getStoryBySlug,
   getSiteSettings,
   hasStoryPhoto,
   isStorySearchIndexable,
 } from "../../../lib/site-content";
+import { publicOpenSourceUrl } from "../../../lib/public-source-link";
+import { getLegacyRedirectPath } from "../../../lib/redirects";
+import { shareImageDimensions, shareImageUrl } from "../../../lib/responsive-image";
 import {
   adsenseClientId,
   adsenseEnabled,
@@ -39,7 +49,9 @@ import {
   absoluteUrl,
   createPageMetadata,
   isProduction,
+  robotsMetadata,
 } from "../../../lib/seo";
+import { SiteHeader } from "../../../components/SiteHeader";
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -53,6 +65,25 @@ type StoryPageProps = {
     slug: string;
   }>;
 };
+
+function mediaIdFromPublicUrl(value: string) {
+  return value.match(/^\/api\/media\/([^/?#]+)/)?.[1] || "";
+}
+
+async function storyImageDetails(imageUrl: string) {
+  if (!imageUrl) return null;
+  const mediaId = mediaIdFromPublicUrl(imageUrl);
+  const media = mediaId ? await getMediaAsset(mediaId) : null;
+  const size = shareImageDimensions(
+    media && media.width > 0 ? media.width : undefined,
+    media && media.height > 0 ? media.height : undefined,
+  );
+  return {
+    url: shareImageUrl(imageUrl),
+    width: size.width,
+    height: size.height,
+  };
+}
 
 function VenuePracticalPanel({ details }: { details: VenueDetails }) {
   const hasContact =
@@ -214,6 +245,16 @@ function ClubProfilePanel({ profile }: { profile: ClubProfile }) {
   );
 }
 
+function PortStoryGuideNotice({ link }: { link: PortStoryGuideLink }) {
+  return (
+    <aside className="story-guide-notice" aria-label={`${link.guideTitle} guide`}>
+      <p className="eyebrow">Updated guide</p>
+      <p>{link.notice}</p>
+      <Link href={link.href}>{link.linkLabel}</Link>
+    </aside>
+  );
+}
+
 function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
   if (groups.length === 0) return null;
 
@@ -232,7 +273,7 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
             </div>
             <div className="internal-link-list">
               {group.items.map((item) => (
-                <Link href={`/stories/${item.slug}`} key={item.slug}>
+                <Link href={item.guidePath || `/stories/${item.slug}`} key={item.guidePath || item.slug}>
                   <span>{displayCategoryLabel(item.category)}</span>
                   <strong>{item.title}</strong>
                   <small>{item.reason}</small>
@@ -246,12 +287,13 @@ function InternalLinksPanel({ groups }: { groups: InternalLinkGroup[] }) {
   );
 }
 
-function RelatedArticlesPanel({
+async function RelatedArticlesPanel({
   stories,
 }: {
   stories: Awaited<ReturnType<typeof getPublishedStories>>;
 }) {
   if (stories.length === 0) return null;
+  const frames = await presentationForStories(stories, "compact");
 
   return (
     <section className="related-band" aria-labelledby="related-articles-title">
@@ -264,15 +306,21 @@ function RelatedArticlesPanel({
         </p>
       </div>
       <div className="related-grid">
-        {stories.map((item) => (
+        {stories.map((item, index) => (
           <article className="compact-card" key={item.slug}>
             <Link className="compact-card-link" href={`/stories/${item.slug}`}>
               {hasStoryPhoto(item) ? (
                 <ResponsiveStoryImage
                   alt={item.imageAlt || item.title}
                   className="compact-image"
+                  focalPoint={frames[index]?.focalPoint}
+                  height={frames[index]?.height}
+                  presentation={frames[index]?.presentation}
+                  probe={frames[index]?.probe}
                   sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                  slot="compact"
                   src={item.imageUrl}
+                  width={frames[index]?.width}
                 />
               ) : null}
               <div>
@@ -297,17 +345,24 @@ export async function generateMetadata({
   if (!story) {
     return {
       title: "Story not found | Old Sea Dogs",
+      robots: robotsMetadata(true),
     };
   }
+
+  const image = hasStoryPhoto(story) ? await storyImageDetails(story.imageUrl) : null;
+  const guideLink = portStoryGuideLink(story.slug);
 
   return createPageMetadata({
     title: story.title,
     description: story.summary,
-    path: `/stories/${story.slug}`,
+    path: guideLink?.canonicalPath || `/stories/${story.slug}`,
     noIndex: !isStorySearchIndexable(story),
+    noIndexFollow: true,
     image: hasStoryPhoto(story)
       ? {
-          url: story.imageUrl,
+          url: image?.url || story.imageUrl,
+          width: image?.width,
+          height: image?.height,
           alt: story.imageAlt || story.title,
         }
       : { url: settings.defaultSocialImageUrl, alt: "Old Sea Dogs" },
@@ -323,36 +378,53 @@ export default async function StoryPage({ params }: StoryPageProps) {
     notFound();
   }
 
-  const [allStories, ads] = await Promise.all([getPublishedStories(), getActiveAds()]);
-  const internalLinkGroups = getInternalLinkGroups(story, allStories);
+  const [allStories, ads, publishedGuides] = await Promise.all([
+    getPublishedStories(),
+    getActiveAds(),
+    getPublishedGuides(),
+  ]);
   const relatedStories = findRelatedStories(story, allStories, 6);
+  const internalLinkGroups = getInternalLinkGroups(story, allStories, {
+    relatedStories,
+    guides: publishedGuides,
+  });
   const storyHasPhoto = hasStoryPhoto(story);
   const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+  const leadFrame = storyHasPhoto
+    ? await presentationForImage({
+        url: story.imageUrl,
+        slot: "article",
+        fit: story.imageFit,
+        focalPoint: story.imageFocalPoint,
+        alt: story.imageAlt,
+        caption: story.imageCaption,
+        category: story.category,
+        slug: story.slug,
+      })
+    : null;
+  const storyImage = storyHasPhoto ? await storyImageDetails(story.imageUrl) : null;
   const clubProfile = getClubProfileForStory(story);
   const articleBody = clubProfile ? getClubProfileArticleBody(clubProfile) : story.body;
   const venueDetails = getVenueDetails(story);
-  const storyUrl = absoluteUrl(`/stories/${story.slug}`);
+  const guideLink = portStoryGuideLink(story.slug);
+  const storyPath = `/stories/${story.slug}`;
+  const canonicalPath = guideLink?.canonicalPath || storyPath;
+  const storyUrl = absoluteUrl(storyPath);
 
   return (
     <main className="article-shell">
       <JsonLd
         data={[
-          articleJsonLd(story, storyHasPhoto),
+          articleJsonLd(story, storyImage || undefined, canonicalPath),
           michaelHodgesPersonJsonLd,
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: displayCategoryLabel(story.category), path: sectionPathForCategory(story.category) },
-            { name: story.title, path: `/stories/${story.slug}` },
+            { name: story.title, path: storyPath },
           ]),
         ]}
       />
-      <nav className="article-nav" aria-label="Story navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <Link href="/#latest">Latest dispatches</Link>
-      </nav>
+      <SiteHeader label="Story navigation" />
 
       <ArticlePreviewContent
         ads={ads}
@@ -365,17 +437,23 @@ export default async function StoryPage({ params }: StoryPageProps) {
         }}
         beforeBody={
           <>
+            {guideLink ? <PortStoryGuideNotice link={guideLink} /> : null}
             {clubProfile ? <ClubProfilePanel profile={clubProfile} /> : null}
             {venueDetails ? <VenuePracticalPanel details={venueDetails} /> : null}
           </>
         }
+        imageFocalPoint={leadFrame?.focalPoint}
+        imageHeight={leadFrame?.height}
         imageLooksLikeLogo={storyImageLooksLikeLogo}
+        imagePresentation={leadFrame?.presentation}
+        imageWidth={leadFrame?.width}
         showAdditionalAds
         socialShare={<SocialShare title={story.title} summary={story.summary} url={storyUrl} />}
         story={{
           ...story,
           body: articleBody,
           imageUrl: storyHasPhoto ? story.imageUrl : "",
+          sourceUrl: publicOpenSourceUrl(story.sourceUrl, storyPath, getLegacyRedirectPath),
         }}
       />
 

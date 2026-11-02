@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { GUIDE_TYPES, type GuideType } from "../../content/flagship-guides.ts";
 import { oldSeaDogsSections } from "../../content/sections";
 import { analyzeOldSeaDogsStyle, findBannedPublicationPhrases, getEditorialWarnings } from "../../lib/editorial-quality";
 import { saveEditorStoryRequest } from "../../lib/editor-publication.js";
+import { dedupeCredit, normalizeImageFit } from "../../lib/image-fit";
 import { validateMediaRights } from "../../lib/media-rights";
-import { isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
+import { scrapBackupMessage, scrapConfirmAccepted, scrapConfirmPhrase, scrapConfirmWord } from "../../lib/scrap-draft-confirm";
+import { formatUkDateTime, isoToUkDateTimeInput, ukDateTimeInputToIso } from "../../lib/story-schedule-time";
 import {
   insertStoryBlockAtCursor,
   insertStoryBlockAtIndex,
@@ -17,6 +19,10 @@ import {
   parseInlineImageBlock,
   splitStoryBlocks,
 } from "../../lib/story-media-composer.js";
+import BoatsForSaleManager from "./boats/BoatsForSaleManager";
+import GuideManager from "./guides/GuideManager";
+import type { EditorGuide, GuidesPayload } from "./guides/guide-types";
+import { editorPhotoAccept, prepareEditorPhoto } from "./prepare-editor-photo";
 
 export type BridgeCmsSection =
   | "dashboard"
@@ -39,7 +45,8 @@ export type BridgeCmsSection =
   | "advertising"
   | "backups"
   | "settings"
-  | "health";
+  | "health"
+  | "boats";
 
 type StoryStatus = "draft" | "scheduled" | "published" | "unpublished";
 
@@ -63,6 +70,8 @@ type StorySummary = {
   id: string;
   slug: string;
   title: string;
+  promoteToHomepageLead?: boolean;
+  homepageLeadOptOut?: boolean;
   category: string;
   sectionSlugs: string[];
   author: string;
@@ -76,6 +85,8 @@ type StorySummary = {
   imageAlt: string;
   imageCredit: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   videoUrl: string;
   videoCaption: string;
   videoPosition: "top" | "after-intro" | "bottom" | "";
@@ -97,6 +108,14 @@ type StorySummary = {
     changedAt: string;
   }>;
   noindex: boolean;
+  management: {
+    source: "cms" | "legacy";
+    origin: "cms" | "story-watch" | "newsroom-import" | "legacy";
+    label: string;
+    writable: boolean;
+    editable: boolean;
+  };
+  deletion: { eligible: boolean; reasons: string[] };
   homepageLeadEligible: boolean;
   homepageLeadDiagnostics: HomepageLeadDiagnostics;
   hasImage: boolean;
@@ -114,6 +133,8 @@ type EditorStory = StorySummary & {
   originalSourceRef: string;
   originalSourceContent: string;
   imageCaption: string;
+  imageFit: "auto" | "fill" | "contain";
+  imageFocalPoint: string;
   oldSeaDogsView: string;
   sourceNotes: string;
   methodNotes: string;
@@ -159,6 +180,8 @@ type MediaAsset = {
   webKey: string;
   width: number;
   height: number;
+  imageFit?: string;
+  focalPoint?: string;
   posterMediaId: string;
   externalUrl: string;
   description: string;
@@ -233,6 +256,13 @@ type StoriesPayload = {
     pageCount: number;
     total: number;
   };
+  sourceCounts: {
+    cmsManaged: number;
+    legacyReadOnly: number;
+    storyWatch: number;
+    newsroomImports: number;
+  };
+  storeVersion: string;
 };
 
 type StoryPayload = {
@@ -276,73 +306,6 @@ type RightsDiagnostic = {
   metadataSavedBeforeValidation: boolean;
   validationRecordMatches: boolean;
   missingField: string;
-};
-
-type EditorGuide = {
-  internalId: string;
-  slug: string;
-  title: string;
-  eyebrow: string;
-  summary: string;
-  introduction: string;
-  guideType: GuideType;
-  regionKey: string;
-  regionName: string;
-  subregion: string;
-  parentGuideSlug: string;
-  editorialOrder: number;
-  author: string;
-  contributorCredits: string[];
-  updatedAt: string;
-  imageUrl: string;
-  imageAlt: string;
-  imageFocalPoint: string;
-  artworkCredit: string;
-  quickFacts: Array<{ label: string; value: string }>;
-  sections: Array<{ heading: string; body: string[]; anchor?: string; kind?: "prose" | "callout" | "quote"; listItems?: string[]; links?: Array<{ label: string; guideSlug: string }> }>;
-  checklist: string[];
-  sourceLinks: Array<{ label: string; href: string }>;
-  location: { latitude?: number; longitude?: number; mapZoom?: number; what3words?: string; osGridReference?: string };
-  relatedGuideSlugs: string[];
-  cruiseOnGuideSlugs: string[];
-  previousGuideSlug: string;
-  nextGuideSlug: string;
-  status: "draft" | "published" | "unpublished";
-  noindex: boolean;
-  showOnHomepage: boolean;
-  homepageOrder: number;
-  seoTitle: string;
-  seoDescription: string;
-  socialTitle: string;
-  socialDescription: string;
-  canonicalPath: string;
-  editorialNotes: string;
-  researchNotes: string;
-  reviewDue: string;
-  accuracyConcerns: string;
-  sourceNotes: string;
-  draftComments: string;
-  verifiedFacilities: Array<{ label: string; detail: string; sourceUrl: string; verifiedOn: string }>;
-  facilityVerificationNotes: string;
-  tags: string[];
-  wordCount: number;
-  minimumWords: number;
-  quality: string;
-  imageCaption: string;
-  imageCredit: string;
-  featuredMediaId: string;
-  inlineImages: Array<{ id: string; mediaId: string; url: string; alt: string; caption: string; credit: string; sectionIndex: number; paragraphIndex: number; order: number }>;
-};
-
-type GuidesPayload = {
-  guides: EditorGuide[];
-  summary: {
-    total: number;
-    published: number;
-    homepage: number;
-    indexed: number;
-    thin: number;
-  };
 };
 
 type GuideDraftImportEnvelope = {
@@ -448,6 +411,18 @@ type SourceWatchDiagnostics = {
   }>;
 };
 
+type ScrapedStoryPreview = {
+  sourceName: string;
+  sourceUrl: string;
+  headline: string;
+  category: string;
+  standfirst: string;
+  body: string[];
+  wordCount: number;
+  status: "ready" | "needsMoreDetail";
+  qualityWarnings: string[];
+};
+
 type MediaPayload = {
   media: MediaAsset[];
   filters?: { query: string; filter: string };
@@ -486,7 +461,7 @@ type GalleryItem = {
 
 type GalleryPayload = {
   name: string;
-  publicRollout: false;
+  publicRollout: boolean;
   connector: {
     configured: boolean; connected: boolean; accountIdConfigured: boolean; tokenConfigured: boolean; mode: string; accountId: string; username: string;
     connectedAt: string; tokenExpiry: string; tokenExpiryStatus: { state: string; daysRemaining: number | null }; lastTokenRefresh: string;
@@ -538,8 +513,11 @@ type SettingsPayload = {
 type HomepageLeadPayload = {
   settings: Record<string, string>;
   current: StorySummary | null;
+  pending?: StorySummary | null;
   candidates: StorySummary[];
+  scheduledCandidates?: StorySummary[];
   totalCandidates: number;
+  totalScheduledCandidates?: number;
 };
 
 function parseSettingStoryIds(value = "") {
@@ -637,7 +615,7 @@ function HomepageSlotsManager({ data, leadStoryId, reload }: { data: HomepageLea
     <div className="bridge-panel-heading"><div><p className="bridge-eyebrow">Step 3 — commit the front page</p><h2>Save Homepage</h2><p className="bridge-muted">Headline story: <strong>{selectedLeadStory?.title || "Automatic published story"}</strong>. Nothing changes publicly until you press Save Homepage.</p></div><button className="bridge-primary-action" type="button" disabled={busy} onClick={() => void save()}>Save Homepage</button></div>
     <div className="bridge-homepage-slot-grid">{renderOrderedList("Latest", latestIds, setLatestIds)}{renderOrderedList("Editor’s Choice", editorsChoiceIds, setEditorsChoiceIds)}</div>
     <details><summary>Choose and hide published stories</summary><div className="bridge-homepage-candidates">{data.candidates.map((story) => <article key={story.id}><strong>{story.title}</strong><small>{story.category} · {formatDateTime(story.publishedAt || story.date)}</small><HomepageVisibilitySummary story={story} /><div className="bridge-row-actions"><button type="button" onClick={() => addTo("latest", story.id)}>Add to Latest</button><button type="button" onClick={() => addTo("editors", story.id)}>Add to Editor’s Choice</button><button type="button" onClick={() => addTo("hidden", story.id)}>Hide from homepage</button></div></article>)}</div></details>
-    <div className="bridge-panel-heading"><h3>Homepage preview</h3><div className="bridge-segmented">{(["desktop", "tablet", "mobile"] as const).map((item) => <button type="button" className={device === item ? "active" : ""} onClick={() => setDevice(item)} key={item}>{item}</button>)}</div></div>
+    <div className="bridge-panel-heading"><h3>Homepage preview</h3><div className="bridge-segmented bridge-desktop-tools">{(["desktop", "tablet", "mobile"] as const).map((item) => <button type="button" className={device === item ? "active" : ""} onClick={() => setDevice(item)} key={item}>{item}</button>)}</div></div>
     <div className={`bridge-homepage-preview ${device}`}><article className="lead"><span>Homepage Headline Story</span><strong>{selectedLeadStory?.title || "Automatic published story"}</strong></article><div>{selectedStories(latestIds).map((story) => <article key={story.id}><span>Latest</span><strong>{story.title}</strong></article>)}</div><div>{selectedStories(editorsChoiceIds).map((story) => <article key={story.id}><span>Editor’s Choice</span><strong>{story.title}</strong></article>)}</div></div>
     {hiddenIds.length > 0 ? <p className="bridge-muted">Hidden from homepage: {selectedStories(hiddenIds).map((story) => story.title).join(" · ") || `${hiddenIds.length} selected stories`}</p> : null}
     {message ? <p className="bridge-save-message">{message}</p> : null}
@@ -694,6 +672,7 @@ type BridgeCmsProps = {
   storyId?: string;
   mediaId?: string;
   galleryView?: GalleryView;
+  scrappedNotice?: string;
 };
 
 type GalleryView = "dashboard" | "pending" | "approved" | "rejected" | "categories" | "instagram" | "settings";
@@ -709,6 +688,7 @@ const navGroups: Array<{
       { section: "stories", label: "Stories", href: "/editor/stories" },
       { section: "write", label: "Write Story", href: "/editor/write" },
       { section: "guides", label: "Guides", href: "/editor/guides" },
+      { section: "boats", label: "Boats for Sale", href: "/editor/boats" },
       { section: "homepage", label: "Homepage Manager", href: "/editor/homepage" },
     ],
   },
@@ -824,18 +804,6 @@ function formatDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   });
-}
-
-function formatUkDateTime(value: string) {
-  if (!value) return "Not set";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone: "Europe/London",
-    timeZoneName: "short",
-  }).format(date);
 }
 
 function displayStatus(value: string) {
@@ -984,32 +952,60 @@ function ErrorBlock({ message }: { message: string }) {
 }
 
 function BridgeNav({ activeSection }: { activeSection: BridgeCmsSection }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <aside className="bridge-sidebar" aria-label="Bridge CMS navigation">
-      <Link href="/editor" className="bridge-brand">
-        <span className="brand-mark" aria-hidden="true" />
-        <span>
-          <strong>Old Sea Dogs</strong>
-          <small>Bridge CMS</small>
-        </span>
-      </Link>
-      {navGroups.map((group) => (
-        <nav key={group.label} aria-label={group.label}>
-          <p>{group.label}</p>
-          {group.items.map((item) => (
-            <Link
-              className={item.section === activeSection ? "active" : ""}
-              href={item.href}
-              key={item.section}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      ))}
-      <Link className="bridge-legacy-link" href="/editor/legacy">
-        Classic editor
-      </Link>
+    <aside className={`bridge-sidebar${menuOpen ? " menu-open" : ""}`} aria-label="Bridge CMS navigation">
+      <div className="bridge-sidebar-top">
+        <Link href="/editor" className="bridge-brand" onClick={closeMenu}>
+          <span className="brand-mark" aria-hidden="true" />
+          <span>
+            <strong>Old Sea Dogs</strong>
+            <small>Bridge CMS</small>
+          </span>
+        </Link>
+        <button
+          aria-controls="bridge-section-menu"
+          aria-expanded={menuOpen}
+          className="bridge-menu-toggle"
+          onClick={() => setMenuOpen((open) => !open)}
+          type="button"
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+      </div>
+      {menuOpen ? <button aria-label="Close menu" className="bridge-menu-backdrop" onClick={closeMenu} type="button" /> : null}
+      <div className="bridge-menu-panel" id="bridge-section-menu">
+        {navGroups.map((group) => (
+          <nav key={group.label} aria-label={group.label}>
+            <p>{group.label}</p>
+            {group.items.map((item) => (
+              <Link
+                className={item.section === activeSection ? "active" : ""}
+                href={item.href}
+                key={item.section}
+                onClick={closeMenu}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        ))}
+        <Link className="bridge-legacy-link" href="/editor/legacy" onClick={closeMenu}>
+          Classic editor
+        </Link>
+      </div>
     </aside>
   );
 }
@@ -1154,25 +1150,77 @@ function StoryImage({ story }: { story: StorySummary }) {
   );
 }
 
+function ScrapConfirmDialog({
+  title,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const [typed, setTyped] = useState("");
+  const phrase = scrapConfirmPhrase(title);
+  const accepted = scrapConfirmAccepted(typed, title);
+  const headingId = useId();
+  return (
+    <div className="bridge-scrap-dialog-backdrop" onClick={onCancel} role="presentation">
+      <div
+        aria-labelledby={headingId}
+        aria-modal="true"
+        className="bridge-scrap-dialog"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <h2 id={headingId}>Scrap “{title.trim() || "Untitled story"}”?</h2>
+        <p>This removes the private draft from the editor. A backup is taken first. Published stories, scheduled stories, and homepage selections cannot be scrapped.</p>
+        <p>Type <strong>{scrapConfirmWord}</strong>{phrase ? <> or the first word of the title, <strong>{phrase}</strong>,</> : null} before the scrap button will turn on.</p>
+        <label>
+          <span>Confirmation</span>
+          <input
+            autoComplete="off"
+            autoFocus
+            onChange={(event) => setTyped(event.target.value)}
+            value={typed}
+          />
+        </label>
+        <div className="bridge-row-actions">
+          <button disabled={busy} onClick={onCancel} type="button">Keep this draft</button>
+          <button className="bridge-scrap-action" disabled={!accepted || busy} onClick={onConfirm} type="button">Scrap this draft</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StoryListPage({
   section,
   title,
   status,
   queue,
+  scrappedNotice = "",
 }: {
   section: BridgeCmsSection;
   title: string;
   status?: string;
   queue?: string;
+  scrappedNotice?: string;
 }) {
   const [query, setQuery] = useState("");
   const [workflowFilter, setWorkflowFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [mediaStoryId, setMediaStoryId] = useState("");
-  const [actionMessage, setActionMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState(scrappedNotice);
   const [actionBusy, setActionBusy] = useState(false);
+  const [scrapCandidate, setScrapCandidate] = useState<{ id: string; title: string } | null>(null);
+  const [scrappedDrafts, setScrappedDrafts] = useState<Array<{ id: string; title: string; backupId: string; backupPath: string }>>([]);
+  const [scrappedNote, setScrappedNote] = useState("");
   const [scrapeDiagnostics, setScrapeDiagnostics] = useState<SourceWatchDiagnostics | null>(null);
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [scrapePreview, setScrapePreview] = useState<ScrapedStoryPreview | null>(null);
   const isScrapedQueue = queue === "scraped";
   const viewQuery = useMemo(() => {
     const params = new URLSearchParams();
@@ -1215,6 +1263,25 @@ function StoryListPage({
     }
   };
 
+  const scrapeSingleUrl = async (saveDraft: boolean) => {
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      const payload = await postBridgeAction<{ result: { preview: ScrapedStoryPreview; saved: boolean } }>({
+        action: "scrapeStoryUrl",
+        scrapeUrl,
+        saveScrapedDraft: saveDraft,
+      });
+      setScrapePreview(payload.result.preview);
+      setActionMessage(saveDraft ? "Private Draft created for editorial review. Nothing was published." : "Preview extracted. Review it before creating a private Draft.");
+      if (saveDraft) reload();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "The article could not be scraped.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const deleteScrapedStory = async (id: string) => {
     if (!window.confirm("Delete this scraped story from the review queue? A verified timestamped backup will be created first.")) return;
     setActionBusy(true);
@@ -1245,26 +1312,105 @@ function StoryListPage({
     }
   };
 
-  const deleteScrapedStories = async (ids: string[], label: string) => {
-    if (ids.length === 0) {
-      setActionMessage("No scraped stories are selected.");
-      return;
-    }
-    if (!window.confirm(`${label}? A backup will be created before the bulk delete runs.`)) return;
+  const unpublishListedStory = async (story: StorySummary) => {
+    if (!window.confirm(`Unpublish “${story.title}”? It will leave the public site and stay in the editor.`)) return;
     setActionBusy(true);
     setActionMessage("");
     try {
-      const payload = await postBridgeAction<{ deleted: number; backup?: { backupPath?: string } }>({
+      await postBridgeAction({ action: "setStoryStatus", id: story.id, status: "unpublished", confirm: true });
+      setActionMessage("Story unpublished. It is no longer on the public site.");
+      reload();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "The story could not be unpublished.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const refreshScrappedDrafts = useCallback(async () => {
+    if (status !== "draft" || isScrapedQueue) return;
+    try {
+      const payload = await postBridgeAction<{ stories?: Array<{ id: string; title: string; backupId: string; backupPath: string }>; note?: string }>({
+        action: "listScrappedStories",
+      });
+      setScrappedDrafts(payload.stories || []);
+      setScrappedNote(payload.note || "");
+    } catch (error: unknown) {
+      setScrappedDrafts([]);
+      setScrappedNote(error instanceof Error ? error.message : "Recently scrapped drafts could not be listed.");
+    }
+  }, [isScrapedQueue, status]);
+
+  useEffect(() => {
+    if (status !== "draft" || isScrapedQueue) return;
+    let cancelled = false;
+    postBridgeAction<{ stories?: Array<{ id: string; title: string; backupId: string; backupPath: string }>; note?: string }>({
+      action: "listScrappedStories",
+    }).then((payload) => {
+      if (cancelled) return;
+      setScrappedDrafts(payload.stories || []);
+      setScrappedNote(payload.note || "");
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      setScrappedDrafts([]);
+      setScrappedNote(error instanceof Error ? error.message : "Recently scrapped drafts could not be listed.");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isScrapedQueue, status]);
+
+  const deleteSelectedDrafts = async (ids: string[], label: string, options?: { confirmed?: boolean }) => {
+    if (ids.length === 0) {
+      setActionMessage("No deletable Drafts are selected.");
+      return;
+    }
+    const selected = (data?.stories || []).filter((story) => ids.includes(story.id));
+    const titles = selected.map((story) => `• ${story.title}`).join("\n");
+    if (!options?.confirmed && !window.confirm(`${label} (${ids.length})?\n\n${titles}\n\nOnly private Drafts are eligible. Homepage-selected and referenced stories are protected. A verified backup will be created first. This deletion is permanent.`)) return;
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      const payload = await postBridgeAction<{ deleted: number; backup?: { backupPath?: string; backupId?: string } }>({
         action: "deleteStories",
         ids,
         confirm: true,
         backupBeforeDelete: true,
       });
       setSelectedIds([]);
-      setActionMessage(`Deleted ${payload.deleted} scraped stories after backup${payload.backup?.backupPath ? `: ${payload.backup.backupPath}` : "."}`);
+      const backupPath = payload.backup?.backupPath || payload.backup?.backupId || "";
+      const lead = selected.length === 1
+        ? scrapBackupMessage(selected[0]?.title || "The draft", backupPath)
+        : `Deleted ${payload.deleted} drafts. ${backupPath ? `A backup was saved at ${backupPath}.` : "A backup was saved before they were removed."} Recently scrapped can restore one story at a time. The rest of that backup stays untouched.`;
+      setActionMessage(lead);
       reload();
+      void refreshScrappedDrafts();
     } catch (error: unknown) {
-      setActionMessage(error instanceof Error ? error.message : "Bulk delete could not be completed.");
+      setSelectedIds([]);
+      reload();
+      const detail = error instanceof Error ? error.message : "Draft cleanup could not be completed. No unsafe story was deleted.";
+      setActionMessage(`${detail} The Story list has been refreshed so removed or changed records cannot remain selected.`);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const restoreScrappedDraft = async (item: { id: string; title: string; backupId: string }) => {
+    if (!window.confirm(`Restore “${item.title}” as a private draft? Only this story is copied back.`)) return;
+    setActionBusy(true);
+    setActionMessage("");
+    try {
+      await postBridgeAction({
+        action: "restoreScrappedStory",
+        id: item.id,
+        backupId: item.backupId,
+        confirm: true,
+      });
+      setActionMessage(`“${item.title}” is back in Drafts. Only that story was restored.`);
+      reload();
+      void refreshScrappedDrafts();
+    } catch (error: unknown) {
+      setActionMessage(error instanceof Error ? error.message : "That draft could not be restored.");
     } finally {
       setActionBusy(false);
     }
@@ -1288,7 +1434,9 @@ function StoryListPage({
       imageUrl: selection.url,
       imageAlt: selection.alt,
       imageCaption: selection.caption,
-      imageCredit: selection.credit,
+      imageCredit: dedupeCredit(selection.credit),
+      imageFit: selection.imageFit || "auto",
+      imageFocalPoint: selection.focalPoint || "",
     });
     setActionMessage("Featured image updated.");
     reload();
@@ -1324,12 +1472,35 @@ function StoryListPage({
           <>
             <button className="bridge-secondary-action" disabled={actionBusy} onClick={() => void runScrape()} type="button">Run Scrape</button>
             <button className="bridge-secondary-action" disabled={actionBusy} onClick={reload} type="button">Refresh Queue</button>
-            <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteScrapedStories(selectedIds, "Delete selected scraped stories")} type="button">Delete selected scraped stories</button>
-            <button className="bridge-secondary-action" disabled={actionBusy || unusableScrapedIds.length === 0} onClick={() => void deleteScrapedStories(unusableScrapedIds, "Clear rejected/unusable scraped stories")} type="button">Clear rejected/unusable scraped stories</button>
+            <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected scraped Drafts")} type="button">Delete selected scraped drafts</button>
+            <button className="bridge-secondary-action" disabled={actionBusy || unusableScrapedIds.length === 0} onClick={() => void deleteSelectedDrafts(unusableScrapedIds, "Clear rejected/unusable scraped Drafts")} type="button">Clear rejected/unusable scraped stories</button>
           </>
-        ) : null}
+        ) : status === "published" ? null : (
+          <button className="bridge-secondary-action" disabled={actionBusy || selectedIds.length === 0} onClick={() => void deleteSelectedDrafts(selectedIds, "Delete selected Drafts")} type="button">Delete selected drafts</button>
+        )}
       </BridgeHeader>
-      {actionMessage ? <p className="bridge-save-message">{actionMessage}</p> : null}
+      {actionMessage ? <p className="bridge-save-message" role="status">{actionMessage}</p> : null}
+      {isScrapedQueue ? (
+        <section className="bridge-panel">
+          <div className="bridge-panel-heading">
+            <div><h2>Scrape Story</h2><p className="bridge-muted">Fetch an article for review. Images are never copied automatically and nothing is published.</p></div>
+          </div>
+          <div className="bridge-story-toolbar">
+            <label><span>Article URL</span><input type="url" value={scrapeUrl} onChange={(event) => { setScrapeUrl(event.target.value); setScrapePreview(null); }} placeholder="https://publisher.example/article" /></label>
+            <button className="bridge-secondary-action" disabled={actionBusy || !scrapeUrl.trim()} onClick={() => void scrapeSingleUrl(false)} type="button">Fetch preview</button>
+          </div>
+          {scrapePreview ? (
+            <article className="bridge-empty-state">
+              <span className={`bridge-status ${scrapePreview.status === "ready" ? "good" : "warn"}`}>{scrapePreview.status === "ready" ? "Ready to review" : "Needs more detail"}</span>
+              <h3>{scrapePreview.headline}</h3>
+              <p>{scrapePreview.standfirst}</p>
+              <p>{scrapePreview.category} · {scrapePreview.wordCount} words · {scrapePreview.sourceName}</p>
+              {scrapePreview.qualityWarnings.length ? <p>{scrapePreview.qualityWarnings.join(" ")}</p> : null}
+              <button className="bridge-primary-action" disabled={actionBusy} onClick={() => void scrapeSingleUrl(true)} type="button">Create private Draft</button>
+            </article>
+          ) : null}
+        </section>
+      ) : null}
       {isScrapedQueue && scrapeDiagnostics ? (
         <section className="bridge-panel">
           <div className="bridge-panel-heading">
@@ -1365,21 +1536,23 @@ function StoryListPage({
               onChange={(event) => {
                 setQuery(event.target.value);
                 setPage(1);
+                setSelectedIds([]);
               }}
               placeholder="Search title, category, source or tags"
             />
           </label>
           <label>
             <span>Workflow</span>
-            <select value={workflowFilter} onChange={(event) => { setWorkflowFilter(event.target.value); setPage(1); }}>
+            <select value={workflowFilter} onChange={(event) => { setWorkflowFilter(event.target.value); setPage(1); setSelectedIds([]); }}>
               <option value="">All workflow statuses</option>
               {storyWorkflowStatuses.map((workflow) => <option key={workflow} value={workflow}>{workflow}</option>)}
             </select>
           </label>
           {data ? (
-            <p>
-              {formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount}
-            </p>
+            <div>
+              <p>{formatNumber(data.pagination.total)} stories · page {data.pagination.page} of {data.pagination.pageCount} · Sort: Newest created</p>
+              <small>{formatNumber(data.sourceCounts.cmsManaged)} managed in The Helm · {formatNumber(data.sourceCounts.legacyReadOnly)} published archive records (read-only)</small>
+            </div>
           ) : null}
         </div>
         {loading ? <LoadingBlock label="Loading story summaries" /> : null}
@@ -1390,7 +1563,7 @@ function StoryListPage({
               <span>Story</span>
               <span>Status</span>
               <span>Quality</span>
-              <span>Date</span>
+              <span>Created</span>
               <span>Media</span>
               <span>Open</span>
             </div>
@@ -1400,7 +1573,7 @@ function StoryListPage({
                 <div className="bridge-story-row-wrap" key={story.id}>
                   <article className="bridge-story-row" role="row">
                     <span className="bridge-story-select-thumb">
-                      {isScrapedQueue ? (
+                      {story.deletion.eligible ? (
                         <input
                           aria-label={`Select ${story.title}`}
                           checked={selectedIds.includes(story.id)}
@@ -1413,22 +1586,31 @@ function StoryListPage({
                     <div>
                       <strong>{story.title}</strong>
                       <small>{story.category} · {story.author} · {story.wordCount} words</small>
+                      <small>{story.management.label}</small>
                       <HomepageVisibilitySummary story={story} />
                       <p>{story.summary}</p>
                     </div>
                     <span className={`bridge-status ${statusTone(queueStatus)}`}>{queueStatus}</span>
                     <span className={`bridge-status ${statusTone(story.quality.label)}`}>{story.quality.label}</span>
-                    <span>{formatDateTime(story.updatedAt || story.date)}</span>
+                    <span>
+                      {formatDateTime(story.createdAt || story.date)}
+                      {story.status === "published" && story.publishedAt ? <small>Published {formatDateTime(story.publishedAt)}</small> : null}
+                      {story.status === "scheduled" && story.scheduledPublishAt ? <small>Scheduled {formatDateTime(story.scheduledPublishAt)}</small> : null}
+                    </span>
                     <span>{story.hasImage ? "Image" : "No image"}{story.hasVideo ? " · Video" : ""}</span>
                     <div className="bridge-row-actions">
-                      <Link href={`/editor/write?story=${encodeURIComponent(story.id)}`}>Edit</Link>
+                      {story.management.editable ? <Link href={`/editor/write?story=${encodeURIComponent(story.id)}`}>Edit</Link> : null}
                       {story.id ? <Link href={`/editor/preview/${story.id}`} target="_blank">Preview</Link> : null}
+                      {!story.management.editable && story.status === "published" ? <a href={`/stories/${story.slug}`} target="_blank">View public Story</a> : null}
                       {isScrapedQueue && story.sourceUrl ? <a href={story.sourceUrl} rel="noreferrer" target="_blank">View source</a> : null}
-                      <button type="button" onClick={() => setMediaStoryId((current) => current === story.id ? "" : story.id)}>Upload Image</button>
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Review")}>Needs Review</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Rewrite")}>Needs Rewrite</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
-                      {isScrapedQueue ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
+                      {story.management.editable ? <button type="button" onClick={() => setMediaStoryId((current) => current === story.id ? "" : story.id)}>Upload Image</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Review")}>Needs Review</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Needs Rewrite")}>Needs Rewrite</button> : null}
+                      {isScrapedQueue && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void setScrapedWorkflow(story, "Draft")}>Convert to Draft</button> : null}
+                      {isScrapedQueue && story.deletion.eligible ? <button type="button" disabled={actionBusy} onClick={() => void deleteScrapedStory(story.id)}>Delete</button> : null}
+                      {!isScrapedQueue && story.status === "published" && story.management.editable ? <button type="button" disabled={actionBusy} onClick={() => void unpublishListedStory(story)}>Unpublish</button> : null}
+                      {!isScrapedQueue && story.deletion.eligible ? <button className="bridge-scrap-action" type="button" disabled={actionBusy} onClick={() => setScrapCandidate({ id: story.id, title: story.title })}>Scrap</button> : null}
+                      {!isScrapedQueue && !story.deletion.eligible && story.status === "draft" && story.deletion.reasons[0] ? <small>{story.deletion.reasons[0]}</small> : null}
                     </div>
                   </article>
                   {mediaStoryId === story.id ? (
@@ -1459,16 +1641,50 @@ function StoryListPage({
         ) : null}
         {data && data.pagination.pageCount > 1 ? (
           <div className="bridge-pager">
-            <button type="button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+            <button type="button" disabled={page <= 1} onClick={() => { setSelectedIds([]); setPage((value) => Math.max(1, value - 1)); }}>
               Previous
             </button>
             <span>{page} / {data.pagination.pageCount}</span>
-            <button type="button" disabled={page >= data.pagination.pageCount} onClick={() => setPage((value) => value + 1)}>
+            <button type="button" disabled={page >= data.pagination.pageCount} onClick={() => { setSelectedIds([]); setPage((value) => value + 1); }}>
               Next
             </button>
           </div>
         ) : null}
       </section>
+      {status === "draft" && !isScrapedQueue ? (
+        <section className="bridge-panel bridge-scrapped-panel" aria-label="Recently scrapped">
+          <div className="bridge-panel-heading">
+            <div>
+              <h2>Recently scrapped</h2>
+              <p className="bridge-muted">Drafts removed from the editor that are still in a pre-delete backup. Restore puts that one story back as a draft. Homepage settings, media, and every other story stay as they are.</p>
+            </div>
+          </div>
+          {scrappedNote ? <p className="bridge-muted">{scrappedNote}</p> : null}
+          {scrappedDrafts.length > 0 ? (
+            <ul className="bridge-scrapped-list">
+              {scrappedDrafts.map((item) => (
+                <li key={`${item.backupId}:${item.id}`}>
+                  <strong>{item.title}</strong>
+                  <small>{item.backupPath}</small>
+                  <button className="bridge-secondary-action" disabled={actionBusy} onClick={() => void restoreScrappedDraft(item)} type="button">Restore</button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+      {scrapCandidate ? (
+        <ScrapConfirmDialog
+          busy={actionBusy}
+          title={scrapCandidate.title}
+          onCancel={() => setScrapCandidate(null)}
+          onConfirm={() => {
+            const candidate = scrapCandidate;
+            setScrapCandidate(null);
+            void deleteSelectedDrafts([candidate.id], "Scrap draft", { confirmed: true });
+          }}
+        />
+      ) : null}
     </>
   );
 }
@@ -1508,7 +1724,7 @@ function ScheduledStoriesPage() {
           <div className="bridge-scheduled-list">
             {data.stories.map((story) => (
               <article key={story.id}>
-                <div><span className="bridge-status warn">Scheduled</span><h3>{story.title}</h3><p>{story.category}</p></div>
+                <div><span className="bridge-status warn">Scheduled</span>{story.promoteToHomepageLead || !story.homepageLeadOptOut ? <span className="bridge-status warn">Pending homepage headline</span> : null}<h3>{story.title}</h3><p>{story.category}</p></div>
                 <dl>
                   <div><dt>Release</dt><dd>{formatUkDateTime(story.scheduledPublishAt)}</dd></div>
                   <div><dt>Image</dt><dd>{story.hasImage ? "Yes" : "No"}</dd></div>
@@ -1548,6 +1764,8 @@ function blankStory(): EditorStory {
     imageAlt: "",
     imageCredit: "",
     imageCaption: "",
+    imageFit: "auto",
+    imageFocalPoint: "",
     videoUrl: "",
     videoCaption: "",
     videoPosition: "",
@@ -1568,6 +1786,14 @@ function blankStory(): EditorStory {
     contentBasis: "Old Sea Dogs observation and editorial research",
     editorialStatus: "Needs improvement",
     noindex: false,
+    management: {
+      source: "cms",
+      origin: "cms",
+      label: "CMS-managed",
+      writable: true,
+      editable: true,
+    },
+    deletion: { eligible: true, reasons: [] },
     homepageLeadEligible: false,
     homepageLeadDiagnostics: {
       published: false,
@@ -1667,6 +1893,8 @@ type MediaSelection = {
   usageRestrictions: string;
   location: string;
   dateTaken: string;
+  imageFit?: string;
+  focalPoint?: string;
 };
 
 type ImagePlacement = "featured" | "inline";
@@ -1693,7 +1921,7 @@ type MediaUploadDiagnostics = {
   error: string;
 };
 
-const bridgePhotoUploadAccept = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+const bridgePhotoUploadAccept = editorPhotoAccept;
 const bridgeMediaUploadEndpoint = "/api/editor/media/upload";
 const bridgeMediaUploadAction = "uploadMedia";
 const bridgeMediaUploadTimeoutMs = 45_000;
@@ -1762,6 +1990,7 @@ function BridgeMediaPicker({
   canInsertInline = true,
   initialMediaId = "",
   onSelectedMediaChange,
+  onNotice,
 }: {
   assets: MediaAsset[];
   context: string;
@@ -1778,6 +2007,7 @@ function BridgeMediaPicker({
   canInsertInline?: boolean;
   initialMediaId?: string;
   onSelectedMediaChange?: (selection: MediaSelection) => void;
+  onNotice?: (message: string) => void;
 }) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1816,6 +2046,15 @@ function BridgeMediaPicker({
   const [selectionBusy, setSelectionBusy] = useState(false);
   const selectionInFlightRef = useRef(false);
   const [message, setMessage] = useState("");
+  const messageRef = useRef<HTMLParagraphElement | null>(null);
+  const onNoticeRef = useRef(onNotice);
+  useEffect(() => {
+    onNoticeRef.current = onNotice;
+  }, [onNotice]);
+  useEffect(() => {
+    onNoticeRef.current?.(message);
+    if (message) messageRef.current?.scrollIntoView({ block: "center" });
+  }, [message]);
   const [savedRightsSignature, setSavedRightsSignature] = useState(() => JSON.stringify({
     id: initialRightsAsset?.id || "",
     copyrightOwnership: initialRightsAsset?.copyrightOwnership || "unknown",
@@ -1896,6 +2135,8 @@ function BridgeMediaPicker({
     usageRestrictions: usageRestrictions.trim() || asset.usageRestrictions,
     location: location.trim() || asset.location,
     dateTaken: dateTaken.trim() || asset.dateTaken,
+    imageFit: asset.imageFit || "auto",
+    focalPoint: asset.focalPoint || "",
   });
 
   const selectAsset = (asset: MediaAsset) => {
@@ -1932,6 +2173,8 @@ function BridgeMediaPicker({
       usageRestrictions: asset.usageRestrictions,
       location: asset.location,
       dateTaken: asset.dateTaken,
+      imageFit: asset.imageFit || "auto",
+      focalPoint: asset.focalPoint || "",
     });
     setSavedRightsSignature(JSON.stringify({
       id: asset.id,
@@ -2027,11 +2270,40 @@ function BridgeMediaPicker({
       return;
     }
 
-    const detectedContentType = photoContentType(file);
+    if (file.size <= 0) {
+      setMessage("That photo is empty. Please choose another.");
+      return;
+    }
+    if (file.size > bridgeMaxPhotoUploadBytes) {
+      const error = `File too large. Please upload an image under ${bridgeMaxPhotoUploadMb} MB.`;
+      setMessage(error);
+      return;
+    }
+
+    let uploadFile = file;
+    let prepareNote = "";
+    try {
+      const prepared = await prepareEditorPhoto(file);
+      uploadFile = prepared.file;
+      prepareNote = prepared.note;
+    } catch (prepareError) {
+      const error = prepareError instanceof Error ? prepareError.message : "This photo could not be prepared.";
+      setUploadDiagnostics((current) => ({
+        ...current,
+        selectedFileName: file.name,
+        mimeType: file.type || "Unknown",
+        fileSize: `${formatBytes(file.size)} (${file.size} bytes)`,
+        error,
+      }));
+      setMessage(error);
+      return;
+    }
+
+    const detectedContentType = photoContentType(uploadFile);
     const nextDiagnostics: MediaUploadDiagnostics = {
       selectedFileName: file.name,
-      mimeType: file.type || detectedContentType || "Unknown",
-      fileSize: `${formatBytes(file.size)} (${file.size} bytes)`,
+      mimeType: uploadFile.type || detectedContentType || "Unknown",
+      fileSize: `${formatBytes(uploadFile.size)} (${uploadFile.size} bytes)`,
       uploadRequestStarted: "No",
       apiRoute: bridgeMediaUploadEndpoint,
       httpStatus: "No server response yet",
@@ -2046,25 +2318,14 @@ function BridgeMediaPicker({
     setUploadDiagnostics(nextDiagnostics);
 
     if (!detectedContentType) {
-      const error = "Unsupported file type. Please upload a JPG, JPEG, PNG or WebP image.";
+      const error = "Unsupported file type. Please choose a JPEG, PNG, WebP or iPhone photo.";
       setUploadDiagnostics((current) => ({ ...current, error }));
       setMessage(error);
       return;
     }
 
-    if (file.size > bridgeMaxPhotoUploadBytes) {
-      const error = `File too large. Please upload an image under ${bridgeMaxPhotoUploadMb} MB.`;
-      setUploadDiagnostics((current) => ({
-        ...current,
-        httpStatus: "Blocked by Bridge before upload",
-        error,
-      }));
-      setMessage(error);
-      return;
-    }
-
     setUploading(true);
-    setMessage("Uploading image...");
+    setMessage(prepareNote ? `${prepareNote} Uploading…` : "Uploading image...");
     const controller = new AbortController();
     uploadAbortRef.current = controller;
     uploadAbortReasonRef.current = "";
@@ -2072,7 +2333,7 @@ function BridgeMediaPicker({
     try {
       const form = new FormData();
       form.append("action", bridgeMediaUploadAction);
-      form.append("photo", file);
+      form.append("photo", uploadFile);
       form.append("alt", alt);
       setUploadDiagnostics((current) => ({
         ...current,
@@ -2468,6 +2729,7 @@ function BridgeMediaPicker({
             ) : null}
             {currentImage && onRemoveImage ? <button type="button" onClick={() => void onRemoveImage()}>Remove image</button> : null}
           </div>
+          {message ? <p className="bridge-save-message" ref={messageRef} role="alert">{message}</p> : null}
           {selectedFile || uploadDiagnostics.uploadRequestStarted === "Yes" || uploadDiagnostics.error ? (
             <div className="bridge-upload-diagnostics" aria-live="polite">
               <strong>Upload diagnostics</strong>
@@ -2559,7 +2821,6 @@ function BridgeMediaPicker({
           </div>
         </div>
       ) : null}
-      {message ? <p className="bridge-save-message">{message}</p> : null}
     </section>
   );
 }
@@ -2619,7 +2880,9 @@ function WriteStoryEditor({
   const [bodyText, setBodyText] = useState(() => initialStory.body.join("\n\n"));
   const [tagText, setTagText] = useState(() => initialStory.tags.join(", "));
   const [message, setMessage] = useState("");
+  const [photoNotice, setPhotoNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [scrapOpen, setScrapOpen] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
   const [split, setSplit] = useState(52);
@@ -2641,6 +2904,7 @@ function WriteStoryEditor({
       copyrightOwner: asset.copyrightOwner, photographer: asset.photographer, licence: asset.licence,
       permissionNote: asset.permissionNote, permissionReceivedAt: asset.permissionReceivedAt, usageRestrictions: asset.usageRestrictions,
       location: asset.location, dateTaken: asset.dateTaken,
+      imageFit: asset.imageFit || "auto", focalPoint: asset.focalPoint || "",
     } : null;
   });
   const [bodyCursor, setBodyCursor] = useState<number | null>(null);
@@ -2763,7 +3027,7 @@ function WriteStoryEditor({
         ? selectedStoryMedia
         : null;
       const featuredCredit = featuredMedia
-        ? [...new Set([
+        ? dedupeCredit([
             featuredMedia.credit || featuredMedia.creditLine,
             featuredMedia.copyright,
             featuredMedia.copyrightOwner,
@@ -2772,8 +3036,9 @@ function WriteStoryEditor({
             featuredMedia.dateTaken,
           ]
             .map((value) => String(value || "").trim())
-            .filter(Boolean))].join(" · ")
-        : story.imageCredit;
+            .filter(Boolean)
+            .join(" · "))
+        : dedupeCredit(story.imageCredit);
 
       const storyToSave = {
             ...story,
@@ -2820,12 +3085,46 @@ function WriteStoryEditor({
       setRightsOverrideConfirmed(false);
       setOverrideReason("");
       const advisory = payload.editorialWarnings?.length ? " Editorial suggestions were recorded; the story text was not changed." : "";
-      setMessage(`${preservingCurrentStatus ? `Changes saved. Story remains ${displayStatus(status)}.` : status === "published" ? "Story published." : status === "scheduled" ? "Story scheduled." : status === "unpublished" ? "Story unpublished." : "Story saved as Draft."}${advisory}`);
+      const headlineNote = status === "published"
+        ? story.promoteToHomepageLead ? " Set as Homepage Headline Story." : ""
+        : status === "scheduled" && (story.promoteToHomepageLead || !story.homepageLeadOptOut) ? " Becomes the homepage headline when it goes live." : "";
+      setMessage(`${preservingCurrentStatus ? `Changes saved. Story remains ${displayStatus(status)}.` : status === "published" ? "Story published." : status === "scheduled" ? "Story scheduled." : status === "unpublished" ? "Story unpublished." : "Story saved as Draft."}${advisory}${headlineNote}`);
       reload();
     } catch (saveError: unknown) {
       setMessage(saveError instanceof Error ? saveError.message : "Story could not be saved.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const scrapDraft = async () => {
+    if (!story.id) {
+      setMessage("Save this story as a draft before scrapping it.");
+      setScrapOpen(false);
+      return;
+    }
+    if (story.deletion && !story.deletion.eligible) {
+      setMessage(story.deletion.reasons.join(" ") || "This story cannot be scrapped.");
+      setScrapOpen(false);
+      return;
+    }
+    const title = story.title.trim() || "Untitled story";
+    setSaving(true);
+    setMessage("");
+    try {
+      const payload = await postBridgeAction<{ backup?: { backupPath?: string; backupId?: string } }>({
+        action: "deleteStories",
+        ids: [story.id],
+        confirm: true,
+        backupBeforeDelete: true,
+      });
+      const backup = payload.backup?.backupPath || payload.backup?.backupId || "";
+      const params = new URLSearchParams({ scrapped: "1", title, backup });
+      window.location.assign(`/editor/drafts?${params.toString()}`);
+    } catch (scrapError: unknown) {
+      setMessage(scrapError instanceof Error ? scrapError.message : "This story could not be scrapped.");
+      setSaving(false);
+      setScrapOpen(false);
     }
   };
 
@@ -2876,7 +3175,9 @@ function WriteStoryEditor({
         imageUrl: selection.url,
         imageAlt: selection.alt,
         imageCaption: selection.caption,
-        imageCredit: selection.credit,
+        imageCredit: dedupeCredit(selection.credit),
+        imageFit: normalizeImageFit(selection.imageFit) === "auto" ? story.imageFit : normalizeImageFit(selection.imageFit),
+        imageFocalPoint: selection.focalPoint || story.imageFocalPoint,
       });
       return "Featured image attached locally. Save the story to persist it.";
     }
@@ -2943,7 +3244,7 @@ function WriteStoryEditor({
 
   return (
     <section className="bridge-write-shell" style={{ ["--bridge-editor-width" as string]: `${split}%` }}>
-        <div className="bridge-write-toolbar">
+        <div className="bridge-write-toolbar bridge-desktop-tools">
           <div className="bridge-segmented" aria-label="Preview size">
             {(["desktop", "tablet", "mobile"] as const).map((device) => (
               <button
@@ -3069,6 +3370,7 @@ function WriteStoryEditor({
                 <button type="button" onClick={() => document.getElementById("story-media-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Upload New Photo</button>
                 <button type="button" onClick={() => document.getElementById("story-media-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Choose from Media Library</button>
               </div>
+              {photoNotice ? <p className="bridge-save-message" role="alert">{photoNotice}</p> : null}
             </div>
 
             <section className="bridge-story-blocks" aria-label="Article block order">
@@ -3174,6 +3476,25 @@ function WriteStoryEditor({
                 <input value={story.imageCaption} onChange={(event) => updateStory({ imageCaption: event.target.value })} />
               </label>
             </div>
+            <div className="bridge-field-row">
+              <label>
+                <span>Image fit</span>
+                <select value={story.imageFit || "auto"} onChange={(event) => updateStory({ imageFit: normalizeImageFit(event.target.value) })}>
+                  <option value="auto">Auto</option>
+                  <option value="fill">Fill (crop)</option>
+                  <option value="contain">Show whole image</option>
+                </select>
+              </label>
+              <label>
+                <span>Focal point</span>
+                <input
+                  placeholder="50% 50%"
+                  value={story.imageFocalPoint || "50% 50%"}
+                  onChange={(event) => updateStory({ imageFocalPoint: event.target.value })}
+                />
+              </label>
+            </div>
+            <p className="bridge-muted">Auto keeps a large photograph cropped to the frame. It shows the whole image when the file is small, a logo or graphic, or a very different shape. Focal point is used when the image is cropped, for example 50% 30%.</p>
 
             <BridgeMediaPicker
               assets={media}
@@ -3188,6 +3509,7 @@ function WriteStoryEditor({
               initialPlacement="inline"
               initialMediaId={initialMediaId}
               onSelectedMediaChange={setSelectedStoryMedia}
+              onNotice={setPhotoNotice}
               storyComposer
               canInsertInline={bodyCursor !== null || replaceBlockIndex !== null}
               panelId="story-media-panel"
@@ -3292,7 +3614,7 @@ function WriteStoryEditor({
 
             <details className="bridge-editor-details">
               <summary>SEO and search preview</summary>
-              <p className="bridge-muted">The public site continues to use the existing headline, excerpt and noindex fields. These controls edit those same canonical fields without introducing a second SEO record.</p>
+              <p className="bridge-muted">Published stories are included in Google by default. Use the exclusion only for an exceptional story that should remain public but must not appear in search.</p>
               <label>
                 <span>SEO title / headline</span>
                 <input value={story.title} onChange={(event) => updateStory({ title: event.target.value })} />
@@ -3303,7 +3625,7 @@ function WriteStoryEditor({
               </label>
               <label className="bridge-check-row">
                 <input checked={story.noindex} onChange={(event) => updateStory({ noindex: event.target.checked })} type="checkbox" />
-                Prevent search indexing
+                Exclude from Google
               </label>
             </details>
 
@@ -3333,7 +3655,11 @@ function WriteStoryEditor({
               </label>
               <label className="bridge-check-row">
                 <input checked={story.noindex} onChange={(event) => updateStory({ noindex: event.target.checked })} type="checkbox" />
-                Noindex
+                Exclude from Google
+              </label>
+              <label className="bridge-check-row">
+                <input checked={story.status === "published" ? Boolean(story.promoteToHomepageLead) : Boolean(story.promoteToHomepageLead) || !story.homepageLeadOptOut} onChange={(event) => updateStory({ promoteToHomepageLead: event.target.checked, homepageLeadOptOut: !event.target.checked })} type="checkbox" />
+                Make homepage headline when this goes live
               </label>
               <div className="bridge-save-actions">
                 <button className="bridge-primary-action" disabled={saving} onClick={() => void saveStory(story.status)} type="button">Save Changes</button>
@@ -3415,8 +3741,27 @@ function WriteStoryEditor({
                 </button>
               </div>
             ) : null}
-            {message ? <p className="bridge-save-message">{message}</p> : null}
+            {message ? <p className="bridge-save-message" role="status">{message}</p> : null}
+            {story.id && story.status === "draft" ? (
+              <section className="bridge-scrap-danger" aria-label="Scrap this draft">
+                <h2>Danger area</h2>
+                <p>Scrapping removes this draft from the editor. It is separate from publishing. A backup is saved first. Recently scrapped, at the bottom of Drafts, can put this one story back.</p>
+                {story.deletion && !story.deletion.eligible ? (
+                  <p role="status">{story.deletion.reasons.join(" ")}</p>
+                ) : (
+                  <button className="bridge-scrap-action" disabled={saving} onClick={() => setScrapOpen(true)} type="button">Scrap draft</button>
+                )}
+              </section>
+            ) : null}
           </form>
+          {scrapOpen ? (
+            <ScrapConfirmDialog
+              busy={saving}
+              title={story.title}
+              onCancel={() => setScrapOpen(false)}
+              onConfirm={() => void scrapDraft()}
+            />
+          ) : null}
 
           <aside className={`bridge-live-preview ${previewDevice} ${previewTheme}`}>
             <article>
@@ -3498,6 +3843,7 @@ function blankEditorGuide(guideType: GuideType = "Destination"): EditorGuide {
     imageUrl: "/images/section-heroes/oldseadogs-destinations.webp",
     imageAlt: "",
     imageFocalPoint: "50% 50%",
+    imageFit: "auto",
     artworkCredit: "",
     quickFacts: [],
     sections: [],
@@ -3645,7 +3991,7 @@ function GuideEditor({
   const updateGuide = (patch: Partial<EditorGuide>) => {
     setDraft((current) => ({ ...current, ...patch }));
   };
-  const setFeaturedGuideImage = (asset: MediaAsset) => updateGuide({ imageUrl: asset.url, imageAlt: asset.alt || asset.displayName, imageCaption: asset.caption, imageCredit: asset.creditLine || asset.credit, featuredMediaId: asset.id });
+  const setFeaturedGuideImage = (asset: MediaAsset) => updateGuide({ imageUrl: asset.url, imageAlt: asset.alt || asset.displayName, imageCaption: asset.caption, imageCredit: dedupeCredit(asset.creditLine || asset.credit), featuredMediaId: asset.id, imageFit: normalizeImageFit(asset.imageFit), imageFocalPoint: asset.focalPoint || draft.imageFocalPoint || "50% 50%" });
   const insertGuideImage = (asset: MediaAsset) => updateGuide({ inlineImages: [...draft.inlineImages, { id: `guide-image-${Date.now()}`, mediaId: asset.id, url: asset.url, alt: asset.alt || asset.displayName, caption: asset.caption, credit: asset.creditLine || asset.credit, sectionIndex: 0, paragraphIndex: 0, order: draft.inlineImages.length }] });
   const updateInlineImage = (id: string, patch: Partial<EditorGuide["inlineImages"][number]>) => updateGuide({ inlineImages: draft.inlineImages.map((image) => image.id === id ? { ...image, ...patch } : image) });
   const moveInlineImage = (index: number, offset: number) => { const next = [...draft.inlineImages]; const target = index + offset; if (target < 0 || target >= next.length) return; [next[index], next[target]] = [next[target], next[index]]; updateGuide({ inlineImages: next.map((image, order) => ({ ...image, order })) }); };
@@ -3818,6 +4164,7 @@ function GuideEditor({
       </div>
       <div className="bridge-field-row thirds">
         <label><span>Hero focal point</span><input placeholder="50% 50%" value={draft.imageFocalPoint} onChange={(event) => updateGuide({ imageFocalPoint: event.target.value })} /></label>
+        <label><span>Image fit</span><select value={draft.imageFit || "auto"} onChange={(event) => updateGuide({ imageFit: normalizeImageFit(event.target.value) })}><option value="auto">Auto</option><option value="fill">Fill (crop)</option><option value="contain">Show whole image</option></select></label>
         <label><span>Artwork credit</span><input value={draft.artworkCredit} onChange={(event) => updateGuide({ artworkCredit: event.target.value })} /></label>
         <label><span>Artwork caption</span><input value={draft.imageCaption} onChange={(event) => updateGuide({ imageCaption: event.target.value })} /></label>
       </div>
@@ -3883,6 +4230,8 @@ function GuideEditor({
   );
 }
 
+// Retained temporarily as a rollback-safe reference while the extracted Guide Manager settles.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function GuidesPage() {
   const { data, loading, error, reload } = useBridgeView<GuidesPayload>("guides");
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -4379,31 +4728,44 @@ function MediaLibraryUploader({ onUploaded }: { onUploaded: (assets: MediaAsset[
   const [busy, setBusy] = useState(false);
 
   const uploadFiles = async (files: File[]) => {
-    const accepted = files.filter((file) => photoContentType(file) && file.size > 0 && file.size <= bridgeMaxPhotoUploadBytes);
-    const rejected = files.filter((file) => !accepted.includes(file));
+    const prepared: Array<{ sourceName: string; file: File }> = [];
+    const rejected: Array<{ name: string; message: string }> = [];
+    for (const file of files) {
+      if (file.size <= 0 || file.size > bridgeMaxPhotoUploadBytes) {
+        rejected.push({ name: file.name, message: `Use a photo under ${bridgeMaxPhotoUploadMb} MB.` });
+        continue;
+      }
+      try {
+        const ready = await prepareEditorPhoto(file);
+        prepared.push({ sourceName: file.name, file: ready.file });
+      } catch (error) {
+        rejected.push({ name: file.name, message: error instanceof Error ? error.message : `Use a JPEG, PNG, WebP or iPhone photo under ${bridgeMaxPhotoUploadMb} MB.` });
+      }
+    }
     setRows([
-      ...accepted.map((file) => ({ name: file.name, status: "waiting" as const, message: "Waiting" })),
-      ...rejected.map((file) => ({ name: file.name, status: "failed" as const, message: `Use JPG, PNG or WebP under ${bridgeMaxPhotoUploadMb} MB.` })),
+      ...prepared.map((item) => ({ name: item.sourceName, status: "waiting" as const, message: "Waiting" })),
+      ...rejected.map((item) => ({ name: item.name, status: "failed" as const, message: item.message })),
     ]);
-    if (accepted.length === 0) return;
+    if (prepared.length === 0) return;
     setBusy(true);
     const uploaded: MediaAsset[] = [];
-    for (let index = 0; index < accepted.length; index += 1) {
-      const file = accepted[index];
-      setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "uploading", message: `Uploading ${index + 1} of ${accepted.length}` } : row));
+    for (let index = 0; index < prepared.length; index += 1) {
+      const item = prepared[index];
+      const file = item.file;
+      setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "uploading", message: `Uploading ${index + 1} of ${prepared.length}` } : row));
       try {
         const form = new FormData();
         form.append("action", bridgeMediaUploadAction);
         form.append("photo", file);
-        form.append("alt", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
+        form.append("alt", item.sourceName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
         const response = await fetch(bridgeMediaUploadEndpoint, { method: "POST", body: form });
         const payload = await response.json() as { error?: string; media?: MediaAsset };
         if (!response.ok || !payload.media) throw new Error(payload.error || "Upload failed.");
         uploaded.push({ ...payload.media, thumbnailUrl: payload.media.thumbnailUrl || `/api/media/${payload.media.id}?variant=thumbnail` });
-        setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "complete", message: "Uploaded successfully" } : row));
+        setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "complete", message: "Uploaded successfully" } : row));
         await onUploaded([uploaded[uploaded.length - 1]]);
       } catch (error) {
-        setRows((current) => current.map((row) => row.name === file.name ? { ...row, status: "failed", message: error instanceof Error ? error.message : "Upload failed." } : row));
+        setRows((current) => current.map((row) => row.name === item.sourceName ? { ...row, status: "failed", message: error instanceof Error ? error.message : "Upload failed." } : row));
       }
     }
     setBusy(false);
@@ -4424,7 +4786,7 @@ function MediaLibraryUploader({ onUploaded }: { onUploaded: (assets: MediaAsset[
       onDrop={(event) => { event.preventDefault(); setDragging(false); void uploadFiles(Array.from(event.dataTransfer.files)); }}
     >
       <strong>Drag and drop photos here</strong>
-      <span>Upload several JPG, PNG or WebP files at once. Originals are preserved.</span>
+      <span>Upload several JPEG, PNG, WebP or iPhone HEIC photos at once. A file that is not a real photograph is refused, and this browser says so if it cannot read an HEIC photo.</span>
       <button disabled={busy} type="button" onClick={() => inputRef.current?.click()}>Choose Files</button>
       <input ref={inputRef} id={inputId} className="bridge-hidden-file-input" type="file" accept={bridgePhotoUploadAccept} multiple onChange={(event) => void uploadFiles(Array.from(event.currentTarget.files || []))} />
     </div>
@@ -4475,7 +4837,7 @@ function MediaPage() {
   };
   const attachToStory = async () => {
     if (!selected || !storyId) { setMessage("Choose a story first."); return; }
-    await postBridgeAction({ action: "saveStoryImage", id: storyId, imageUrl: selected.url, imageAlt: selected.alt, imageCredit: selected.credit, imageCaption: selected.caption });
+    await postBridgeAction({ action: "saveStoryImage", id: storyId, imageUrl: selected.url, imageAlt: selected.alt, imageCredit: dedupeCredit(selected.credit), imageCaption: selected.caption, imageFit: selected.imageFit || "auto", imageFocalPoint: selected.focalPoint || "" });
     setMessage("Photograph set as the selected story's featured image. It was not inserted into the article.");
   };
   const deleteSelected = async () => {
@@ -4543,6 +4905,8 @@ function MediaPage() {
           <label><span>Source</span><input value={selected.source} onChange={(event) => setSelected({ ...selected, source: event.target.value })} /></label>
           <label><span>Licence</span><input value={selected.licence} onChange={(event) => setSelected({ ...selected, licence: event.target.value })} /></label>
           <label><span>Credit Line</span><input value={selected.creditLine} onChange={(event) => setSelected({ ...selected, creditLine: event.target.value, credit: event.target.value })} /></label>
+          <label><span>Image fit</span><select value={selected.imageFit || "auto"} onChange={(event) => setSelected({ ...selected, imageFit: event.target.value })}><option value="auto">Auto</option><option value="fill">Fill (crop)</option><option value="contain">Show whole image</option></select></label>
+          <label><span>Focal point</span><input placeholder="50% 50%" value={selected.focalPoint || "50% 50%"} onChange={(event) => setSelected({ ...selected, focalPoint: event.target.value })} /></label>
           <label><span>Permission note</span><input value={selected.permissionNote} onChange={(event) => setSelected({ ...selected, permissionNote: event.target.value })} /></label>
           <label><span>Usage restrictions</span><input value={selected.usageRestrictions} onChange={(event) => setSelected({ ...selected, usageRestrictions: event.target.value })} /></label>
           <label><span>Date permission received</span><input type="date" value={selected.permissionReceivedAt.slice(0, 10)} onChange={(event) => setSelected({ ...selected, permissionReceivedAt: event.target.value })} /></label>
@@ -4644,8 +5008,25 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
     catch (saveError) { setMessage(saveError instanceof Error ? saveError.message : "Gallery item could not be saved."); }
     finally { setBusy(false); }
   };
+  const setPublicRollout = async (enabled: boolean) => {
+    const confirmed = window.confirm(enabled
+      ? "Turn the public Through the Lens gallery on? Only photographs already marked approved will appear at /through-the-lens."
+      : "Turn the public gallery off? /through-the-lens will return not found until you turn it on again.");
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      await postBridgeAction({ action: "saveSettings", settings: { galleryPublicRollout: enabled ? "true" : "false" } });
+      setMessage(enabled
+        ? "Public gallery is on. Approved photographs are visible at /through-the-lens."
+        : "Public gallery is off. /through-the-lens returns not found.");
+      reload();
+    } catch (rolloutError) {
+      setMessage(rolloutError instanceof Error ? rolloutError.message : "Gallery settings could not be saved.");
+    } finally { setBusy(false); }
+  };
   return <>
-    <BridgeHeader section="gallery" eyebrow="CMS review only — no public rollout">
+    <BridgeHeader section="gallery" eyebrow={data.publicRollout ? "Public gallery is on — approved photographs only" : "Public gallery is off until rollout is enabled"}>
       <button type="button" disabled={busy || !data.connector.configured} onClick={() => void testInstagram()}>Test Connection</button>
     </BridgeHeader>
     <nav className="bridge-gallery-tabs" aria-label="Through the Lens sections">{galleryTabs.map((tab) => <Link className={view === tab.view ? "active" : ""} href={tab.href} key={tab.view}>{tab.label}</Link>)}</nav>
@@ -4682,7 +5063,7 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
       {message ? <p className="bridge-save-message">{message}</p> : null}
     </section> : null}
     {view === "dashboard" || view === "categories" ? <section className="bridge-panel"><div className="bridge-panel-heading"><h2>Gallery Categories</h2><span>Unlimited categories</span></div><div className="bridge-flag-list large">{data.categories.map((category) => <span key={category.id}>{category.name}</span>)}</div><div className="bridge-row-actions"><input value={categoryName} onChange={(event) => setCategoryName(event.target.value)} placeholder="New category" /><button type="button" onClick={() => void addCategory()}>Add Category</button></div></section> : null}
-    {view === "settings" ? <section className="bridge-dashboard-grid two"><article className="bridge-panel"><h2>Gallery Settings</h2><dl className="bridge-definition-list"><div><dt>Name</dt><dd>Through the Lens</dd></div><div><dt>Public rollout</dt><dd>Disabled — approval required</dd></div><div><dt>Default import status</dt><dd>Pending Review</dd></div></dl></article><article className="bridge-panel"><h2>Designed for future additions</h2><div className="bridge-flag-list large">{["Video", "360 images", "Drone video", "Boat walkthroughs", "Virtual marina tours", "Interactive maps", "Photographer profiles", "Reader uploads", "Competitions", "Photo of the Day"].map((item) => <span key={item}>{item}</span>)}</div></article></section> : null}
+    {view === "settings" ? <section className="bridge-dashboard-grid two"><article className="bridge-panel"><h2>Gallery Settings</h2><dl className="bridge-definition-list"><div><dt>Name</dt><dd>Through the Lens</dd></div><div><dt>Public page</dt><dd>/through-the-lens</dd></div><div><dt>Public rollout</dt><dd>{data.publicRollout ? "Enabled — approved photographs are public" : "Disabled — approval required"}</dd></div><div><dt>Default import status</dt><dd>Pending Review</dd></div></dl><div className="bridge-row-actions"><button className="bridge-primary-action" disabled={busy || data.publicRollout} type="button" onClick={() => void setPublicRollout(true)}>Turn public gallery on</button><button disabled={busy || !data.publicRollout} type="button" onClick={() => void setPublicRollout(false)}>Turn public gallery off</button></div><p className="bridge-muted">Pending and rejected photographs stay private. This switch is saved as the galleryPublicRollout site setting.</p></article><article className="bridge-panel"><h2>Designed for future additions</h2><div className="bridge-flag-list large">{["Video", "360 images", "Drone video", "Boat walkthroughs", "Virtual marina tours", "Interactive maps", "Photographer profiles", "Reader uploads", "Competitions", "Photo of the Day"].map((item) => <span key={item}>{item}</span>)}</div></article></section> : null}
     {message ? <p className="bridge-save-message">{message}</p> : null}
     {view !== "categories" && view !== "instagram" && view !== "settings" ? <section className="bridge-card-grid">
       {visibleItems.map((item) => <article className="bridge-queue-card" key={item.id}>
@@ -4695,7 +5076,7 @@ function GalleryPage({ view = "dashboard" }: { view?: GalleryView }) {
       {visibleItems.length === 0 ? <div className="bridge-empty-state"><h2>No {view === "dashboard" ? "gallery" : view} items</h2><p>Upload photographs to the Media Library or connect Instagram, then add them for review.</p><Link className="bridge-primary-action" href="/editor/media">Upload Photos in Media Library</Link></div> : null}
     </section> : null}
     {editing ? <section className="bridge-panel bridge-gallery-editor"><div className="bridge-panel-heading"><h2>Edit gallery item</h2><button onClick={() => setEditing(null)} type="button">Close</button></div>
-      <div className="bridge-gallery-preview"><img src={editing.thumbnailUrl} alt={editing.alt || editing.title} /><div><p className="eyebrow">Eventual gallery preview — not public</p><h3>{editing.title || "Untitled photograph"}</h3><p>{editing.caption}</p><small>{editing.credit}{editing.location ? ` · ${editing.location}` : ""}</small></div></div><div className="bridge-field-row thirds">
+      <div className="bridge-gallery-preview"><img src={editing.thumbnailUrl} alt={editing.alt || editing.title} /><div><p className="eyebrow">{data.publicRollout && editing.status === "approved" ? "Approved — on the public gallery" : "Review preview — not on the public gallery"}</p><h3>{editing.title || "Untitled photograph"}</h3><p>{editing.caption}</p><small>{editing.credit}{editing.location ? ` · ${editing.location}` : ""}</small></div></div><div className="bridge-field-row thirds">
         <label><span>Title</span><input value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></label>
         <label><span>Caption</span><input value={editing.caption} onChange={(event) => setEditing({ ...editing, caption: event.target.value })} /></label>
         <label><span>Alt text</span><input value={editing.alt} onChange={(event) => setEditing({ ...editing, alt: event.target.value })} /></label>
@@ -4884,6 +5265,64 @@ function HomepageLeadControl() {
           </div>
         </article>
       </div>
+      <article className="bridge-lead-pending" style={{ marginTop: "1.5rem" }}>
+        <h3>Pending headline (scheduled)</h3>
+        <p className="bridge-muted">Queues a scheduled story to become the homepage headline when it publishes. The current live headline stays until then.</p>
+        {data.pending ? (
+          <div className="bridge-lead-story">
+            <div>
+              <span className="bridge-status warn">Pending homepage headline</span>
+              <h4>{data.pending.title}</h4>
+              <p>Goes live as homepage headline at {formatUkDateTime(data.pending.scheduledPublishAt)}</p>
+              <div className="bridge-row-actions">
+                <Link href={`/editor/write?story=${encodeURIComponent(data.pending.id)}`}>Edit</Link>
+                <button
+                  type="button"
+                  onClick={() => void (async () => {
+                    try {
+                      await postBridgeAction({ action: "clearPendingHomepageLead" });
+                      setMessage("Pending homepage headline cleared. Live headline unchanged.");
+                      reload();
+                    } catch (actionError: unknown) {
+                      setMessage(actionError instanceof Error ? actionError.message : "Could not clear pending headline.");
+                    }
+                  })()}
+                >
+                  Clear pending
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="bridge-muted">No pending homepage headline.</p>
+        )}
+        <p className="bridge-muted">{formatNumber(data.totalScheduledCandidates || 0)} scheduled stories available.</p>
+        <div className="bridge-activity-list bridge-lead-results">
+          {(data.scheduledCandidates || []).map((story) => (
+            <article key={`pending-${story.id}`}>
+              <div className="bridge-lead-select-button">
+                <span>{story.category} · Scheduled {formatUkDateTime(story.scheduledPublishAt)}</span>
+                <strong>{story.title}</strong>
+              </div>
+              <button
+                className="bridge-primary-action"
+                type="button"
+                onClick={() => void (async () => {
+                  try {
+                    await postBridgeAction({ action: "setPendingHomepageLead", id: story.id });
+                    setMessage(`“${story.title}” queued as pending homepage headline. Live headline unchanged until it publishes.`);
+                    reload();
+                  } catch (actionError: unknown) {
+                    setMessage(actionError instanceof Error ? actionError.message : "Could not set pending headline.");
+                  }
+                })()}
+              >
+                Choose as pending headline
+              </button>
+            </article>
+          ))}
+        </div>
+      </article>
       {message ? <p className="bridge-save-message">{message}</p> : null}
       <HomepageSlotsManager
         data={data}
@@ -5057,13 +5496,14 @@ function AnalyticsPage() {
   return <><BridgeHeader section="analytics" /><section className="bridge-panel"><div className="bridge-panel-heading"><div><h2>Google Analytics 4</h2><p className="bridge-muted">Private connection and reporting status. Credentials never appear in the browser.</p></div><label><span>Date range</span><select value={range} onChange={(event) => setRange(event.target.value)}><option value="7">Last 7 days</option><option value="28">Last 28 days</option><option value="90">Last 90 days</option></select></label></div><div className="bridge-flag-list large"><span>Measurement ID: {data.measurementIdValid ? "Valid and ready" : data.measurementIdConfigured ? "Configured but invalid" : "Not configured"}</span><span>GA4 Data API: {data.dataApiConfigured ? "Credentials available" : "Settings required"}</span><span>Editor tracking: Disabled</span><span>Cookie consent: Required</span></div>{!data.dataApiConfigured ? <div className="bridge-error"><strong>Analytics reporting credentials are missing</strong><span>Add {data.missingCredentials.join(", ")} to the private server environment. Add the public Measurement ID as OLDSEADOGS_GA4_ID (NEXT_PUBLIC_GA4_ID remains supported). Restart through safe deployment; never paste credentials into this screen.</span></div> : null}</section><section className="bridge-stat-grid">{cards.map(([label, value]) => <article className="bridge-stat" key={label}><span>{label}</span><strong>{value ?? "—"}</strong></article>)}</section><section className="bridge-dashboard-grid two">{["Top stories", "Traffic sources", "Top landing pages", "Devices", "Countries", "Search terms where available"].map((title) => <article className="bridge-panel" key={title}><h2>{title}</h2><p className="bridge-muted">{data.metrics ? `Reporting for the last ${range} days.` : "Connect the GA4 Data API to show private reporting data here."}</p></article>)}</section></>;
 }
 
-function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) {
+function BridgeBody({ section, storyId, mediaId, galleryView, scrappedNotice }: BridgeCmsProps) {
   if (section === "dashboard") return <DashboardPage />;
   if (section === "stories") return <StoryListPage section="stories" title="All story summaries" />;
   if (section === "write") return <WriteStoryPage storyId={storyId} mediaId={mediaId} />;
-  if (section === "guides") return <GuidesPage />;
+  if (section === "guides") return <GuideManager />;
+  if (section === "boats") return <BoatsForSaleManager />;
   if (section === "homepage") return <HomepagePage />;
-  if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" />;
+  if (section === "drafts") return <StoryListPage section="drafts" title="Draft queue" status="draft" scrappedNotice={scrappedNotice} />;
   if (section === "published") return <StoryListPage section="published" title="Published stories" status="published" />;
   if (section === "scheduled") return <ScheduledStoriesPage />;
   if (section === "recover") return <StoryListPage section="recover" title="Recovery centre" status="recover" />;
@@ -5082,12 +5522,12 @@ function BridgeBody({ section, storyId, mediaId, galleryView }: BridgeCmsProps) 
   return <DashboardPage />;
 }
 
-export default function BridgeCms({ section, storyId, mediaId, galleryView }: BridgeCmsProps) {
+export default function BridgeCms({ section, storyId, mediaId, galleryView, scrappedNotice }: BridgeCmsProps) {
   return (
     <main className="bridge-cms">
       <BridgeNav activeSection={section} />
       <section className="bridge-main">
-        <BridgeBody section={section} storyId={storyId} mediaId={mediaId} galleryView={galleryView} />
+        <BridgeBody section={section} storyId={storyId} mediaId={mediaId} galleryView={galleryView} scrappedNotice={scrappedNotice} />
       </section>
     </main>
   );

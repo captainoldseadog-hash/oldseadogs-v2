@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "../../components/SiteFooter";
-import { oldSeaDogsSections } from "../../content/sections";
+
 import { contactEmail, createPageMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Cookie Policy",
@@ -14,19 +15,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function CookiePolicyPage() {
   return (
     <main className="article-shell privacy-shell">
-      <nav className="article-nav" aria-label="Primary navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((section) => (
-            <Link href={`/${section.slug}`} key={section.slug}>
-              {section.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <SiteHeader />
 
       <header className="privacy-hero">
         <p className="eyebrow">Cookie Policy</p>
@@ -35,7 +24,7 @@ export default function CookiePolicyPage() {
           How Old Sea Dogs may use cookies and similar technologies for site
           function, measurement, maps, and advertising.
         </p>
-        <span>Last updated: 3 August 2026</span>
+        <span>Last updated: 6 October 2026</span>
       </header>
 
       <section className="privacy-layout" aria-label="Cookie policy">
@@ -89,6 +78,20 @@ export default function CookiePolicyPage() {
             Some Ports and Clubs articles may embed Google Maps or satellite
             views. Those embedded services may set cookies or receive technical
             information when they load.
+          </p>
+
+          <h2>Social Embeds</h2>
+          <p>
+            TikTok video covers on Social and Through the Lens load with the
+            page from this website. Choosing a cover opens that video on TikTok
+            and does not place TikTok&apos;s player or embed script on this
+            page. If the video list cannot be shown, the TikTok profile stays
+            unloaded until a visitor chooses Load TikTok profile. That click
+            loads TikTok&apos;s official creator embed, which may set cookies
+            or receive technical information. Opening TikTok in a new tab may
+            do the same on TikTok&apos;s site. YouTube and other video players
+            on the social page stay unloaded until a visitor chooses to load
+            them.
           </p>
 
           <h2>Your Choices</h2>

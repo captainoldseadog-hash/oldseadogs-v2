@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { FittedImage } from "../../components/FittedImage";
 import { isLogoLikeStoryImage } from "../../content/story-images";
+import { dedupeCredit } from "../../lib/image-fit";
 import type { SearchResult } from "../../lib/search";
 
 const exampleSearches = [
@@ -95,18 +97,19 @@ export function SearchClient({
           >
             {result.imageUrl ? (
               <Link href={`/stories/${result.slug}`} className="search-result-image-link">
-                <span
-                  className={`search-result-image ${
-                    isLogoLikeStoryImage(result) ? "club-logo-image" : ""
-                  }`}
-                  role="img"
-                  aria-label={result.imageAlt || result.title}
-                  style={{ backgroundImage: `url(${result.imageUrl})` }}
+                <FittedImage
+                  alt={result.imageAlt || result.title}
+                  className="search-result-image"
+                  presentation={isLogoLikeStoryImage(result) ? "contain" : "cover"}
+                  probe={!isLogoLikeStoryImage(result)}
+                  sizes="(max-width: 640px) 42vw, 260px"
+                  slot="search"
+                  src={result.imageUrl}
                 >
                   {result.imageCredit ? (
-                    <small className="image-credit-chip">{result.imageCredit}</small>
+                    <small className="image-credit-chip">{dedupeCredit(result.imageCredit)}</small>
                   ) : null}
-                </span>
+                </FittedImage>
               </Link>
             ) : null}
             <div>

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { SiteFooter } from "../../components/SiteFooter";
 import { displayCategoryLabel } from "../../content/sections";
-import { formatDate } from "../../content/stories";
+import { storyListingDateLabel } from "../../lib/story-header-date";
+import { resolvePublicPage } from "../../lib/public-page";
 import { getLegacyArchiveStats, getPublishedStories } from "../../lib/site-content";
 import { createPageMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +55,8 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
     : visibleStories;
   const pageSize = 80;
   const pageCount = Math.max(1, Math.ceil(filteredStories.length / pageSize));
-  const requestedPage = Number.parseInt(params?.page ?? "1", 10);
-  const currentPage = Number.isFinite(requestedPage)
-    ? Math.min(Math.max(requestedPage, 1), pageCount)
-    : 1;
+  const currentPage = resolvePublicPage(params?.page, pageCount);
+  if (currentPage === null) notFound();
   const start = (currentPage - 1) * pageSize;
   const pageStories = filteredStories.slice(start, start + pageSize);
   const pageStart = filteredStories.length === 0 ? 0 : start + 1;
@@ -63,13 +64,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
 
   return (
     <main className="article-shell archive-shell">
-      <nav className="article-nav" aria-label="Archive navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <Link href="/">Back to home</Link>
-      </nav>
+      <SiteHeader label="Archive navigation" />
 
       <header className="archive-hero">
         <p className="eyebrow">Restored Archive</p>
@@ -128,7 +123,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             {pageStories.map((story) => (
               <article className="archive-row" key={story.id}>
                 <div className="story-meta">
-                  <span>{formatDate(story.date)}</span>
+                  <span>{storyListingDateLabel(story)}</span>
                   <span>{displayCategoryLabel(story.category)}</span>
                   {story.imageCredit ? <span>{story.imageCredit}</span> : null}
                 </div>
