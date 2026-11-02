@@ -2,7 +2,7 @@ import type { FlagshipGuide, GuideSection } from "./flagship-guides.ts";
 
 /**
  * West Country area and the first harbour inside it.
- * Salcombe, Fowey, Falmouth and Plymouth are named as later hops only.
+ * Brixham, Salcombe, Plymouth, Fowey, Falmouth and Helford are in west-country-six-guides.ts.
  * Noss on Dart is a short Kingswear mention, not its own page.
  * Depths are the 2026 online-booking draught windows only.
  * Tide figures are not copied in; the pages link the official tables.
@@ -63,10 +63,10 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
     title: "West Country",
     eyebrow: "Old Sea Dogs Guides",
     summary:
-      "Devon and Cornwall’s south coast — deep river harbours, Start Bay and the long hop west from Portland Bill, starting with Dartmouth on the River Dart.",
+      "Devon and Cornwall’s south coast — deep river harbours and the long hop west from Portland Bill, from Tor Bay and Dartmouth to Falmouth, Newlyn and Padstow.",
     introduction: [
       "West of Portland Bill the character of the cruise changes. The chalk and racing streams of the Channel give way to the green hills and deep river mouths of south Devon and, further on, Cornwall. Distances stretch, shelter is often up a tidal river rather than behind a breakwater, and the best nights are spent under wooded banks with a steam railway or a castle on the hill.",
-      "This Old Sea Dogs West Country area opens with Dartmouth on the River Dart — the natural first stop for boats coming down-Channel from Weymouth, Portland or the Channel Islands. Later harbour guides will cover Salcombe, Plymouth, Fowey and Falmouth as those pages are written; they are named here only as the cruising chain ahead, not as live pages yet.",
+      "This Old Sea Dogs West Country area covers Torquay and Brixham in Tor Bay, Dartmouth on the Dart, Salcombe, the River Yealm, Plymouth Sound, Fowey, Mevagissey, Falmouth, St Mawes, the Helford River and Newlyn — the south-Devon / Cornish harbour chain west of Portland Bill — plus Padstow on the north Cornish coast. Dartmouth remains the natural first stop for boats coming down-Channel from Weymouth, Portland or the Channel Islands.",
       "On the way west, Durdle Door is well worth seeing: the great limestone arch on Dorset’s Jurassic Coast, just west of Lulworth Cove and a few miles east of Weymouth. Boats coming down from the Solent pass it before Portland Bill, so in settled weather it is worth slowing down for a look before the long hop on toward Start Point and the Dart. It is a landmark to enjoy from the water, not a harbour.",
     ].join("\n\n"),
     guideType: "Cruising Area",
@@ -96,9 +96,23 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
     sections: [
       section("Choosing a Berth", [
         "Dartmouth: Harbour Authority walk-ashore pontoons (Town Jetty, DA) and island Deep Water pontoons, Mainstream fore-and-aft buoys, plus private marina berths at Darthaven (Kingswear) and Dart Marina (Premier, Dartmouth side). Call Dartnav on Ch 11 on arrival; exact allocation is confirmed by the river patrol even when you have pre-booked for 2026.",
-        "Further west, later guides will cover Salcombe, Plymouth Sound, Fowey and Falmouth — each with its own harbour authority and marina options. Berthing detail for those places waits until the pages are researched.",
+        "East of Dartmouth, Tor Bay Harbour Authority runs the Brixham visitor pontoon, with MDL Brixham Marina alongside. Further west: Salcombe Harbour Authority moorings and pontoons, Plymouth Sound (Sutton Harbour lock and Barbican, plus Mayflower Marina and Plymouth Yacht Haven), Fowey Harbour Commissioners, Falmouth Haven and the Falmouth marinas, and Helford River Moorings on the Helford, which has no statutory harbour office. Each harbour guide has its own berthing detail.",
       ], {
-        links: [{ label: "Dartmouth", guideSlug: "dartmouth" }],
+        links: [
+          { label: "Torquay", guideSlug: "torquay" },
+          { label: "Brixham", guideSlug: "brixham" },
+          { label: "Dartmouth", guideSlug: "dartmouth" },
+          { label: "Salcombe", guideSlug: "salcombe" },
+          { label: "River Yealm", guideSlug: "yealm" },
+          { label: "Plymouth", guideSlug: "plymouth" },
+          { label: "Fowey", guideSlug: "fowey" },
+          { label: "Mevagissey", guideSlug: "mevagissey" },
+          { label: "Falmouth", guideSlug: "falmouth" },
+          { label: "St Mawes", guideSlug: "st-mawes" },
+          { label: "Helford", guideSlug: "helford" },
+          { label: "Newlyn", guideSlug: "newlyn" },
+          { label: "Padstow", guideSlug: "padstow" },
+        ],
       }),
       section("Tides & Passage Planning", [
         "From Portland Bill westbound, most leisure boats either work the inshore passage carefully in settled weather or stand off for a clear run toward Start Point and the Dart. The Dart entrance is well marked once close in (Daymark tower east of the entrance; Castle Ledge and Checkstone buoys), but the entrance does not advertise itself from far offshore — close the coast with a proper chart and a fair stream.",
@@ -107,10 +121,22 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
         "Use free official tide sources for Dartmouth rather than copied heights. The site-wide conditions panel shows local wind; pair it with the tide-table links, in the same way as the Channel Islands guides. The Dart Harbour graph is in GMT.",
       ], { links: tideLinks }),
       section("In This Area", [
-        "Dartmouth, on the River Dart, is the first harbour guide in the West Country. Later pages will cover Salcombe, Plymouth, Fowey and Falmouth; they are not published yet. To the east lie the Weymouth & Portland guides.",
+        "The West Country harbour guides run east to west: Torquay and Brixham in Tor Bay, Dartmouth on the River Dart, Salcombe, the River Yealm, Plymouth, Fowey, Mevagissey, Falmouth, St Mawes, the Helford River and Newlyn. Padstow, on the Camel estuary, is the north Cornish coast guide. To the east lie the Weymouth & Portland guides.",
       ], {
         links: [
+          { label: "Torquay", guideSlug: "torquay" },
+          { label: "Brixham", guideSlug: "brixham" },
           { label: "Dartmouth", guideSlug: "dartmouth" },
+          { label: "Salcombe", guideSlug: "salcombe" },
+          { label: "River Yealm", guideSlug: "yealm" },
+          { label: "Plymouth", guideSlug: "plymouth" },
+          { label: "Fowey", guideSlug: "fowey" },
+          { label: "Mevagissey", guideSlug: "mevagissey" },
+          { label: "Falmouth", guideSlug: "falmouth" },
+          { label: "St Mawes", guideSlug: "st-mawes" },
+          { label: "Helford", guideSlug: "helford" },
+          { label: "Newlyn", guideSlug: "newlyn" },
+          { label: "Padstow", guideSlug: "padstow" },
           { label: "Weymouth & Portland", guideSlug: "weymouth-portland" },
         ],
       }),
@@ -130,18 +156,18 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
     sourceLinks: areaSources,
     verifiedFacilities: [],
     location: {},
-    relatedGuideSlugs: ["dartmouth", "weymouth-portland"],
-    cruiseOnGuideSlugs: ["dartmouth"],
+    relatedGuideSlugs: ["torquay", "brixham", "dartmouth", "salcombe", "yealm", "plymouth", "fowey", "mevagissey", "falmouth", "st-mawes", "helford", "newlyn", "padstow", "weymouth-portland"],
+    cruiseOnGuideSlugs: ["torquay", "dartmouth"],
     previousGuideSlug: "",
-    nextGuideSlug: "dartmouth",
+    nextGuideSlug: "torquay",
     seoTitle: "West Country Guide | Old Sea Dogs",
     seoDescription:
-      "Devon and Cornwall’s south coast — deep river harbours, Start Bay and the long hop west from Portland Bill, starting with Dartmouth on the River Dart.",
+      "Devon and Cornwall’s south coast — deep river harbours and the long hop west from Portland Bill, from Tor Bay and Dartmouth to Falmouth, Newlyn and Padstow.",
     socialTitle: "West Country — Old Sea Dogs Guides",
     socialDescription:
       "The West Country cruise, from Durdle Door and Portland Bill west to Dartmouth, the first harbour in the area.",
     canonicalPath: "/guides/west-country",
-    editorialNotes: "First harbour in the area is Dartmouth. Do not stub Salcombe, Fowey, Falmouth or Plymouth.",
+    editorialNotes: "Harbour chain east to west: Brixham, Dartmouth, Salcombe, Plymouth, Fowey, Falmouth, Helford.",
     researchNotes: "Draft approved by Michael Hodges for publication on 26 October 2026. 2026 Dart Harbour visitors page is authoritative over any older FAQ that still says moorings are first-come with no booking.",
     reviewDue: "2027-10-26",
     accuracyConcerns: "Operational information may change. Navigation, depths and vessel suitability always need the harbour office, the marina and a current chart.",
@@ -249,9 +275,11 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
         "Dartmouth grew as a protected deep-water port behind its castles, later as a Royal Naval training town (Britannia Royal Naval College) and a favourite of visiting yachts. Kingswear’s steam railway and the twin-castle entrance still set the scene. Upriver, Greenway carries the Agatha Christie association; the river’s villages — Dittisham especially — are as much part of the Dart’s character as the town quay.",
       ]),
       section("Nearby Cruising", [
-        "Start Bay and the coast toward Salcombe lie to the west; Torbay and Brixham to the east-northeast. Portland Bill and Weymouth & Portland sit up-Channel for the passage east. Within the river: Dittisham visitor buoys, Greenway, and a tide-aware trip toward Totnes. Future Old Sea Dogs West Country harbour pages will cover Salcombe, Plymouth, Fowey and Falmouth.",
+        "Start Bay and the coast toward Salcombe lie to the west; Torbay and Brixham to the east-northeast. Portland Bill and Weymouth & Portland sit up-Channel for the passage east. Within the river: Dittisham visitor buoys, Greenway, and a tide-aware trip toward Totnes.",
       ], {
         links: [
+          { label: "Brixham", guideSlug: "brixham" },
+          { label: "Salcombe", guideSlug: "salcombe" },
           { label: "West Country", guideSlug: "west-country" },
           { label: "Weymouth & Portland", guideSlug: "weymouth-portland" },
         ],
@@ -295,10 +323,10 @@ export const westCountryGuideSeeds: FlagshipGuide[] = [
       longitude: -3.5789,
       mapZoom: 14,
     },
-    relatedGuideSlugs: ["west-country", "weymouth-portland"],
-    cruiseOnGuideSlugs: ["west-country"],
-    previousGuideSlug: "west-country",
-    nextGuideSlug: "",
+    relatedGuideSlugs: ["west-country", "brixham", "salcombe", "weymouth-portland"],
+    cruiseOnGuideSlugs: ["salcombe", "brixham"],
+    previousGuideSlug: "brixham",
+    nextGuideSlug: "salcombe",
     seoTitle: "Dartmouth Guide | Old Sea Dogs",
     seoDescription:
       "A deep, wooded river harbour between twin castles — walk-ashore pontoons in town, island pontoons and Mainstream buoys, and full-service marinas on both banks.",

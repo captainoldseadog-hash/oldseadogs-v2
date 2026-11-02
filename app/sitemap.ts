@@ -8,9 +8,11 @@ import { getApprovedPublicGalleryPhotos, getIndexedGuides, getPublishedStories, 
 import { isTriageSitemapExcluded } from "../lib/story-triage";
 import { listPublicBoatListings } from "../lib/classifieds-service.ts";
 import { retiredMarinaGuideRedirect } from "../lib/marina-library-redirect";
+import { harbourPagePaths } from "../lib/harbour-tv.ts";
 import { absoluteUrl } from "../lib/seo";
 
-export const dynamic = "force-dynamic";
+/** SEO pack 28 Oct 2026: was force-dynamic (4–20 s rebuild per hit, Cloudflare DYNAMIC). Rebuild at most hourly instead. */
+export const revalidate = 3600;
 /** Pages without a content timestamp. Request time would make lastmod change on every fetch. */
 const STATIC_SITEMAP_LASTMOD = new Date("2026-10-11T00:00:00.000Z");
 const staticRoutes = [
@@ -35,7 +37,28 @@ function latestContentUpdate(values: Array<string | undefined>) {
   }
   return latest ? new Date(latest) : null;
 }
+/**
+ * Process-level cache (SEO pack 28 Oct 2026). The builder takes 3–20 s, so serve the last good
+ * sitemap for up to an hour and rebuild in the background when stale. First request still builds.
+ */
+const SITEMAP_CACHE_MS = 60 * 60 * 1000;
+let sitemapCache: { builtAt: number; value: MetadataRoute.Sitemap } | null = null;
+let sitemapBuild: Promise<MetadataRoute.Sitemap> | null = null;
+function rebuildSitemap() {
+  sitemapBuild ??= buildSitemap()
+    .then((value) => { sitemapCache = { builtAt: Date.now(), value }; return value; })
+    .finally(() => { sitemapBuild = null; });
+  return sitemapBuild;
+}
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (sitemapCache) {
+    if (Date.now() - sitemapCache.builtAt > SITEMAP_CACHE_MS) void rebuildSitemap().catch(() => undefined);
+    return sitemapCache.value;
+  }
+  return rebuildSitemap();
+}
+
+async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   const [publishedStories, indexedGuides, boatListings, settings] = await Promise.all([
     getPublishedStories(),
     getIndexedGuides(),
@@ -72,5 +95,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const updated = contentUpdatedDate(story.updatedAt);
       return { url: absoluteUrl(`/stories/${story.slug}`), ...(updated ? { lastModified: updated } : {}), changeFrequency: "monthly" as const, priority: story.isFeatured ? 0.9 : 0.65 };
     }),
+    ...harbourPagePaths().map((path) => ({ url: absoluteUrl(path), lastModified: STATIC_SITEMAP_LASTMOD, changeFrequency: "daily" as const, priority: path === "/videos" ? 0.7 : 0.55 })),
   ];
 }

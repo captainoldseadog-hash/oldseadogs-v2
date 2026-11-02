@@ -90,6 +90,8 @@ export type FlagshipGuide = {
   accuracyConcerns?: string;
   sourceNotes?: string;
   draftComments?: string;
+  /** Paragraph-anchored inline images for static seeds (same shape as the CMS inlineImages). */
+  inlineImages?: Array<{ id: string; mediaId: string; url: string; alt: string; caption: string; credit: string; sectionIndex: number; paragraphIndex: number; order: number }>;
 };
 
 export const flagshipGuides: FlagshipGuide[] = [

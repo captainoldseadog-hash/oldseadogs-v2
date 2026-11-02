@@ -4,7 +4,7 @@ import { GuidePublicContent } from "../../../../components/GuidePublicContent.ts
 import { JsonLd } from "../../../../components/JsonLd.tsx";
 import { SiteFooter } from "../../../../components/SiteFooter.tsx";
 
-import { guideArticleJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
+import { guideArticleJsonLd, guideFaqJsonLd, guidePlaceJsonLd, guideProductRecords, guidePublicPath, guideRegionPath } from "../../../../lib/guides.ts";
 import { latestStoriesForGuide } from "../../../../lib/internal-links.ts";
 import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../../lib/site-content.ts";
 import { createPageMetadata, metaDescription, pageTitle } from "../../../../lib/seo.ts";
@@ -60,6 +60,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
     summary: story.summary,
   }));
   const placeJsonLd = guidePlaceJsonLd(guide);
+  const faqJsonLd = guideFaqJsonLd(guide);
   const breadcrumbData = breadcrumbJsonLd([
     { name: "Home", path: "/" },
     { name: "Guides", path: "/guides" },
@@ -69,9 +70,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
   return (
     <main className="article-shell guides-shell guide-product-shell">
-      <JsonLd data={placeJsonLd
-        ? [guideArticleJsonLd(guide), placeJsonLd, breadcrumbData]
-        : [guideArticleJsonLd(guide), breadcrumbData]} />
+      <JsonLd data={[guideArticleJsonLd(guide), ...(placeJsonLd ? [placeJsonLd] : []), breadcrumbData, ...(faqJsonLd ? [faqJsonLd] : [])]} />
       <SiteHeader current="guides" />
       <GuidePublicContent guide={guide} publishedGuides={publishedProductGuides} latestStories={latestStories} />
       <SiteFooter extraLinks={[

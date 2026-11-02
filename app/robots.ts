@@ -38,8 +38,9 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: privateRoutes,
     },
-    sitemap: searchIndexingEnabled
-      ? `${productionSiteUrl}/sitemap.xml`
-      : absoluteUrl("/sitemap.xml"),
+    sitemap: [
+      searchIndexingEnabled ? `${productionSiteUrl}/sitemap.xml` : absoluteUrl("/sitemap.xml"),
+      searchIndexingEnabled ? `${productionSiteUrl}/sitemap-videos.xml` : absoluteUrl("/sitemap-videos.xml"),
+    ],
   };
 }

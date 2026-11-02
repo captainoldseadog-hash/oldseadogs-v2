@@ -70,6 +70,8 @@ type StorySummary = {
   id: string;
   slug: string;
   title: string;
+  promoteToHomepageLead?: boolean;
+  homepageLeadOptOut?: boolean;
   category: string;
   sectionSlugs: string[];
   author: string;
@@ -511,8 +513,11 @@ type SettingsPayload = {
 type HomepageLeadPayload = {
   settings: Record<string, string>;
   current: StorySummary | null;
+  pending?: StorySummary | null;
   candidates: StorySummary[];
+  scheduledCandidates?: StorySummary[];
   totalCandidates: number;
+  totalScheduledCandidates?: number;
 };
 
 function parseSettingStoryIds(value = "") {
@@ -1719,7 +1724,7 @@ function ScheduledStoriesPage() {
           <div className="bridge-scheduled-list">
             {data.stories.map((story) => (
               <article key={story.id}>
-                <div><span className="bridge-status warn">Scheduled</span><h3>{story.title}</h3><p>{story.category}</p></div>
+                <div><span className="bridge-status warn">Scheduled</span>{story.promoteToHomepageLead || !story.homepageLeadOptOut ? <span className="bridge-status warn">Pending homepage headline</span> : null}<h3>{story.title}</h3><p>{story.category}</p></div>
                 <dl>
                   <div><dt>Release</dt><dd>{formatUkDateTime(story.scheduledPublishAt)}</dd></div>
                   <div><dt>Image</dt><dd>{story.hasImage ? "Yes" : "No"}</dd></div>
@@ -3080,7 +3085,10 @@ function WriteStoryEditor({
       setRightsOverrideConfirmed(false);
       setOverrideReason("");
       const advisory = payload.editorialWarnings?.length ? " Editorial suggestions were recorded; the story text was not changed." : "";
-      setMessage(`${preservingCurrentStatus ? `Changes saved. Story remains ${displayStatus(status)}.` : status === "published" ? "Story published." : status === "scheduled" ? "Story scheduled." : status === "unpublished" ? "Story unpublished." : "Story saved as Draft."}${advisory}`);
+      const headlineNote = status === "published"
+        ? story.promoteToHomepageLead ? " Set as Homepage Headline Story." : ""
+        : status === "scheduled" && (story.promoteToHomepageLead || !story.homepageLeadOptOut) ? " Becomes the homepage headline when it goes live." : "";
+      setMessage(`${preservingCurrentStatus ? `Changes saved. Story remains ${displayStatus(status)}.` : status === "published" ? "Story published." : status === "scheduled" ? "Story scheduled." : status === "unpublished" ? "Story unpublished." : "Story saved as Draft."}${advisory}${headlineNote}`);
       reload();
     } catch (saveError: unknown) {
       setMessage(saveError instanceof Error ? saveError.message : "Story could not be saved.");
@@ -3648,6 +3656,10 @@ function WriteStoryEditor({
               <label className="bridge-check-row">
                 <input checked={story.noindex} onChange={(event) => updateStory({ noindex: event.target.checked })} type="checkbox" />
                 Exclude from Google
+              </label>
+              <label className="bridge-check-row">
+                <input checked={story.status === "published" ? Boolean(story.promoteToHomepageLead) : Boolean(story.promoteToHomepageLead) || !story.homepageLeadOptOut} onChange={(event) => updateStory({ promoteToHomepageLead: event.target.checked, homepageLeadOptOut: !event.target.checked })} type="checkbox" />
+                Make homepage headline when this goes live
               </label>
               <div className="bridge-save-actions">
                 <button className="bridge-primary-action" disabled={saving} onClick={() => void saveStory(story.status)} type="button">Save Changes</button>
@@ -5253,6 +5265,64 @@ function HomepageLeadControl() {
           </div>
         </article>
       </div>
+      <article className="bridge-lead-pending" style={{ marginTop: "1.5rem" }}>
+        <h3>Pending headline (scheduled)</h3>
+        <p className="bridge-muted">Queues a scheduled story to become the homepage headline when it publishes. The current live headline stays until then.</p>
+        {data.pending ? (
+          <div className="bridge-lead-story">
+            <div>
+              <span className="bridge-status warn">Pending homepage headline</span>
+              <h4>{data.pending.title}</h4>
+              <p>Goes live as homepage headline at {formatUkDateTime(data.pending.scheduledPublishAt)}</p>
+              <div className="bridge-row-actions">
+                <Link href={`/editor/write?story=${encodeURIComponent(data.pending.id)}`}>Edit</Link>
+                <button
+                  type="button"
+                  onClick={() => void (async () => {
+                    try {
+                      await postBridgeAction({ action: "clearPendingHomepageLead" });
+                      setMessage("Pending homepage headline cleared. Live headline unchanged.");
+                      reload();
+                    } catch (actionError: unknown) {
+                      setMessage(actionError instanceof Error ? actionError.message : "Could not clear pending headline.");
+                    }
+                  })()}
+                >
+                  Clear pending
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="bridge-muted">No pending homepage headline.</p>
+        )}
+        <p className="bridge-muted">{formatNumber(data.totalScheduledCandidates || 0)} scheduled stories available.</p>
+        <div className="bridge-activity-list bridge-lead-results">
+          {(data.scheduledCandidates || []).map((story) => (
+            <article key={`pending-${story.id}`}>
+              <div className="bridge-lead-select-button">
+                <span>{story.category} · Scheduled {formatUkDateTime(story.scheduledPublishAt)}</span>
+                <strong>{story.title}</strong>
+              </div>
+              <button
+                className="bridge-primary-action"
+                type="button"
+                onClick={() => void (async () => {
+                  try {
+                    await postBridgeAction({ action: "setPendingHomepageLead", id: story.id });
+                    setMessage(`“${story.title}” queued as pending homepage headline. Live headline unchanged until it publishes.`);
+                    reload();
+                  } catch (actionError: unknown) {
+                    setMessage(actionError instanceof Error ? actionError.message : "Could not set pending headline.");
+                  }
+                })()}
+              >
+                Choose as pending headline
+              </button>
+            </article>
+          ))}
+        </div>
+      </article>
       {message ? <p className="bridge-save-message">{message}</p> : null}
       <HomepageSlotsManager
         data={data}

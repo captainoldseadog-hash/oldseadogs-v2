@@ -12,6 +12,7 @@ import { SiteFooter } from "../../../components/SiteFooter.tsx";
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
+  guideFaqJsonLd,
   guideCollectionLead,
   guideCollectionMembers,
   guideCruisingArea,
@@ -112,7 +113,11 @@ export default async function RegionPage({ params }: RegionPageProps) {
     const placeJsonLd = guidePlaceJsonLd(legacyGuide);
     return (
       <main className="article-shell guides-shell guide-product-shell">
-        <JsonLd data={placeJsonLd ? [guideArticleJsonLd(legacyGuide), placeJsonLd] : guideArticleJsonLd(legacyGuide)} />
+        <JsonLd data={[
+          guideArticleJsonLd(legacyGuide),
+          ...(placeJsonLd ? [placeJsonLd] : []),
+          ...[guideFaqJsonLd(legacyGuide)].flatMap((item) => (item ? [item] : [])),
+        ]} />
         <PrimaryNavigation />
         <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} latestStories={guideLatestStories(legacyGuide, stories)} />
         <SiteFooter extraLinks={[{ href: "/guides", label: "Guides" }]} />
@@ -141,6 +146,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
         <JsonLd data={[
           guideArticleJsonLd(areaGuide),
           ...(placeJsonLd ? [placeJsonLd] : []),
+          ...[guideFaqJsonLd(areaGuide)].flatMap((item) => (item ? [item] : [])),
           guideCollectionJsonLd(regionName, collectionGuides),
           breadcrumbJsonLd([
             { name: "Home", path: "/" },

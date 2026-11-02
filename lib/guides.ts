@@ -1,3 +1,4 @@
+import { guideFaqsFor } from "../content/guide-faqs.ts";
 import type { EditableGuide } from "./site-content.ts";
 import { isRetiredMarinaGuideHub } from "./marina-library-redirect.ts";
 import { isRenderableImageReference, shareImageUrl } from "./responsive-image.ts";
@@ -257,6 +258,23 @@ export function relatedGuides(
     .slice(0, relationship === "relatedGuideSlugs" ? 5 : 4);
 }
 
+/** Prefer the real publish date; fall back to verification / updated date so datePublished is never missing. */
+export function guideArticleDateFields(guide: Pick<EditableGuide, "updatedAt" | "publication" | "verification">) {
+  const dateModified = guide.updatedAt || guide.verification?.verifiedAt || undefined;
+  const datePublished = guide.publication?.publishedAt || guide.publication?.createdAt || guide.verification?.verifiedAt || guide.updatedAt || undefined;
+  return { ...(datePublished ? { datePublished } : {}), ...(dateModified ? { dateModified } : {}) };
+}
+
+export function guideFaqJsonLd(guide: Pick<EditableGuide, "slug">) {
+  const faqs = guideFaqsFor(guide.slug).filter((item) => item.question.trim() && item.answer.trim());
+  if (!faqs.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({ "@type": "Question", name: item.question.trim(), acceptedAnswer: { "@type": "Answer", text: item.answer.trim() } })),
+  };
+}
+
 export function guideArticleJsonLd(guide: EditableGuide) {
   const path = guidePublicPath(guide);
   return {
@@ -267,8 +285,7 @@ export function guideArticleJsonLd(guide: EditableGuide) {
     description: guide.seoDescription || guide.introduction,
     articleSection: guide.guideType,
     mainEntityOfPage: absoluteUrl(path),
-    datePublished: guide.publication?.publishedAt || undefined,
-    dateModified: guide.updatedAt,
+    ...guideArticleDateFields(guide),
     author: {
       "@type": "Person",
       name: guide.author || "Michael Hodges",

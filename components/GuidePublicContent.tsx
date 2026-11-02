@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
+import { guideFaqsFor } from "../content/guide-faqs.ts";
 import { publicImageAlt } from "../lib/public-image-alt";
 import { DerivativeImage } from "./DerivativeImage.tsx";
 import { FittedImage } from "./FittedImage";
@@ -19,6 +20,8 @@ import {
 import type { EditableGuide } from "../lib/site-content.ts";
 import { GuideBreadcrumbs } from "./GuideBreadcrumbs.tsx";
 import { NewsletterSignup } from "./NewsletterSignup.tsx";
+import { guideConditions } from "../content/guide-conditions.ts";
+import { GuideConditionsPanel } from "./GuideConditionsPanel.tsx";
 import { GuideGoogleMap } from "./GuideGoogleMap.tsx";
 import { GuideSectionNavigation } from "./GuideSectionNavigation.tsx";
 
@@ -696,6 +699,17 @@ export function GuidePublicContent({
             </section>
           );
         })}
+        {guideFaqsFor(guide.slug).length ? (
+          <section className="guide-faq" id="faq" aria-labelledby="guide-faq-title">
+            <h2 id="guide-faq-title">Frequently asked questions</h2>
+            {guideFaqsFor(guide.slug).map((item) => (
+              <div className="guide-faq-item" key={item.question}>
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </div>
+            ))}
+          </section>
+        ) : null}
       </article>
 
       {guide.guideType === "Marina" && guide.verifiedFacilities.length ? (
@@ -728,6 +742,10 @@ export function GuidePublicContent({
             </a>
           ) : null}
         </section>
+      ) : null}
+
+      {guideConditions[guide.slug] ? (
+        <GuideConditionsPanel title={guide.title} conditions={guideConditions[guide.slug]} />
       ) : null}
 
       {hasMap ? (

@@ -11,7 +11,6 @@ import { SiteFooter } from "../components/SiteFooter";
 import { SocialFollowBlock } from "../components/SocialFollowBlock";
 import { getClubProfileExcerpt } from "../content/club-profiles";
 import {
-  categoryMatchesLabel,
   displayCategoryLabel,
   oldSeaDogsSections,
 } from "../content/sections";
@@ -137,36 +136,13 @@ function EditorCredibilityBand() {
           For people who love boats, sailing and life on the water
         </h2>
         <p>
-          <strong>
-            Old Sea Dogs is an independent boating and sailing magazine for everyone
-            who enjoys being on, around or simply dreaming about the water.
-          </strong>
+          An independent magazine for everyone who loves boats, sailing and life on the water. Edited by Michael Hodges.
         </p>
-        <p>
-          From yacht racing, offshore adventures and the latest sailing news to
-          motorboats, superyachts, boat reviews, marinas, destinations and practical
-          seamanship, Old Sea Dogs brings together stories from across the boating
-          world.
-        </p>
-        <p>
-          We follow the great international races and regattas, visit harbours and
-          marinas, explore remarkable yachts and new marine technology, and celebrate
-          the sailors, designers, boatbuilders, clubs and characters who make the
-          maritime world what it is.
-        </p>
-        <p>
-          Whether you race, cruise, own a boat, are learning to sail or simply enjoy
-          watching the tide come in,{" "}
-          <strong>
-            Old Sea Dogs is about one thing above all — a shared passion for boats and
-            the sea.
-          </strong>
-        </p>
-      </div>
-      <div className="editor-credibility-links">
-        <Link href="/about">About Michael</Link>
-        <Link href="/authors/michael-hodges">Author profile</Link>
-        <Link href="/editorial-standards">Editorial standards</Link>
+        <div className="editor-credibility-links">
+          <Link href="/about">About Michael</Link>
+          <Link href="/authors/michael-hodges">Author profile</Link>
+          <Link href="/editorial-standards">Editorial standards</Link>
+        </div>
       </div>
     </section>
   );
@@ -244,8 +220,9 @@ export default async function Home() {
   } = new HomepageContentProvider(stories, settings).getContent();
   const bannerAd = pickAdvertForPlacement(ads, "banner");
   const featuredClubAd = pickAdvertForPlacement(ads, "homepage-featured-club");
-  const visibleFeaturedClubAd =
-    featuredClubAd && !isOffTopicInvestorAdvert(featuredClubAd) ? featuredClubAd : null;
+  // Featured Club band was removed from the homepage on 29 Oct 2026. Keep the investor-ad guard so that slot cannot return.
+  const visibleFeaturedClubAd = featuredClubAd && !isOffTopicInvestorAdvert(featuredClubAd) ? featuredClubAd : null;
+  void visibleFeaturedClubAd;
   const sidebarAds = ads
     .filter((ad) => ad.placement === "homepage-sidebar" || ad.placement === "sidebar")
     .filter((ad) => !isOffTopicInvestorAdvert(ad))
@@ -256,7 +233,7 @@ export default async function Home() {
   const featuredHasPhoto = hasStoryPhoto(featuredStory);
   const heroSize = featuredHasPhoto ? await readImageSize(featuredStory.imageUrl).catch(() => null) : null;
   const recentGuides = homepageGuideHighlights(publishedGuides).recent;
-  const [heroFrame, latestFrames, pickFrames, reviewFrames, portFrame, sectionFrames, recentGuideFrames] = await Promise.all([
+  const [heroFrame, latestFrames, pickFrames, reviewFrames, sectionFrames, recentGuideFrames] = await Promise.all([
     featuredHasPhoto
       ? presentationForImage({
           url: featuredStory.imageUrl,
@@ -272,18 +249,6 @@ export default async function Home() {
     presentationForStories(latestReviewedOrFallback, "story-card"),
     presentationForStories(editorPicks.slice(0, 4), "compact"),
     presentationForStories([...reviewStories, ...practicalStories].slice(0, 2), "compact"),
-    featuredPortClub
-      ? presentationForImage({
-          url: featuredPortClub.imageUrl,
-          slot: "story-card",
-          fit: featuredPortClub.story.imageFit,
-          focalPoint: featuredPortClub.story.imageFocalPoint,
-          alt: featuredPortClub.imageAlt,
-          caption: featuredPortClub.story.imageCaption,
-          category: featuredPortClub.story.category,
-          slug: featuredPortClub.story.slug,
-        })
-      : Promise.resolve(null),
     presentationForStories(sectionCards.map((section) => section.photo || { imageUrl: "" }), "section-thumb"),
     presentationForStories(recentGuides, "guide-card"),
   ]);
@@ -402,74 +367,6 @@ export default async function Home() {
       <BoatsForSaleTeaser />
 
       <EditorCredibilityBand />
-
-      <section
-        className="featured-port-club-band featured-port-club-band--compact"
-        aria-labelledby="featured-port-club-title"
-        data-compact-version="featured-club-ad-compact-v2"
-      >
-        <div
-          className={`featured-port-club-layout${visibleFeaturedClubAd ? "" : " featured-port-club-layout--solo"}`}
-          data-featured-club-row="compact"
-        >
-          {featuredPortClub ? (
-            <article className="featured-port-club-card">
-              <Link
-                href={featuredPortClub.href}
-                className={`featured-port-club-media ${
-                  isLogoLikeStoryImage(featuredPortClub.story) && portFrame?.presentation !== "contain" ? "club-logo-media" : ""
-                }`}
-              >
-                <ResponsiveStoryImage
-                  alt={featuredPortClub.imageAlt}
-                  className="featured-port-club-media-image"
-                  focalPoint={portFrame?.focalPoint}
-                  height={portFrame?.height}
-                  presentation={portFrame?.presentation}
-                  probe={portFrame?.probe}
-                  sizes="(max-width: 640px) calc(100vw - 30px), 480px"
-                  slot="story-card"
-                  src={featuredPortClub.imageUrl}
-                  width={portFrame?.width}
-                />
-                {featuredPortClub.story.imageCredit ? (
-                  <small className="image-credit-chip">
-                    {dedupeCredit(featuredPortClub.story.imageCredit)}
-                  </small>
-                ) : null}
-              </Link>
-              <div className="featured-port-club-copy">
-                <p className="eyebrow">{featuredPortClub.label}</p>
-                <h2 id="featured-port-club-title">
-                  <Link href={featuredPortClub.href}>{featuredPortClub.story.title}</Link>
-                </h2>
-                <p>{featuredPortClub.excerpt}</p>
-                <Link href={featuredPortClub.href} className="button-secondary">
-                  Open {categoryMatchesLabel(featuredPortClub.story.category, "Ports") ? "port" : "club"} page
-                </Link>
-              </div>
-            </article>
-          ) : (
-            <div className="featured-port-club-card featured-port-club-empty">
-              <div className="featured-port-club-copy">
-                <p className="eyebrow">Ports and Clubs</p>
-                <h2 id="featured-port-club-title">Harbour notes for the next passage</h2>
-                <p>
-                  Browse marina stops, clubs and practical shore-side notes from
-                  the Old Sea Dogs archive.
-                </p>
-                <Link href="/ports" className="button-secondary">
-                  Explore ports and clubs
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {visibleFeaturedClubAd ? (
-            <AdBlock ad={visibleFeaturedClubAd} className="featured-port-club-ad" />
-          ) : null}
-        </div>
-      </section>
 
       <section className="section-grid lead-section" id="latest">
         <div>

@@ -1,0 +1,205 @@
+{
+ "sections": {
+  "sailing": {
+   "title": "Sailing",
+   "handles": [
+    "@YachtingMonthly",
+    "@SailingLaVagabonde",
+    "@sailinguma",
+    "@Practical-Sailor",
+    "@SailGP",
+    "@NorthSails"
+   ],
+   "queries": [
+    "sailing yacht review",
+    "bluewater sailing",
+    "sailing tips",
+    "liveaboard sailboat"
+   ]
+  },
+  "powerboats": {
+   "title": "Powerboats",
+   "handles": [
+    "@BoatTest",
+    "@BoatingMagazine",
+    "@motorboatyachting",
+    "@yachtbuyer"
+   ],
+   "queries": [
+    "powerboat review",
+    "sports cruiser test",
+    "centre console boat review"
+   ]
+  },
+  "flybridges": {
+   "title": "Flybridges",
+   "handles": [
+    "@princessyachtsofficial",
+    "@fairlineyachtslimited",
+    "@absoluteyachtsspa",
+    "@yachtbuyer",
+    "@motorboatyachting"
+   ],
+   "queries": [
+    "flybridge yacht tour",
+    "flybridge review"
+   ],
+   "titleMust": "fly"
+  },
+  "ribs": {
+   "title": "RIBs",
+   "handles": [
+    "@RIBmagazine",
+    "@Cobrarib"
+   ],
+   "queries": [
+    "RIB boat review",
+    "rigid inflatable boat test",
+    "RIB boat sea trial"
+   ]
+  },
+  "jet-skis": {
+   "title": "Jet skis",
+   "handles": [
+    "@seadoo",
+    "@KawasakiJetSki",
+    "@yamahawatercraftusa"
+   ],
+   "queries": [
+    "jet ski review",
+    "PWC riding tips"
+   ]
+  },
+  "diving": {
+   "title": "Diving",
+   "handles": [
+    "@PADI",
+    "@ScubaDivingMagazine",
+    "@scubadivebuddies"
+   ],
+   "queries": [
+    "scuba diving UK",
+    "wreck diving"
+   ]
+  },
+  "gear": {
+   "title": "Gear & equipment",
+   "handles": [
+    "@practicalboatowner",
+    "@BoatworksToday",
+    "@Raymarine"
+   ],
+   "queries": [
+    "boat electronics review",
+    "sailboat maintenance",
+    "marine chartplotter review"
+   ]
+  },
+  "fishing": {
+   "title": "Fishing",
+   "handles": [
+    "@TAFishing",
+    "@BerleyPro"
+   ],
+   "queries": [
+    "boat fishing UK",
+    "sea fishing from a boat"
+   ]
+  },
+  "paddleboarding": {
+   "title": "Paddleboarding",
+   "handles": [
+    "@RedEquipment",
+    "@standuppaddlingtv",
+    "@standonliquidpaddleboards"
+   ],
+   "queries": [
+    "paddleboarding tips",
+    "SUP touring"
+   ]
+  }
+ },
+ "brands": {
+  "beneteau": {
+   "title": "Beneteau",
+   "handles": [
+    "@beneteauyachtchannel"
+   ],
+   "queries": [
+    "Beneteau review"
+   ]
+  },
+  "jeanneau": {
+   "title": "Jeanneau",
+   "handles": [
+    "@jeanneauofficiel"
+   ],
+   "queries": [
+    "Jeanneau review"
+   ]
+  },
+  "bavaria": {
+   "title": "Bavaria",
+   "handles": [
+    "@bavariayachtbau"
+   ],
+   "queries": [
+    "Bavaria yacht review"
+   ]
+  },
+  "hallberg-rassy": {
+   "title": "Hallberg-Rassy",
+   "handles": [
+    "@hallberg-rassy"
+   ],
+   "queries": [
+    "Hallberg-Rassy review"
+   ]
+  },
+  "princess": {
+   "title": "Princess",
+   "handles": [
+    "@princessyachtsofficial"
+   ],
+   "queries": [
+    "Princess yacht review"
+   ]
+  },
+  "sunseeker": {
+   "title": "Sunseeker",
+   "handles": [
+    "@sunseekerintl",
+    "@sunseekerlondongroup"
+   ],
+   "queries": [
+    "Sunseeker yacht review"
+   ]
+  },
+  "fairline": {
+   "title": "Fairline",
+   "handles": [
+    "@fairlineyachtslimited"
+   ],
+   "queries": [
+    "Fairline yacht review"
+   ]
+  }
+ },
+ "block": [
+  "prank",
+  "crash compilation",
+  "fails",
+  "gone wrong",
+  "giveaway",
+  "casino",
+  "bikini",
+  "onlyfans",
+  "reaction"
+ ],
+ "searchesPerRun": 12,
+ "minViewsFull": 5000,
+ "minViewsShort": 10000,
+ "maxPerChannel": 3,
+ "maxAgeDays": 1100,
+ "perBlock": 12
+}

@@ -232,7 +232,8 @@ test("Phase Two preserves the approved homepage, cookie and story-publication co
     // The app-style mobile homepage is an extra block, hidden from 1024px up.
     // Small or flat graphics use a whole-image frame; large photographs stay cover.
     // Story cards label the Europe/London publish day from publishedAt.
-    "app/page.tsx": "5e7e9f3008c28d437b1d3f612c0a3c409192d6c711e9c208f11cee2e82c4e0f7",
+    // Homepage intro shortened 29 Oct 2026; Featured Club band removed from the desktop homepage.
+    "app/page.tsx": "60bae41560c790adba7a44f5290631ec306ea9a1cecdf0e468289753c1d143d0",
     // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
     // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
     "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",

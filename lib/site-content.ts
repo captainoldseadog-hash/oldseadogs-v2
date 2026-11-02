@@ -1,4 +1,6 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { pickScheduledHomepageLead, scheduledStoryWantsHomepageLead } from "./homepage-lead-pick.ts";
+export { pickScheduledHomepageLead, scheduledStoryWantsHomepageLead };
 import { getD1BindingOrNull, getDbOrNull } from "../db";
 import {
   ads,
@@ -27,6 +29,10 @@ import {
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { solentMarinaGuideSeeds } from "../content/solent-marina-guides.ts";
 import { westCountryGuideSeeds } from "../content/west-country-guides.ts";
+import { westCountrySixGuideSeeds } from "../content/west-country-six-guides.ts";
+import { westCountrySecondWaveGuideSeeds } from "../content/west-country-second-wave-guides.ts";
+import { norfolkBroadsGuideSeeds } from "../content/norfolk-broads-guide.ts";
+import { norfolkBroadsStopGuideSeeds } from "../content/norfolk-broads-stops-guides.ts";
 import { validateGuideInput } from "./guide-validation.ts";
 import { storyCreatedAt } from "./story-list";
 import { makeStoryManagementIndex } from "./story-management";
@@ -113,6 +119,10 @@ export type EditableStory = {
   status: "draft" | "scheduled" | "published" | "unpublished";
   publishedAt: string;
   scheduledPublishAt: string;
+  /** Schedule → homepage headline: promote to live lead when this story publishes. */
+  promoteToHomepageLead?: boolean;
+  /** Editor unticked 'Make homepage headline' on a scheduled story (default is ON). */
+  homepageLeadOptOut?: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -208,7 +218,7 @@ export type GuideRevision = {
   createdAt: string;
 };
 
-const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...flagshipGuides];
+const guideSeeds: FlagshipGuide[] = [...guideProductSeeds, ...solentMarinaGuideSeeds, ...westCountryGuideSeeds, ...westCountrySixGuideSeeds, ...westCountrySecondWaveGuideSeeds, ...norfolkBroadsGuideSeeds, ...norfolkBroadsStopGuideSeeds, ...flagshipGuides];
 const blankGuideSeed: FlagshipGuide = {
   slug: "untitled-guide",
   title: "Untitled Guide",
@@ -314,6 +324,8 @@ export type SiteSettings = {
   siteDescription: string;
   homepageLeadStoryId: string;
   homepageLeadStorySlug: string;
+  homepagePendingLeadStoryId: string;
+  homepagePendingLeadStorySlug: string;
   homepageLatestStoryIds: string;
   homepageEditorsChoiceStoryIds: string;
   homepageHiddenStoryIds: string;
@@ -355,6 +367,8 @@ export const defaultSettings: SiteSettings = {
     "Boating, yachting, boat reviews, and practical sea stories from Old Sea Dogs.",
   homepageLeadStoryId: "",
   homepageLeadStorySlug: "",
+  homepagePendingLeadStoryId: "",
+  homepagePendingLeadStorySlug: "",
   homepageLatestStoryIds: "[]",
   homepageEditorsChoiceStoryIds: "[]",
   homepageHiddenStoryIds: "[]",
@@ -1048,6 +1062,8 @@ function normalizeStoredStory(story: Partial<EditableStory>): EditableStory {
     status,
     publishedAt,
     scheduledPublishAt: story.scheduledPublishAt || "",
+    promoteToHomepageLead: Boolean(story.promoteToHomepageLead),
+    homepageLeadOptOut: Boolean(story.homepageLeadOptOut),
     sortOrder: Number(story.sortOrder || 0),
     createdAt,
     updatedAt: story.updatedAt || createdAt,
@@ -1166,7 +1182,7 @@ function staticGuideDefaults(guide: FlagshipGuide, index: number): EditableGuide
     imageCaption: guide.imageCaption || "",
     imageCredit: guide.imageCredit || "",
     featuredMediaId: "",
-    inlineImages: [],
+    inlineImages: (guide.inlineImages || []).map((image) => ({ ...image })),
   };
   if (guideWordCount(editable) < guideMinimumWordCount(editable)) {
     editable.status = "draft";
@@ -1509,6 +1525,8 @@ export async function ensureContentSchema() {
           status text DEFAULT 'published' NOT NULL,
           published_at text DEFAULT '' NOT NULL,
           scheduled_publish_at text DEFAULT '' NOT NULL,
+          promote_to_homepage_lead integer DEFAULT 0 NOT NULL,
+          homepage_lead_opt_out integer DEFAULT 0 NOT NULL,
           sort_order integer DEFAULT 0 NOT NULL,
           created_at text NOT NULL,
           updated_at text NOT NULL
@@ -1598,6 +1616,12 @@ export async function ensureContentSchema() {
       );
       await runOptionalSchemaStatement(
         "ALTER TABLE stories ADD scheduled_publish_at text DEFAULT '' NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD promote_to_homepage_lead integer DEFAULT 0 NOT NULL"
+      );
+      await runOptionalSchemaStatement(
+        "ALTER TABLE stories ADD homepage_lead_opt_out integer DEFAULT 0 NOT NULL"
       );
       await runSchemaStatement(
         `CREATE TABLE IF NOT EXISTS media_assets (
@@ -1927,6 +1951,8 @@ function rowToStory(row: typeof storyRows.$inferSelect): EditableStory {
     status,
     publishedAt,
     scheduledPublishAt: row.scheduledPublishAt || "",
+    promoteToHomepageLead: Boolean(row.promoteToHomepageLead),
+    homepageLeadOptOut: Boolean(row.homepageLeadOptOut),
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -2801,13 +2827,15 @@ export async function publishDueScheduledStories() {
       .filter((story) => story.status === "scheduled" && Number.isFinite(Date.parse(story.scheduledPublishAt)))
       .map((story) => story.scheduledPublishAt)
       .sort()[0] || "";
-    return { checkedAt: stamp, published, nextScheduledAt };
+    const promotedLeadStoryId = await promoteScheduledHomepageLead(nextStore.stories.filter((story) => published.includes(story.id)));
+    return { checkedAt: stamp, published, nextScheduledAt, promotedLeadStoryId };
   }
 
   await ensureContentSchema();
   const rows = await db.select().from(storyRows).where(eq(storyRows.status, "scheduled"));
   const dueStories = rows.map(rowToStory).filter((story) => isScheduledPublishDue(story.scheduledPublishAt, now));
   const published: string[] = [];
+  const publishedStories: EditableStory[] = [];
   for (const story of dueStories) {
     const publishedAt = new Date(story.scheduledPublishAt).toISOString();
     const updated = await db
@@ -2824,6 +2852,7 @@ export async function publishDueScheduledStories() {
       .returning({ id: storyRows.id });
     if (updated.length === 0) continue;
     published.push(story.id);
+    publishedStories.push({ ...story, status: "published", publishedAt, scheduledPublishAt: "", editorialStatus: "Published", updatedAt: stamp });
     await db.insert(storyStatusHistory).values({
       id: makeId("story-status"),
       storyId: story.id,
@@ -2840,7 +2869,8 @@ export async function publishDueScheduledStories() {
     .filter((story) => story.status === "scheduled" && !published.includes(story.id) && Number.isFinite(Date.parse(story.scheduledPublishAt)))
     .map((story) => story.scheduledPublishAt)
     .sort()[0] || "";
-  return { checkedAt: stamp, published, nextScheduledAt };
+  const promotedLeadStoryId = await promoteScheduledHomepageLead(publishedStories);
+  return { checkedAt: stamp, published, nextScheduledAt, promotedLeadStoryId };
 }
 
 function presentPublicStory(story: EditableStory): EditableStory {
@@ -3059,6 +3089,161 @@ export function isHomepageLeadSelectable(
   story: Pick<EditableStory, "status" | "slug" | "title" | "publishedAt" | "scheduledPublishAt">
 ) {
   return isPublicStoryNow(story) && Boolean(story.slug.trim()) && Boolean(story.title.trim());
+}
+
+// ——— Schedule → homepage headline (pack 28 Oct 2026, approved by Michael Hodges) ———
+
+async function loadAllStoriesForHomepageLead(): Promise<EditableStory[]> {
+  const db = getDbOrNull();
+  if (!db) {
+    const store = await readLocalEditorStore();
+    return mergeLocalStoriesWithStatic(store.stories, true);
+  }
+  await ensureSeedData();
+  const rows = await db.select().from(storyRows);
+  return mergeDbStoriesWithStatic(rows, true);
+}
+
+export function isHomepagePendingLeadSelectable(story: Pick<EditableStory, "status" | "slug" | "title">) {
+  return story.status === "scheduled" && Boolean(story.slug.trim()) && Boolean(story.title.trim());
+}
+
+export function findHomepagePendingLeadStory(
+  stories: EditableStory[],
+  settings: Pick<SiteSettings, "homepagePendingLeadStoryId" | "homepagePendingLeadStorySlug">
+) {
+  const leadId = (settings.homepagePendingLeadStoryId || "").trim();
+  const leadSlug = (settings.homepagePendingLeadStorySlug || "").trim();
+  if (!leadId && !leadSlug) return null;
+  return stories.find((story) => (leadId && story.id === leadId) || (leadSlug && story.slug === leadSlug)) ?? null;
+}
+
+async function writeHomepageLeadSettingEntries(entries: Partial<SiteSettings>) {
+  const stamp = nowIso();
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({ ...store, settings: { ...defaultSettings, ...store.settings, ...entries } }));
+    return;
+  }
+  await ensureContentSchema();
+  await Promise.all(Object.entries(entries).map(([key, value]) =>
+    db.insert(siteSettings).values({ key, value: String(value ?? ""), updatedAt: stamp }).onConflictDoUpdate({
+      target: siteSettings.key,
+      set: { value: String(value ?? ""), updatedAt: stamp },
+    })
+  ));
+}
+
+/** At most one story carries promoteToHomepageLead, and it is the pending one. */
+async function setPromoteFlagsExclusive(activeStoryId: string | null) {
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({
+      ...store,
+      stories: store.stories.map((story) => ({ ...story, promoteToHomepageLead: Boolean(activeStoryId && story.id === activeStoryId) })),
+    }));
+    return;
+  }
+  await ensureContentSchema();
+  await db.update(storyRows).set({ promoteToHomepageLead: false });
+  if (activeStoryId) await db.update(storyRows).set({ promoteToHomepageLead: true }).where(eq(storyRows.id, activeStoryId));
+}
+
+export async function clearPendingHomepageLead() {
+  await writeHomepageLeadSettingEntries({ homepagePendingLeadStoryId: "", homepagePendingLeadStorySlug: "" });
+  await setPromoteFlagsExclusive(null);
+  return getSiteSettings();
+}
+
+export async function setPendingHomepageLead(input: { storyId: string }) {
+  const storyId = input.storyId.trim();
+  if (!storyId) throw new Error("Choose a scheduled story for the pending homepage headline.");
+  const stories = await loadAllStoriesForHomepageLead();
+  const story = stories.find((candidate) => candidate.id === storyId);
+  if (!story) throw new Error("The selected pending homepage headline story could not be found.");
+  if (!isHomepagePendingLeadSelectable(story)) {
+    throw new Error("Only scheduled stories with a title and slug can be the pending homepage headline.");
+  }
+  await writeHomepageLeadSettingEntries({ homepagePendingLeadStoryId: story.id, homepagePendingLeadStorySlug: story.slug });
+  await setPromoteFlagsExclusive(story.id);
+  return { settings: await getSiteSettings(), story: { ...story, promoteToHomepageLead: true } };
+}
+
+/**
+ * Promote a published story to the live homepage lead (lead keys + isFeatured only).
+ * Approved exception to the Homepage-Manager-only rule for Schedule / Publish Now.
+ * Latest / Editor's Choice / Hidden are not touched. A missing image is allowed so an
+ * automatic scheduled promotion cannot soft-fail.
+ */
+export async function applyPublishedStoryAsHomepageLead(story: EditableStory) {
+  if (!isHomepageLeadSelectable(story)) {
+    throw new Error("Only published stories with public story URLs can become the Homepage Lead Story.");
+  }
+  const leadEntries: Partial<SiteSettings> = {
+    homepageLeadStoryId: story.id,
+    homepageLeadStorySlug: story.slug,
+    homepagePendingLeadStoryId: "",
+    homepagePendingLeadStorySlug: "",
+  };
+  const db = getDbOrNull();
+  if (!db) {
+    await updateLocalEditorStore((store) => ({
+      ...store,
+      settings: { ...defaultSettings, ...store.settings, ...leadEntries },
+      stories: store.stories.map((candidate) => ({ ...candidate, isFeatured: candidate.id === story.id, promoteToHomepageLead: false })),
+    }));
+    return { settings: await getSiteSettings(), story };
+  }
+  await writeHomepageLeadSettingEntries(leadEntries);
+  await db.update(storyRows).set({ isFeatured: false, promoteToHomepageLead: false });
+  await db.update(storyRows).set({ isFeatured: true }).where(eq(storyRows.id, story.id));
+  return { settings: await getSiteSettings(), story };
+}
+
+/** Called by publishDueScheduledStories after the store write. Pending id wins over a stray flag. */
+async function promoteScheduledHomepageLead(publishedStories: EditableStory[]) {
+  if (!publishedStories.length) return "";
+  const settings = await getSiteSettings();
+  const pendingId = (settings.homepagePendingLeadStoryId || "").trim();
+  const pendingSlug = (settings.homepagePendingLeadStorySlug || "").trim();
+  // Auto-headline (31 Oct 2026, approved by Michael Hodges): every scheduled story becomes the
+  // homepage headline when it publishes unless the editor unticked it. Several at once: latest wins.
+  const target = pickScheduledHomepageLead(publishedStories, pendingId, pendingSlug);
+  if (!target) return "";
+  try {
+    await applyPublishedStoryAsHomepageLead({ ...target, status: "published", scheduledPublishAt: "", promoteToHomepageLead: false });
+    return target.id;
+  } catch (error) {
+    console.warn("[OldSeaDogs homepage lead] scheduled promotion skipped", { storyId: target.id, error: error instanceof Error ? error.message : String(error) });
+    return "";
+  }
+}
+
+/** Keeps pending / live lead in step with a story save. Runs outside the local store lock. */
+async function syncHomepageLeadPromotionAfterStorySave(saved: EditableStory) {
+  const promoteWanted = Boolean(saved.promoteToHomepageLead);
+  const settings = await getSiteSettings();
+  const wasPending =
+    (Boolean(settings.homepagePendingLeadStoryId) && settings.homepagePendingLeadStoryId === saved.id) ||
+    (Boolean(settings.homepagePendingLeadStorySlug) && settings.homepagePendingLeadStorySlug === saved.slug);
+  if (saved.status === "published") {
+    if (promoteWanted || wasPending) {
+      saved.promoteToHomepageLead = false;
+      return applyPublishedStoryAsHomepageLead({ ...saved, promoteToHomepageLead: false });
+    }
+    return null;
+  }
+  if (saved.status === "scheduled" && promoteWanted) {
+    if (!wasPending) return setPendingHomepageLead({ storyId: saved.id });
+    return null;
+  }
+  if (wasPending && (!promoteWanted || saved.status === "draft" || saved.status === "unpublished")) {
+    await clearPendingHomepageLead();
+  }
+  if (promoteWanted && saved.status !== "scheduled") {
+    // Draft with the box ticked: keep the intent on the story; it becomes pending once scheduled.
+  }
+  return null;
 }
 
 export async function saveHomepageSettings(input: {
@@ -3799,9 +3984,14 @@ export async function saveStory(input: SaveStoryInput): Promise<EditableStory> {
     // The lock covers the complete read/validate/revision/write transaction.
     // This prevents another Node or PM2 process from calculating a competing
     // story update from the same stale JSON snapshot.
-    return runLocalEditorStoreWriteTransaction(() => saveStoryInternal(input, true));
+    const saved = await runLocalEditorStoreWriteTransaction(() => saveStoryInternal(input, true));
+    // Runs after the store lock is released: the helpers take the lock themselves.
+    await syncHomepageLeadPromotionAfterStorySave(saved);
+    return saved;
   }
-  return saveStoryInternal(input, false);
+  const saved = await saveStoryInternal(input, false);
+  await syncHomepageLeadPromotionAfterStorySave(saved);
+  return saved;
 }
 
 async function saveStoryInternal(
@@ -3884,6 +4074,8 @@ async function saveStoryInternal(
     status,
     publishedAt,
     scheduledPublishAt,
+    promoteToHomepageLead: Boolean(input.promoteToHomepageLead ?? existingStory?.promoteToHomepageLead ?? false),
+    homepageLeadOptOut: Boolean(input.homepageLeadOptOut ?? existingStory?.homepageLeadOptOut ?? false),
     sortOrder: Number(input.sortOrder ?? 0),
     createdAt: input.createdAt || existingStory?.createdAt || stamp,
     updatedAt: stamp,
@@ -4093,6 +4285,8 @@ async function saveStoryInternal(
         status: record.status,
         publishedAt: record.publishedAt,
         scheduledPublishAt: record.scheduledPublishAt,
+        promoteToHomepageLead: record.promoteToHomepageLead,
+        homepageLeadOptOut: record.homepageLeadOptOut,
         sortOrder: record.sortOrder,
         updatedAt: record.updatedAt,
       },
@@ -4282,6 +4476,13 @@ export async function saveStoryImage(
 }
 
 export async function deleteStory(id: string) {
+  const result = await deleteStoryRecord(id);
+  const settings = await getSiteSettings();
+  if (settings.homepagePendingLeadStoryId === id) await clearPendingHomepageLead();
+  return result;
+}
+
+async function deleteStoryRecord(id: string) {
   const db = getDbOrNull();
   if (!db) {
     await updateLocalEditorStore((store) => ({
@@ -4304,6 +4505,8 @@ export async function saveSettings(input: Partial<SiteSettings>) {
     "homepageLatestStoryIds",
     "homepageEditorsChoiceStoryIds",
     "homepageHiddenStoryIds",
+    "homepagePendingLeadStoryId",
+    "homepagePendingLeadStorySlug",
   ]);
   const attemptedHomepageKey = Object.keys(input).find((key) => homepageKeys.has(key));
   if (attemptedHomepageKey) {

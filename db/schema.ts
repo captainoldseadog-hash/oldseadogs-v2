@@ -37,6 +37,8 @@ export const stories = sqliteTable("stories", {
   status: text("status").notNull().default("published"),
   publishedAt: text("published_at").notNull().default(""),
   scheduledPublishAt: text("scheduled_publish_at").notNull().default(""),
+  promoteToHomepageLead: integer("promote_to_homepage_lead", { mode: "boolean" }).notNull().default(false),
+  homepageLeadOptOut: integer("homepage_lead_opt_out", { mode: "boolean" }).notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),

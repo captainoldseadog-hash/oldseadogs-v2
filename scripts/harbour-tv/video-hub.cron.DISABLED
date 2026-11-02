@@ -1,0 +1,2 @@
+# Harbour TV refresh every 48h at 04:00 server time. NOT installed. To enable: copy to /etc/cron.d/video-hub
+0 4 */2 * * www-data cd /srv/oldseadogs/video-hub && set -a && . /srv/oldseadogs/shared/.env && set +a && node fetch-videos.mjs data/videos.json && node build-pages.mjs data/videos.json /srv/oldseadogs/staging-videos >> /var/log/video-hub.log 2>&1

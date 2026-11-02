@@ -64,6 +64,10 @@ import {
   StoryTechnicalValidationError,
   StoryScheduleValidationError,
   isHomepageLeadSelectable,
+  isHomepagePendingLeadSelectable,
+  findHomepagePendingLeadStory,
+  setPendingHomepageLead,
+  clearPendingHomepageLead,
   unblockPressReleaseSender,
   unpublishPressReleaseStory,
   updateMediaAsset,
@@ -325,6 +329,8 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
     sectionSlugs: story.sectionSlugs,
     author: story.author,
     status: story.status,
+    promoteToHomepageLead: Boolean(story.promoteToHomepageLead),
+    homepageLeadOptOut: Boolean(story.homepageLeadOptOut),
     date: story.date,
     updatedAt: story.updatedAt,
     createdAt: story.createdAt,
@@ -845,13 +851,21 @@ async function bridgeEditorView(request: Request) {
       findHomepageLeadStory(data.stories, data.settings) ??
       data.stories.find((story) => story.isFeatured && isHomepageLeadSelectable(story)) ??
       null;
+    const scheduledSelectable = data.stories
+      .filter(isHomepagePendingLeadSelectable)
+      .filter((story) => storyMatchesQuery(story, query))
+      .sort((a, b) => (a.scheduledPublishAt || "").localeCompare(b.scheduledPublishAt || ""));
+    const pendingLead = findHomepagePendingLeadStory(data.stories, data.settings);
 
     return {
       view,
       settings: data.settings,
       current: currentLead ? compactStory(currentLead, homepageContext) : null,
+      pending: pendingLead ? compactStory(pendingLead, homepageContext) : null,
       candidates: selectableStories.slice(0, 80).map((story) => compactStory(story, homepageContext)),
+      scheduledCandidates: scheduledSelectable.slice(0, 80).map((story) => compactStory(story, homepageContext)),
       totalCandidates: selectableStories.length,
+      totalScheduledCandidates: scheduledSelectable.length,
     };
   }
 
@@ -1606,6 +1620,8 @@ export async function POST(request: Request) {
         "homepageLatestStoryIds",
         "homepageEditorsChoiceStoryIds",
         "homepageHiddenStoryIds",
+        "homepagePendingLeadStoryId",
+        "homepagePendingLeadStorySlug",
       ]);
       if (Object.keys(payload.settings || {}).some((key) => homepageKeys.has(key))) {
         return privateJson({
@@ -1613,6 +1629,14 @@ export async function POST(request: Request) {
         }, { status: 400 });
       }
       return privateJson({ settings: await saveSettings(payload.settings ?? {}) });
+    }
+
+    if (payload.action === "setPendingHomepageLead" && payload.id) {
+      return privateJson(await setPendingHomepageLead({ storyId: String(payload.id) }));
+    }
+
+    if (payload.action === "clearPendingHomepageLead") {
+      return privateJson({ settings: await clearPendingHomepageLead() });
     }
 
     if (payload.action === "saveHomepage" && payload.homepage) {

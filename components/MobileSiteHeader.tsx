@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { boatsForSaleNavigationLink, oldSeaDogsSections, throughTheLensNavigationLink } from "../content/sections";
+import { boatsForSaleNavigationLink, harbourTvNavigationLink, oldSeaDogsSections, throughTheLensNavigationLink } from "../content/sections";
 
 export function MobileSiteHeader({
   guideLinks,
@@ -65,6 +65,17 @@ export function MobileSiteHeader({
         <div>
           <p>Gallery</p>
           <Link className="mobile-menu-span" href={throughTheLensNavigationLink.href} onClick={closeMenu}>{throughTheLensNavigationLink.label}</Link>
+        </div>
+        <div>
+          <p>Video</p>
+          <Link
+            className="mobile-menu-span"
+            href={harbourTvNavigationLink.href}
+            aria-current={pathname === "/videos" || pathname.startsWith("/videos/") ? "page" : undefined}
+            onClick={closeMenu}
+          >
+            {harbourTvNavigationLink.label}
+          </Link>
         </div>
         <div>
           <p>Guides</p>
