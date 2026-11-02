@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  formatUkDateTime,
   isoToUkDateTimeInput,
   isScheduledPublishDue,
   ukDateTimeInputToIso,
@@ -24,6 +25,21 @@ test("scheduled timestamps require an explicit timezone and a future instant", (
   assert.equal(validateScheduledPublishAt("2026-07-24T11:00", now).ok, false);
   assert.equal(validateScheduledPublishAt("not-a-date", now).ok, false);
   assert.equal(validateScheduledPublishAt("2026-07-24T09:00:00.000Z", now).ok, false);
+});
+
+test("scheduled story times format in UK time without throwing", () => {
+  assert.throws(() => new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: "Europe/London",
+    timeZoneName: "short",
+  }).format(new Date("2026-10-20T09:30:00.000Z")));
+  const formatted = formatUkDateTime("2026-10-20T09:30:00.000Z");
+  assert.match(formatted, /20/);
+  assert.match(formatted, /October/);
+  assert.match(formatted, /2026/);
+  assert.match(formatted, /10:30/);
+  assert.equal(formatUkDateTime(""), "Not set");
 });
 
 test("due checks compare absolute instants", () => {

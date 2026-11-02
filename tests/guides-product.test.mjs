@@ -6,7 +6,7 @@ import { GUIDE_TYPES } from "../content/flagship-guides.ts";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
 import { guideProductSeeds } from "../content/guide-product-seeds.ts";
 import { validateGuideInput } from "../lib/guide-validation.ts";
-import { guideProductRecords } from "../lib/guides.ts";
+import { guideProductRecords, guidePublicPath } from "../lib/guides.ts";
 
 const projectDir = path.resolve(new URL("..", import.meta.url).pathname);
 
@@ -73,6 +73,7 @@ test("The Solent fixture provides the complete first-edition manuscript and sect
     "Old Sea Dogs View",
   ]);
   assert.equal(guide.canonicalPath, "/guides/solent/the-solent");
+  assert.equal(guidePublicPath(guide), "/guides/solent");
   assert.equal(guide.seoTitle, "The Solent Cruising Guide | Old Sea Dogs");
   assert.match(guide.seoDescription, /harbours, rivers, anchorages/);
 });
@@ -444,8 +445,13 @@ test("the homepage and Guide pages use the compact practical presentation", asyn
   assert.match(homepage, /Discover Old Sea Dogs Guides/);
   assert.match(homepage, /homepage-guides-promo/);
   assert.match(homepage, /homepage-guides-list/);
-  assert.match(homepage, /const featuredSlugs = \["the-solent", "river-hamble", "hamble-point-marina"\]/);
+  assert.match(homepage, /homepageGuideHighlights\(guides\)/);
+  assert.match(homepage, /guideAreaCountLabel\(area\.guideCount\)/);
+  assert.match(homepage, /Recently added/);
+  assert.doesNotMatch(homepage, /featuredSlugs/);
   assert.match(homepage, /Explore All Guides/);
+  assert.match(css, /\.guide-facts strong,\s*\n\.guide-facts a \{[^}]*overflow-wrap:\s*anywhere/);
+  assert.match(css, /@media \(max-width: 400px\) \{[\s\S]*?\.guide-facts \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(homepage, /guidePublicPath\(guide\)/);
   assert.doesNotMatch(homepage, /Useful pages for real days afloat|flagship-guides-band/);
   assert.match(publicGuide, /Practical information/);
@@ -517,11 +523,10 @@ test("public routes expose search, section navigation, onward routes, privacy ma
   assert.match(landing, /Practical marina, harbour and cruising information/);
   assert.doesNotMatch(landing, /guide-library-hero-image|Featured Guide · The opening chapter/);
   assert.match(collections, /Marina Guides/);
-  assert.match(landing, /href="\/guides\?type=Marina#guide-library"/);
-  assert.match(landing, /Marina &amp; Harbour Guides/);
-  assert.match(landing, /Browse by region/);
-  assert.match(landing, /Browse rivers and anchorages/);
-  assert.match(landing, /hamble-point-marina/);
+  assert.match(landing, /Where do you want to sail/);
+  assert.match(landing, /guideDiscoveryAreas/);
+  assert.match(landing, /Start with the water/);
+  assert.match(landing, /Find a particular harbour, marina or destination/);
   assert.doesNotMatch(landing, /Useful sailing pages|rewritten noise/);
   assert.match(landing, /Search marinas, harbours, anchorages and cruising areas/);
   assert.match(region, /Browse by type/);

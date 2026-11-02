@@ -1,0 +1,2014 @@
+{
+  "contract": "oldseadogs.guide-draft",
+  "version": 1,
+  "mode": "create-draft",
+  "guides": [
+    {
+      "externalId": "poole-harbour-guide-v1",
+      "slug": "poole-harbour",
+      "title": "Poole Harbour",
+      "guideType": "Cruising Area",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "Europe’s largest natural harbour combines a narrow, fast-running entrance with broad sheltered water, working shipping channels, islands, quiet areas and a dense cluster of marinas.",
+        "introduction": "Poole Harbour changes character the moment a boat clears its narrow entrance. Outside, the approach demands attention to buoyage, commercial traffic, the chain ferry and strong tidal streams; inside, the water opens into a large, sheltered cruising ground shaped by shallow banks, islands, nature reserves, moorings and working channels.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "Poole Harbour Commissioners describe Poole as Europe’s largest natural harbour. Its sheltered waters are shared by leisure craft, commercial shipping, ferries, watersports and internationally protected wildlife habitats.",
+              "Much of the inner harbour is shallow, while marked channels carry deeper-draught traffic. The result is a cruising area with plenty of room, but one where channel discipline and tide awareness matter."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "The Swash Channel is the principal marked approach and the sensible default for unfamiliar crews. Poole VTS uses VHF Channel 14, and PHC advises harbour users to maintain awareness of shipping movements before getting underway or entering the approaches.",
+              "The East Looe Cut is a secondary shortcut from the east. PHC’s standing notice says it should be used only with caution, with under-keel clearance calculated carefully; for passage planning PHC gives a controlling depth of 0.7 metres below Chart Datum and warns that the sands move and buoy positions can lag sudden changes.",
+              "At the harbour entrance, give way to the chain ferry. PHC and BCP guidance both stress the narrow entrance, strong tidal streams and the need to pass well clear astern of the ferry."
+            ]
+          },
+          {
+            "heading": "Inside the Harbour",
+            "body": [
+              "Once inside, the main channels lead toward Poole Quay, the Port of Poole, Hamworthy, Holes Bay and the Wareham Channel. Small craft must stay alert around the harbour entrance precautionary area, blind bends and large commercial vessel movements.",
+              "Speed limits and quiet areas vary around the harbour. The general harbour limit is 10 knots, with 6-knot limits in Little Channel and Holes Bay and additional quiet-area restrictions."
+            ]
+          },
+          {
+            "heading": "Where to Berth",
+            "body": [
+              "Visitor options range from Poole Quay Boat Haven on the town waterfront to larger and more sheltered facilities farther inside. This collection covers Poole Quay Boat Haven, Port of Poole Marina, Cobb’s Quay Marina, Salterns Marina, Parkstone Bay Marina and Lake Yard Marina.",
+              "The marinas differ markedly in access, depth, visitor availability and shore-side atmosphere, so berth choice should be made against the vessel’s draught, bridge requirements and intended time ashore."
+            ]
+          },
+          {
+            "heading": "Sandbanks & Brownsea Island",
+            "body": [
+              "Sandbanks forms the eastern side of the harbour entrance and is an unmistakable landfall. Brownsea Island dominates the inner harbour; private craft may land only on the South Shore under National Trust rules, with no landing on the North Shore, sea wall or National Trust pier."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews looking for sheltered cruising, a choice of marinas, short hops between anchorages and easy access to Poole, Brownsea Island, Studland and the Dorset coast."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Skippers who are unwilling to plan around commercial traffic, strong tidal streams, shallow inner-harbour water or changing local navigation notices."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Studland Bay and Old Harry Rocks lie immediately outside the entrance, with Swanage and the Jurassic Coast farther west. Eastbound, Poole provides a natural stepping stone back toward Christchurch Bay and the Solent."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Listen to Poole VTS on Channel 14, check current shipping movements and Local Notices to Mariners, keep clear of large commercial vessels and give way to the chain ferry.",
+              "Do not rely on an old East Looe depth figure: PHC specifically warns that the sands shift and publishes a conservative planning depth for the cut."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Navigation and harbour-safety information in this Draft has been checked against Poole Harbour Commissioners’ 2026 Harbour Guide, current VTS and shipping information, standing Local Notices to Mariners and BCP Council harbour guidance."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Poole is one of those cruising grounds where the entrance demands more concentration than the miles inside. Once through, the combination of sheltered water, town-quay life, island scenery and multiple marinas makes it an unusually flexible base for both a weekend and a longer stay."
+        ],
+        "practicalNotes": [
+          "Treat PHC’s live Harbour Guide, VTS broadcasts, shipping movements and Local Notices to Mariners as the operational sources immediately before passage."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "vhfChannel": "14",
+        "approach": [
+          "Use the Swash Channel as the principal marked approach unless current PHC guidance and your vessel’s under-keel clearance support another route.",
+          "The East Looe Cut is a secondary approach from the east; PHC advises caution, fair-weather/high-water planning and careful under-keel-clearance calculation.",
+          "Give way to the chain ferry and pass well clear astern."
+        ],
+        "depths": "PHC’s standing East Looe Cut notice gives a conservative passage-planning controlling depth of 0.7m below Chart Datum for the cut; depths elsewhere vary by marked channel and tide.",
+        "tidalInformation": "The harbour entrance has strong tidal streams, particularly at springs. Check current PHC tide data and plan the entrance accordingly.",
+        "hazards": [
+          "Chain ferry at the narrow harbour entrance.",
+          "Large commercial shipping and ferry movements in marked channels.",
+          "Shallow banks and drying areas away from dredged/marked channels.",
+          "East Looe Cut has shifting sands and changing depths."
+        ]
+      },
+      "marina": {},
+      "contacts": {
+        "officialWebsite": "https://www.phc.co.uk/leisure/harbour-guide/",
+        "telephone": "01202 440230",
+        "email": "vts@phc.co.uk",
+        "harbourMasterOffice": "Poole VTS / Poole Harbour Commissioners, 20 New Quay Road, Hamworthy, Poole, Dorset, BH15 4AF"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Poole Harbour Cruising Area Guide | Old Sea Dogs",
+        "metaDescription": "Old Sea Dogs cruising guide to Poole Harbour, covering the entrance, local navigation, marinas, Brownsea Island, Sandbanks and nearby cruising.",
+        "canonicalSlug": "poole-harbour",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Poole Harbour Commissioners — 2026 Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.introduction",
+              "navigation.approach",
+              "navigation.tidalInformation",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "Poole VTS",
+            "url": "https://www.phc.co.uk/safety/vts/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.vhfChannel",
+              "contacts.telephone",
+              "contacts.email"
+            ]
+          },
+          {
+            "label": "PHC Shipping Movements",
+            "url": "https://www.phc.co.uk/safety/shipping-movements/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.practicalNotes",
+              "navigation.hazards"
+            ]
+          },
+          {
+            "label": "PHC Local Notices to Mariners",
+            "url": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.hazards",
+              "editorial.warnings"
+            ]
+          },
+          {
+            "label": "PHC East Looe Cut LNTM 52/2024",
+            "url": "https://www.phc.co.uk/wp-content/uploads/2024/12/2024-52-East-Looe-Cut-1.pdf",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.depths",
+              "navigation.hazards"
+            ]
+          },
+          {
+            "label": "PHC Guidance for Small Craft in or near Shipping Channels 05/2026",
+            "url": "https://www.phc.co.uk/wp-content/uploads/2026/02/2026-05-Guidance-for-Small-Craft-in-or-near-Shipping-Channels.pdf",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.hazards",
+              "editorial.practicalNotes"
+            ]
+          },
+          {
+            "label": "BCP Council — Visit Poole Harbour",
+            "url": "https://www.bcpcouncil.gov.uk/beaches-and-seafront/visit-poole-harbour",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections",
+              "navigation.tidalInformation",
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "poole-quay-boat-haven-guide-v1",
+      "slug": "poole-quay-boat-haven",
+      "title": "Poole Quay Boat Haven",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "Poole’s town-quay visitor marina puts boats directly beside the Old Town, restaurants and harbour life, with VHF 80 berthing and strong demand in summer.",
+        "introduction": "Poole Quay Boat Haven is the most immediate visitor berth for crews who want to step off the pontoon and straight onto Poole Quay. The location is lively rather than secluded, but it gives visiting boats a practical base close to the Old Town and within the wider shelter of Poole Harbour.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "The Boat Haven sits directly on Poole Quay, opposite the harbour and within walking distance of the Old Town, cafés, bars and restaurants. It is a visitor-focused marina with a busy summer season."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "Enter Poole Harbour using current PHC directions, maintain awareness of VHF Channel 14 shipping broadcasts, then proceed to Poole Quay. Call Poole Quay Boat Haven on VHF Channel 80 when nearing the marina; staff allocate the berth on the day of arrival."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "Visitor berths are heavily used in summer and the operator recommends advance booking. Short stays of up to four hours are offered at Poole Quay Boat Haven, subject to space and allocation on arrival."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "The operator lists drinking water on all pontoons, shore power, showers, toilets and laundry. Pump-out is available near the Haven entrance but may be obstructed by working-berth activity, so advance contact is recommended."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "The marina’s great advantage is the quay itself: shops, pubs, cafés, restaurants, harbour cruises and Poole’s historic centre are immediately accessible on foot."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews prioritising a central Poole berth, easy access ashore and a lively waterfront stop."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Those seeking a quiet marina setting, or crews arriving in peak summer without a reservation."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Brownsea Island, Sandbanks, Studland Bay and the wider inner harbour are all close enough for short local passages."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Book ahead in summer, call VHF 80 on approach, and continue to monitor PHC navigation information for the harbour entrance and commercial traffic."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Berthing, VHF, facilities and contact details were checked against Poole Quay Boat Haven’s current official information and PHC harbour-safety sources."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "For a first night in Poole, the Boat Haven is hard to beat for convenience. The trade-off is obvious: this is the harbour’s front row, not its quiet corner. Arrive with the berth organised and the evening ashore takes care of itself."
+        ],
+        "practicalNotes": [
+          "Advance booking is recommended in summer. Berths are allocated on the day of arrival; contact the marina as you near Poole Quay."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "vhfChannel": "80",
+        "approach": [
+          "Enter Poole Harbour in accordance with current PHC Harbour Guide and Local Notices to Mariners.",
+          "Proceed toward Poole Quay while remaining alert to commercial traffic.",
+          "Call 'Poole Quay Boat Haven' on VHF Channel 80 when nearing the marina for berth allocation."
+        ],
+        "tidalInformation": "The marina is inside Poole Harbour; passage to it depends on safe transit of the harbour entrance and current harbour conditions.",
+        "hazards": [
+          "Commercial traffic in the harbour approaches and channels.",
+          "Busy visitor traffic around Poole Quay."
+        ]
+      },
+      "marina": {
+        "visitorBerths": "Visitor berths and short-stay berths are available; advance booking is recommended during the summer season.",
+        "water": {
+          "available": true,
+          "detail": "Drinking water is provided on all pontoons.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/facilities"
+        },
+        "electricity": {
+          "available": true,
+          "detail": "16A shore power is available on all pontoons, with higher-amperage supplies on a limited number of berths.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/facilities"
+        },
+        "showers": {
+          "available": true,
+          "detail": "Showers are available to berth holders and visitors.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/facilities"
+        },
+        "toilets": {
+          "available": true,
+          "detail": "Toilets are available to berth holders and visitors, including accessible provision.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/facilities"
+        },
+        "laundry": {
+          "available": true,
+          "detail": "Laundry facilities are available; tokens are purchased from reception.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/facilities"
+        },
+        "restaurants": {
+          "available": true,
+          "detail": "Poole Quay restaurants and cafés are immediately outside the marina.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/"
+        },
+        "bars": {
+          "available": true,
+          "detail": "Poole Quay bars and pubs are immediately accessible ashore.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://www.poolequayboathaven.co.uk/",
+        "telephone": "01202 649488",
+        "email": "info@poolequayboathaven.co.uk",
+        "harbourMasterOffice": "Poole Quay Boat Haven, Poole, Dorset, BH15 1HJ"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Poole Quay Boat Haven Marina Guide | Old Sea Dogs",
+        "metaDescription": "Visitor guide to Poole Quay Boat Haven, including VHF 80, berthing, facilities, Poole Quay access and current harbour-safety considerations.",
+        "canonicalSlug": "poole-quay-boat-haven",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Poole Quay Boat Haven official site",
+            "url": "https://www.poolequayboathaven.co.uk/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections",
+              "marina.visitorBerths",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "Poole Quay Boat Haven facilities",
+            "url": "https://www.poolequayboathaven.co.uk/facilities",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.vhfChannel",
+              "marina.water",
+              "marina.electricity",
+              "marina.showers",
+              "marina.toilets",
+              "marina.laundry",
+              "marina.visitorBerths"
+            ]
+          },
+          {
+            "label": "Poole Quay Boat Haven contact",
+            "url": "https://www.poolequayboathaven.co.uk/contact",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "contacts.telephone",
+              "contacts.email",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "Poole Harbour Commissioners — Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.tidalInformation"
+            ]
+          },
+          {
+            "label": "PHC Shipping Movements",
+            "url": "https://www.phc.co.uk/safety/shipping-movements/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.depths",
+            "reason": "Current official Poole Quay Boat Haven and PHC pages publish differing maximum-draught figures for large-yacht berths; no single controlling depth for ordinary visitor approach was established. Confirm directly before relying on draught limits.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not located in the checked official sources; use current charts and marina information.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "port-of-poole-marina-guide-v1",
+      "slug": "port-of-poole-marina",
+      "title": "Port of Poole Marina",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "A quieter Poole Harbour marina beside the commercial port, with direct access to the main shipping channel, annual berths and limited visitor capacity by arrangement.",
+        "introduction": "Port of Poole Marina sits away from the bustle of the Town Quay and closer to the working port. The marina is primarily annual-berth territory, but visitors can be accommodated by arrangement, particularly when Poole Quay Boat Haven is full.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "The marina is operated alongside Poole Quay Boat Haven and sits beside the Port of Poole, with direct access to the main shipping channel and views across the harbour."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "Follow current PHC Harbour Guide and shipping instructions through the harbour entrance. The operator uses VHF Channel 80; call before arrival for berth instructions and remain especially alert to commercial movements in the adjacent main channel."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "The operator describes Port of Poole Marina as primarily annual berthing, with visitors accepted by prior arrangement. Boat Haven visitors may sometimes be offered a berth here when the town-quay marina is full."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "Official information lists fresh water, shore power, showers, toilets, waste disposal, parking and a water taxi connection with Poole Quay Boat Haven when weather and daylight allow."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "The setting is quieter than Poole Quay Boat Haven, with Poole town reached by road or the operator’s water-taxi service when running."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews wanting a more sheltered, less public-facing Poole berth with direct access to the main harbour channel."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Visitors expecting the immediate restaurants-and-pubs atmosphere of Poole Quay Boat Haven, or anyone assuming visitor space without arranging it first."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Brownsea Island lies across the harbour, with Sandbanks and the harbour entrance to the east and Poole’s inner waterways to the west."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Treat the adjacent shipping channel as the defining feature of the approach. Check PHC movements, listen on Channel 14 and call the marina on Channel 80 before committing to the berth."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Berthing and facility information was checked against the marina operator and Poole Harbour Commissioners. A published maximum-draught conflict remains unresolved and must be confirmed directly."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Port of Poole Marina makes more sense when viewed as the quieter partner to the Boat Haven. It trades instant town-quay atmosphere for space, parking and a more workmanlike harbour setting — useful when that is exactly what the cruise needs."
+        ],
+        "practicalNotes": [
+          "Visitor berthing is by arrangement. Check water-taxi availability rather than assuming it is operating."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "vhfChannel": "80",
+        "approach": [
+          "Enter Poole Harbour using current PHC directions and maintain a listening watch for shipping information on VHF Channel 14.",
+          "Proceed toward the Port of Poole and call the marina on VHF Channel 80 for berth instructions.",
+          "Remain clear of commercial shipping movements in the main channel."
+        ],
+        "tidalInformation": "Passage depends on current harbour entrance and channel conditions; consult PHC live tide and navigation information.",
+        "hazards": [
+          "Commercial shipping movements immediately adjacent to the marina.",
+          "Working-port activity and restricted areas."
+        ]
+      },
+      "marina": {
+        "berths": "The operator states that Port of Poole Marina can berth up to 75 boats on an annual basis.",
+        "visitorBerths": "Visitor berthing is available by prior arrangement and may be offered when Poole Quay Boat Haven is full.",
+        "water": {
+          "available": true,
+          "detail": "Fresh/drinking water is listed by the operator.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/about-the-marina"
+        },
+        "electricity": {
+          "available": true,
+          "detail": "Shore power is listed by the operator.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/about-the-marina"
+        },
+        "showers": {
+          "available": true,
+          "detail": "On-site showers are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/about-the-marina"
+        },
+        "toilets": {
+          "available": true,
+          "detail": "On-site toilets are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/about-the-marina"
+        },
+        "transport": {
+          "available": true,
+          "detail": "A free water taxi to Poole Quay Boat Haven is advertised, subject to weather and daylight.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/about-the-marina"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://www.poolequayboathaven.co.uk/",
+        "telephone": "01202 649488",
+        "email": "info@poolequayboathaven.co.uk",
+        "harbourMasterOffice": "Port of Poole Marina, New Harbour Road, Poole, Dorset, BH15 4AJ"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Port of Poole Marina Guide | Old Sea Dogs",
+        "metaDescription": "Old Sea Dogs guide to Port of Poole Marina, with visitor arrangements, VHF 80, facilities and working-port navigation considerations.",
+        "canonicalSlug": "port-of-poole-marina",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Poole Quay Boat Haven & Port of Poole Marina official site",
+            "url": "https://www.poolequayboathaven.co.uk/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.berths",
+              "marina.visitorBerths",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "About Port of Poole Marina",
+            "url": "https://www.poolequayboathaven.co.uk/about-the-marina",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "marina.water",
+              "marina.electricity",
+              "marina.showers",
+              "marina.toilets",
+              "marina.transport"
+            ]
+          },
+          {
+            "label": "Poole Quay Boat Haven contact",
+            "url": "https://www.poolequayboathaven.co.uk/contact",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "contacts.telephone",
+              "contacts.email"
+            ]
+          },
+          {
+            "label": "PHC Super Yachts — Port of Poole Marina",
+            "url": "https://www.phc.co.uk/commercial/super-yachts/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.depths",
+              "navigation.approach"
+            ]
+          },
+          {
+            "label": "Poole Quay Boat Haven superyacht information",
+            "url": "https://www.poolequayboathaven.co.uk/super-yachts",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.depths"
+            ]
+          },
+          {
+            "label": "Poole Tourism — Marinas & Chandlers",
+            "url": "https://www.pooletourism.com/visitor-information/poole-harbour/marinas-and-chandlers",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "contacts.harbourMasterOffice",
+              "navigation.vhfChannel"
+            ]
+          },
+          {
+            "label": "PHC Shipping Movements",
+            "url": "https://www.phc.co.uk/safety/shipping-movements/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.depths",
+            "reason": "Current official sources conflict materially on maximum draught at Port of Poole Marina: PHC’s marina information gives 3.5m while the operator’s superyacht page displays a substantially larger figure associated with port berthing. Confirm the exact berth and allowable draught directly before arrival.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not established from the checked official sources.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "cobbs-quay-marina-guide-v1",
+      "slug": "cobbs-quay-marina",
+      "title": "Cobb's Quay Marina",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "A large, full-service MDL marina in Holes Bay, reached through Poole’s lifting bridges and offering visitor berths, fuel, boatyard support and extensive shore-side services.",
+        "introduction": "Cobb’s Quay is the big inner-harbour marina: less about stepping straight into Poole’s Old Town and more about having almost every practical boating service close at hand. Reaching it means continuing beyond Poole Quay and transiting the lifting bridges into Holes Bay.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "MDL lists 850 marina berths and 280 dry-stack berths, making Cobb’s Quay one of Poole Harbour’s largest marina complexes. It sits in Hamworthy, inside Holes Bay."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "MDL directs boats into Poole Harbour by the Swash Channel or, when suitable, the shallower East Looe route, then up-harbour by North Channel or Middle Ship Channel. Pass Poole Quay, transit the lifting bridges and follow the buoyed channel to the marina."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "Visitor and short-stay berthing are offered. Call Cobb’s Quay on VHF Channel 80 or telephone before arrival to confirm availability and instructions."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "The official visitor guide lists petrol and diesel fuel, gas, 40-ton boat hoist, storage ashore, slipway, repairs, chandlery, convenience store, laundry, restaurant, brokerage, new-boat sales, jet-ski pods, MDL WiFi and 24/7 storage."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "The marina has its own restaurant and convenience services, while Poole town centre is farther away than from the Town Quay marinas."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Boats needing a comprehensive marina and boatyard base, dry-stack options or practical servicing during a Poole stay."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Crews wanting immediate access to Poole Old Town, or those who do not want to plan around lifting-bridge transits."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "The marina opens onto Holes Bay and the wider harbour, with Poole Quay, Brownsea Island and the outer harbour reached back through the marked channels."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Bridge Control uses VHF Channel 12. Check the current PHC bridge timetable and Local Notices to Mariners before arrival, then call Cobb’s Quay on Channel 80."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Approach, VHF, berthing and facilities were checked against current MDL Marina information and PHC harbour regulations."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Cobb’s Quay is the practical end of Poole Harbour cruising: big, well-equipped and able to support far more than an overnight stop. The bridges add a planning step, but once inside it is a useful place to deal with fuel, lifting, repairs and the jobs that a simple visitor pontoon cannot handle."
+        ],
+        "practicalNotes": [
+          "Check current bridge lift times and call the marina before entering Holes Bay."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "vhfChannel": "80",
+        "approach": [
+          "Enter Poole Harbour by the main Swash Channel or, only when suitable under current PHC guidance, the shallower East Looe route.",
+          "Proceed up-harbour via North Channel or Middle Ship Channel, pass Poole Quay and transit the lifting bridges.",
+          "Contact Bridge Control on VHF Channel 12 and Cobb’s Quay on VHF Channel 80."
+        ],
+        "tidalInformation": "Bridge timing and inner-harbour water levels should be checked before arrival; consult PHC tide and bridge information.",
+        "hazards": [
+          "Two lifting bridges before the marina.",
+          "Commercial and leisure traffic in Poole’s inner channels.",
+          "6-knot limit applies in Holes Bay."
+        ]
+      },
+      "marina": {
+        "berths": "850 marina berths are listed by MDL.",
+        "visitorBerths": "Daily visitor and short-stay berthing are offered, subject to availability.",
+        "fuel": {
+          "available": true,
+          "detail": "Petrol, diesel and gas are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "laundry": {
+          "available": true,
+          "detail": "Laundry facilities are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "wifi": {
+          "available": true,
+          "detail": "MDL WiFi is listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "repairs": {
+          "available": true,
+          "detail": "Boat repairs and storage ashore are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "chandlery": {
+          "available": true,
+          "detail": "On-site chandlery is listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "craneOrLift": {
+          "available": true,
+          "detail": "MDL lists a 40-ton boat hoist.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "restaurants": {
+          "available": true,
+          "detail": "Cobbs Bar & Kitchen is listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        },
+        "shops": {
+          "available": true,
+          "detail": "A convenience store and new-boat sales are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/",
+        "telephone": "01202 674299",
+        "harbourMasterOffice": "Cobb's Quay Marina, Woodlands Avenue, Hamworthy, Poole, BH15 4EL"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Cobb's Quay Marina Guide | Old Sea Dogs",
+        "metaDescription": "Guide to Cobb's Quay Marina in Poole Harbour, covering visitor berths, VHF 80, lifting bridges, fuel, boatyard services and facilities.",
+        "canonicalSlug": "cobbs-quay-marina",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "MDL Cobb's Quay Marina",
+            "url": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.berths",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "MDL Cobb's Quay Visitor Guide",
+            "url": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/visitor-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.vhfChannel",
+              "marina.visitorBerths",
+              "marina.fuel",
+              "marina.laundry",
+              "marina.wifi",
+              "marina.repairs",
+              "marina.chandlery",
+              "marina.craneOrLift",
+              "marina.restaurants",
+              "marina.shops",
+              "contacts.telephone",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "MDL Cobb's Quay Directions",
+            "url": "https://www.mdlmarinas.co.uk/marinas/mdl-cobbs-quay-marina/directions/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.vhfChannel",
+              "navigation.hazards"
+            ]
+          },
+          {
+            "label": "PHC Harbour Regulations",
+            "url": "https://www.phc.co.uk/leisure/byelaws-gds/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.hazards"
+            ]
+          },
+          {
+            "label": "PHC Local Notices to Mariners",
+            "url": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.tidalInformation"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.depths",
+            "reason": "The current MDL visitor information does not publish a controlling approach depth or maximum visitor draught for the full route through the bridges and Holes Bay; confirm against current charts, bridge information and marina advice.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not established from the checked official sources.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "salterns-marina-guide-v1",
+      "slug": "salterns-marina",
+      "title": "Salterns Marina",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "A long-established full-service marina in Lilliput, close to Poole Harbour’s entrance, with visitor berths, swinging moorings, fuel and boatyard support.",
+        "introduction": "Salterns occupies a useful position on the eastern side of the inner harbour, close enough to the entrance to keep departure simple but far enough inside to gain Poole Harbour’s shelter. The marina mixes permanent berths, visitor space, moorings and a substantial boatyard operation.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "Salterns lies at Lilliput near the harbour entrance, with access from the North Channel. Its current 2026/27 published charges include visitor pontoon berths and seasonal swinging moorings."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "A marine business based at Salterns directs visiting craft through the North Channel and identifies the marina entrance from port-hand buoy 36. Because current public sources disagree on the marina working VHF channel, call the marina by telephone before arrival and confirm the channel directly."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "The marina’s 2026/27 schedule lists short-stay visitor berths and daily visiting pontoon charges for vessels from 5m to 20m, with longer stays requiring contact with the marina office."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "Current local harbour information lists 24-hour petrol and diesel at Salterns. The site also includes chandlery, marine businesses and boatyard activity, but facility availability should be confirmed when booking."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "Salterns is in residential Lilliput rather than Poole town centre, giving it a quieter shore-side character with local shops and services nearby."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews wanting a marina near the harbour entrance, fuel, visitor berthing and access to marine services without going deep into the harbour."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Visitors whose priority is walking straight from the berth into Poole Old Town."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Brownsea Island and Sandbanks are close by, while the North Channel leads directly back toward the harbour entrance."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Confirm the marina’s current VHF working channel directly before use. The public sources checked do not agree, so this Draft deliberately leaves the structured VHF field blank."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Visitor charges were checked against Salterns Marina’s current 2026/27 schedule. Navigation context was checked against PHC and current local sources; the VHF conflict remains unresolved."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Salterns has the location many Poole crews want: inside the shelter but not buried in the harbour. It is particularly useful when fuel, boatyard support and a quick run back to the entrance matter more than being in the middle of town."
+        ],
+        "practicalNotes": [
+          "Call the marina before arrival to confirm berth availability, working VHF channel and any draught restriction relevant to your vessel."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          },
+          {
+            "text": "Public sources checked for Salterns give conflicting VHF information. Confirm the marina’s current working channel directly before use.",
+            "severity": "safety",
+            "verifiedAt": "2026-08-19",
+            "certainty": "uncertain"
+          }
+        ]
+      },
+      "navigation": {
+        "approach": [
+          "Use current PHC directions to enter Poole Harbour and proceed through the North Channel toward Salterns.",
+          "Confirm berth allocation and the marina's current VHF working channel directly before entering the marina."
+        ],
+        "tidalInformation": "Check current harbour tide information and marina advice before arrival.",
+        "hazards": [
+          "Commercial traffic in Poole Harbour channels.",
+          "VHF working-channel information is conflicting in current public sources."
+        ]
+      },
+      "marina": {
+        "visitorBerths": "The 2026/27 marina schedule lists short-stay and daily visitor pontoon berths for vessels from 5m to 20m, subject to marina terms and availability.",
+        "fuel": {
+          "available": true,
+          "detail": "Current Poole marina information lists 24-hour petrol and diesel at Salterns Marina.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.poolequayboathaven.co.uk/useful-information"
+        },
+        "chandlery": {
+          "available": true,
+          "detail": "Salterns Chandlery is listed in current Poole marina information.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.pooletourism.com/visitor-information/poole-harbour/marinas-and-chandlers"
+        },
+        "repairs": {
+          "available": true,
+          "detail": "Salterns is an active marina and boatyard; confirm specific services when booking.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://salterns.co.uk/wp-content/uploads/2026/06/Marina-Boatyard-Restricted-Schedule-of-Charges-2025-26-3.pdf"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://salterns.co.uk/",
+        "telephone": "01202 709971",
+        "email": "marina@salterns.co.uk",
+        "harbourMasterOffice": "Salterns Marina, 40 Salterns Way, Lilliput, Poole, Dorset, BH14 8JR"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Salterns Marina Guide | Old Sea Dogs",
+        "metaDescription": "Guide to Salterns Marina in Poole Harbour, with visitor berthing, fuel, boatyard context and safety items requiring direct VHF and depth confirmation.",
+        "canonicalSlug": "salterns-marina",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Salterns Marina 2026/27 facilities and charges",
+            "url": "https://salterns.co.uk/wp-content/uploads/2026/06/Marina-Boatyard-Restricted-Schedule-of-Charges-2025-26-3.pdf",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.visitorBerths",
+              "contacts.telephone",
+              "contacts.email",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "Wessex Marine at Salterns — sea directions",
+            "url": "https://wessexmarine.co.uk/contact-us/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.vhfChannel"
+            ]
+          },
+          {
+            "label": "Poole Tourism — Marinas & Chandlers",
+            "url": "https://www.pooletourism.com/visitor-information/poole-harbour/marinas-and-chandlers",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.chandlery",
+              "contacts.telephone"
+            ]
+          },
+          {
+            "label": "Poole Quay Boat Haven useful information",
+            "url": "https://www.poolequayboathaven.co.uk/useful-information",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.fuel"
+            ]
+          },
+          {
+            "label": "PHC Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.tidalInformation"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.vhfChannel",
+            "reason": "Current public sources conflict: a current Solent directory lists Channel 80, while a marine business based at Salterns lists Channels 37 and 80. The marina’s own current public schedule does not resolve the working channel. Confirm directly before use.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.depths",
+            "reason": "No current authoritative controlling approach depth or visitor maximum draught was located in the checked Salterns sources. Confirm directly with the marina and current charts.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not established from the checked official sources.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "parkstone-bay-marina-guide-v1",
+      "slug": "parkstone-bay-marina",
+      "title": "Parkstone Bay Marina",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "A mixed wet-and-dry berthing marina in Parkstone Bay, offering visitor pontoons and moorings, fuel, boatyard services and a waterside restaurant.",
+        "introduction": "Parkstone Bay Marina combines several kinds of berthing rather than relying on a single model. Alongside the pontoon marina are dry berths, floating docks, swinging moorings and deeper-water moorings, making it particularly relevant to motorboats and smaller craft as well as conventional visitors.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "The marina sits in Parkstone Bay on the northern side of Poole Harbour. It has a strong dry-berthing operation as well as pontoons, moorings and shore-side marine services."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "The marina asks arriving boats to check that they have sufficient tide and to use its current arrival map. Approach through Poole Harbour using PHC guidance and contact the marina office before arrival for current instructions."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "Visitor pontoon berths and visitor swinging moorings are offered, subject to availability; July and August can be particularly busy. The marina’s pontoon berths are described as suitable for vessels up to 17m, with the operator noting a 1m-draught suitability figure for those berths."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "Official information lists fresh water, 16A electricity, WiFi, on-site fuel, 24-hour CCTV, valeting and antifouling support. The boatyard can lift vessels up to 47 tonnes, and South Deep provides a waterside restaurant and bar."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "South Deep is the marina’s on-site restaurant and social centre. The setting is more self-contained than Poole Quay, with marina services concentrated on site."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Motorboats, RIBs and owners who value dry-berthing options, on-site servicing and a marina restaurant."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Deep-draught visitors who have not confirmed sufficient water and an appropriate berth before arrival."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Brownsea Island lies to the south, while Sandbanks and the harbour entrance are a short run east through the marked channels."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "The operator explicitly tells visiting boats to check sufficient tide. No current official marina VHF channel was located, so contact by telephone before arrival."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Berthing, services and visitor information were checked against Parkstone Bay Marina’s current website and PHC harbour guidance."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Parkstone Bay is less a single marina product than a collection of ways to keep a boat. For the right boat — particularly a RIB, sportsboat or motorboat — that flexibility is the attraction. Visitors should pay more attention to tide and berth suitability here than at the town-quay marinas."
+        ],
+        "practicalNotes": [
+          "Visitor space is subject to availability. Confirm sufficient tide and your allocated berth directly with the marina."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          },
+          {
+            "text": "No current official working VHF channel for Parkstone Bay Marina was located in the checked sources; contact the marina directly before arrival.",
+            "severity": "safety",
+            "verifiedAt": "2026-08-19",
+            "certainty": "uncertain"
+          }
+        ]
+      },
+      "navigation": {
+        "approach": [
+          "Enter and navigate Poole Harbour using current PHC guidance.",
+          "The marina instructs waterborne visitors to check that they will have sufficient tide and to consult its current arrival map.",
+          "Contact the marina office before final approach for berth and tide guidance."
+        ],
+        "tidalInformation": "The marina states that arrival and some launch operations are tide-dependent; check sufficient water before approach.",
+        "hazards": [
+          "Shallow water in Parkstone Bay away from deeper channels.",
+          "Tide-dependent access for some marina operations."
+        ]
+      },
+      "marina": {
+        "visitorBerths": "Visitor pontoon berths and swinging moorings are offered, subject to availability.",
+        "water": {
+          "available": true,
+          "detail": "Fresh water is available at pontoon berths.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/pontoon"
+        },
+        "electricity": {
+          "available": true,
+          "detail": "16A electricity is available; metered charges may apply.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/pontoon"
+        },
+        "wifi": {
+          "available": true,
+          "detail": "Free WiFi is listed for pontoon customers.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/pontoon"
+        },
+        "fuel": {
+          "available": true,
+          "detail": "Petrol and marine diesel are available at the fuel pontoon; opening times vary seasonally.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/services"
+        },
+        "repairs": {
+          "available": true,
+          "detail": "The marina provides boatyard and maintenance services.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/services"
+        },
+        "craneOrLift": {
+          "available": true,
+          "detail": "The boatyard states it can lift vessels up to 47 tonnes and 60ft LOA.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/services"
+        },
+        "restaurants": {
+          "available": true,
+          "detail": "South Deep is the on-site waterside restaurant.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://www.parkstonebay.com/"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://www.parkstonebay.com/",
+        "telephone": "01202 747857",
+        "email": "info@parkstonebay.com",
+        "harbourMasterOffice": "Parkstone Bay Marina, Turks Lane, Poole, Dorset, BH14 8EW"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Parkstone Bay Marina Guide | Old Sea Dogs",
+        "metaDescription": "Guide to Parkstone Bay Marina, covering visitor berths, dry berthing, fuel, boatyard services, tide-dependent approach and facilities.",
+        "canonicalSlug": "parkstone-bay-marina",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Parkstone Bay Marina official site",
+            "url": "https://www.parkstonebay.com/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.restaurants",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "Parkstone Bay berthing",
+            "url": "https://www.parkstonebay.com/berthing",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.visitorBerths"
+            ]
+          },
+          {
+            "label": "Parkstone Bay pontoon berths",
+            "url": "https://www.parkstonebay.com/pontoon",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.water",
+              "marina.electricity",
+              "marina.wifi"
+            ]
+          },
+          {
+            "label": "Parkstone Bay boatyard services",
+            "url": "https://www.parkstonebay.com/services",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.fuel",
+              "marina.repairs",
+              "marina.craneOrLift"
+            ]
+          },
+          {
+            "label": "Parkstone Bay contact and water arrival",
+            "url": "https://www.parkstonebay.com/contact",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.tidalInformation",
+              "contacts.telephone",
+              "contacts.email",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "PHC Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.vhfChannel",
+            "reason": "No current official Parkstone Bay Marina VHF working channel was located in the checked marina sources; confirm directly before use.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.depths",
+            "reason": "The marina publishes a 1m-draught suitability figure for pontoon berths but no controlling approach depth for visitors. Confirm sufficient water and berth suitability directly before arrival.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not established from the checked official sources.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "lake-yard-marina-guide-v1",
+      "slug": "lake-yard-marina",
+      "title": "Lake Yard Marina",
+      "guideType": "Marina",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "A small deep-water marina and working boatyard on Hamworthy’s western shore, with 24-hour access, visitor space, moorings and a waterfront club and restaurant.",
+        "introduction": "Lake Yard is one of Poole Harbour’s more individual marina stops: a 44-berth dock, swinging moorings, a serious boatyard and a clubhouse/restaurant sharing the same waterside site. It sits west of the commercial port, looking across the harbour toward Brownsea, Arne and the Purbeck hills.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "Lake Yard is in Hamworthy on the north-west side of Poole Harbour. The operator describes the marina as deep water with 24-hour access and no tidal restrictions, and says it is particularly well suited to motorboats."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "The operator directs arriving craft to pick up the Wareham Channel after the Poole Ferry Terminal. Lake Yard lies near channel marks WH3 and WH4, between Moriconium Quay and the Marines facility. All visitors are required to call ahead."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "The marina has 44 pontoon finger berths, mostly annual, plus a large guest berth and occasional short-term pontoon spaces. Swinging moorings are available outside the marina."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "Fresh water, shore power, changing rooms, showers, toilets, secure CCTV, boat hoisting and boatyard services are listed. The site also has a waterfront bar and restaurant."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "Lake Yard’s club and restaurant give the marina a self-contained social side. Local pubs, cafés and provisions are within walking distance, while Poole Quay is farther east."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Motorboats and crews wanting a smaller marina with 24-hour access, boatyard support and a quieter Hamworthy setting."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Visitors expecting a large commercial marina or immediate town-centre access."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "The Wareham Channel opens west toward the upper harbour and River Frome, while Brownsea Island and the harbour entrance lie back to the east."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Call ahead before arrival. The official contact page gives VHF Channel 37 at weekends alongside the Bosun’s mobile number; weekday visitors are directed to Boat Yard Reception."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Access, VHF, visitor berthing, facilities and contact details were checked against Lake Yard’s current official website."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Lake Yard feels more like a harbour institution than a generic marina. The combination of small dock, moorings, boatyard and club suits crews who value practical support and a bit of character over polished scale."
+        ],
+        "practicalNotes": [
+          "All visitors are required to call ahead. Weekday and weekend contact arrangements differ on the operator’s current directions page."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "vhfChannel": "37",
+        "approach": [
+          "After entering Poole Harbour, proceed west past the Poole Ferry Terminal and pick up the Wareham Channel.",
+          "Lake Yard identifies its position near WH3 and WH4 channel marks, between Moriconium Quay and the Marines facility.",
+          "All visitors must call ahead; the operator lists VHF Channel 37 for weekend Bosun contact."
+        ],
+        "depths": "The operator describes the marina as deep water with 24-hour access and no tidal restrictions, but does not publish a numeric controlling depth on the checked current pages.",
+        "tidalInformation": "Operator states 24-hour access with no tidal restrictions to the marina dock; current harbour tide and channel information should still be checked.",
+        "hazards": [
+          "Stay within the marked Wareham Channel and current PHC navigation guidance when crossing the inner harbour."
+        ]
+      },
+      "marina": {
+        "berths": "44 pontoon finger berths are listed.",
+        "visitorBerths": "A large guest berth and occasional short-term pontoon berths are available; phone in advance.",
+        "water": {
+          "available": true,
+          "detail": "Fresh water supply is listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        },
+        "electricity": {
+          "available": true,
+          "detail": "Shore power is listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        },
+        "showers": {
+          "available": true,
+          "detail": "Changing rooms with showers are listed.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        },
+        "toilets": {
+          "available": true,
+          "detail": "Toilets are listed with the changing-room facilities.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        },
+        "repairs": {
+          "available": true,
+          "detail": "A fully equipped working boatyard is on site.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/boatyard/"
+        },
+        "craneOrLift": {
+          "available": true,
+          "detail": "The boatyard lists a 50-tonne mobile boat hoist.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/boatyard/"
+        },
+        "restaurants": {
+          "available": true,
+          "detail": "A waterfront bar and restaurant is on site.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        },
+        "bars": {
+          "available": true,
+          "detail": "A waterfront bar is on site.",
+          "verifiedAt": "2026-08-19",
+          "sourceUrl": "https://lakeyard.co.uk/marina/"
+        }
+      },
+      "contacts": {
+        "officialWebsite": "https://lakeyard.co.uk/",
+        "telephone": "01202 674531",
+        "email": "office@lakeyard.com",
+        "harbourMasterOffice": "Lake Yard, 45 Lake Drive, Poole, Dorset, BH15 4DT"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Lake Yard Marina Guide | Old Sea Dogs",
+        "metaDescription": "Guide to Lake Yard Marina in Poole Harbour, including VHF 37, 24-hour access, visitor berthing, facilities and working boatyard services.",
+        "canonicalSlug": "lake-yard-marina",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "Lake Yard official site",
+            "url": "https://lakeyard.co.uk/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections",
+              "marina.berths",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "Lake Yard Marina",
+            "url": "https://lakeyard.co.uk/marina/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.depths",
+              "navigation.tidalInformation",
+              "marina.berths",
+              "marina.visitorBerths",
+              "marina.water",
+              "marina.electricity",
+              "marina.showers",
+              "marina.toilets",
+              "marina.restaurants",
+              "marina.bars"
+            ]
+          },
+          {
+            "label": "Lake Yard contact / arriving by sea",
+            "url": "https://lakeyard.co.uk/contact/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.vhfChannel",
+              "contacts.telephone",
+              "contacts.email",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "Lake Yard Boatyard",
+            "url": "https://lakeyard.co.uk/boatyard/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "marina.repairs",
+              "marina.craneOrLift"
+            ]
+          },
+          {
+            "label": "PHC Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.depths",
+            "reason": "Lake Yard states deep-water 24-hour access but the checked current official pages do not give a numeric controlling approach depth. Confirm current under-keel clearance from charts and the marina before relying on a numeric value.",
+            "severity": "safety"
+          },
+          {
+            "field": "navigation.position",
+            "reason": "A current authoritative latitude/longitude pair was not established from the checked official sources.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "sandbanks-guide-v1",
+      "slug": "sandbanks",
+      "title": "Sandbanks",
+      "guideType": "Destination",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "The sandy peninsula at Poole Harbour’s entrance is both a major local landmark and one of Dorset’s best-known beaches, with the chain ferry and fast harbour stream immediately alongside.",
+        "introduction": "Sandbanks is the landform every Poole arrival notices. The peninsula forms the eastern side of the narrow harbour entrance, placing beach life, waterfront property and one of the harbour’s busiest navigation pinch-points within a few hundred metres of each other.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "BCP Council describes Sandbanks as an award-winning beach with golden sand, cafés, toilets, showers and seasonal lifeguards. For boaters, its importance is just as much geographical: it marks one side of Poole Harbour’s narrow entrance."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "Treat Sandbanks primarily as an entrance landmark, not as an invitation to improvise a landing. PHC and BCP guidance describe the harbour entrance as potentially hazardous because of strong tidal streams, commercial traffic and the chain ferry."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "This Guide does not claim a public visitor berth or landing at Sandbanks. Use a recognised marina, mooring or authorised landing arrangement and confirm local access before going ashore by boat."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "The public beach has toilets, accessible facilities, drinking water, showers, café/kiosk services and seasonal lifeguards."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "Sandbanks is a beach destination first: a long sandy frontage, watersports, cafés and views toward Studland and the Purbeck coast."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews using Sandbanks as a harbour landmark or visiting the peninsula ashore from a confirmed berth or authorised landing arrangement."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Anyone treating the busy harbour entrance or ferry approaches as casual anchoring or landing water."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Brownsea Island is immediately inside the harbour, with Studland Bay and Old Harry Rocks outside to the south-west."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Give way to the chain ferry, expect strong stream at the entrance and follow current PHC navigation directions."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Shore-side information was checked against BCP Council and Poole Tourism; harbour-entry safety comes from current PHC/BCP guidance."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Sandbanks is useful to a skipper because it is impossible to miss. It is also a reminder that Poole’s most glamorous shoreline sits beside its most concentrated piece of navigation. Enjoy the landmark, but keep the seamanship switched on until the ferry and entrance are astern."
+        ],
+        "practicalNotes": [
+          "No public visitor berth or general private-boat landing arrangement was established in the checked official sources."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "approach": [
+          "Use Sandbanks as a visual landmark while following the charted Poole Harbour approach and current PHC directions.",
+          "At the harbour entrance, give way to the chain ferry and pass well clear astern."
+        ],
+        "tidalInformation": "Strong tidal streams occur at the narrow harbour entrance, especially at springs.",
+        "hazards": [
+          "Chain ferry at the harbour entrance.",
+          "Strong tidal stream in the narrow entrance.",
+          "Commercial and leisure traffic concentration."
+        ]
+      },
+      "marina": {},
+      "contacts": {
+        "officialWebsite": "https://www.bcpcouncil.gov.uk/beaches-and-seafront/visit-a-beach/sandbanks-beach"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Sandbanks Guide | Old Sea Dogs",
+        "metaDescription": "Old Sea Dogs guide to Sandbanks at the entrance to Poole Harbour, with beach information, harbour-entry context and chain-ferry safety notes.",
+        "canonicalSlug": "sandbanks",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "BCP Council — Sandbanks beach",
+            "url": "https://www.bcpcouncil.gov.uk/beaches-and-seafront/visit-a-beach/sandbanks-beach",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections",
+              "contacts.officialWebsite"
+            ]
+          },
+          {
+            "label": "BCP Council — Visit Poole Harbour",
+            "url": "https://www.bcpcouncil.gov.uk/beaches-and-seafront/visit-poole-harbour",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.tidalInformation",
+              "navigation.hazards"
+            ]
+          },
+          {
+            "label": "Poole Tourism — Sandbanks",
+            "url": "https://www.pooletourism.com/explore/sandbanks",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections"
+            ]
+          },
+          {
+            "label": "PHC Harbour Regulations",
+            "url": "https://www.phc.co.uk/leisure/byelaws-gds/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.visitorLanding",
+            "reason": "No current official general visitor landing or berth for private craft at Sandbanks was established in the checked sources; use recognised marina/mooring facilities or obtain direct local confirmation.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    },
+    {
+      "externalId": "brownsea-island-guide-v1",
+      "slug": "brownsea-island",
+      "title": "Brownsea Island",
+      "guideType": "Destination",
+      "region": {
+        "key": "poole-harbour",
+        "name": "Poole Harbour",
+        "area": "Dorset"
+      },
+      "editorial": {
+        "standfirst": "Poole Harbour’s wooded island is a natural cruising landmark and a destination in its own right, with private-craft landing permitted only on the South Shore under National Trust rules.",
+        "introduction": "Brownsea Island sits at the heart of Poole Harbour, dividing channels and views while giving visiting crews a rare chance to turn a harbour passage into a walk through woodland, heath and shoreline nature reserve.",
+        "sections": [
+          {
+            "heading": "Setting & Character",
+            "body": [
+              "The National Trust manages Brownsea as a protected island nature reserve known for red squirrels, woodland, heath and harbour views."
+            ]
+          },
+          {
+            "heading": "Arrival by Sea",
+            "body": [
+              "Private boats, kayaks and paddleboards are welcome to land only along the South Shore. The National Trust states that there is no landing along the North Shore or sea wall because of nesting birds, and no private landing at the National Trust pier for safety."
+            ]
+          },
+          {
+            "heading": "Berthing Experience",
+            "body": [
+              "Brownsea is a landing destination rather than a marina. Skippers must make their own safe anchoring/mooring arrangements in accordance with current harbour rules and then use only permitted landing areas."
+            ]
+          },
+          {
+            "heading": "Facilities",
+            "body": [
+              "The island has visitor reception, café facilities, toilets and visitor services during opening periods. Passenger ferries also operate from Poole Quay."
+            ]
+          },
+          {
+            "heading": "Ashore",
+            "body": [
+              "Brownsea offers walking, wildlife watching and harbour views. The National Trust’s current visitor information should be checked for opening times, admission and seasonal arrangements before landing."
+            ]
+          },
+          {
+            "heading": "Best For",
+            "body": [
+              "Crews wanting to add a genuine shore excursion and nature stop to a Poole Harbour day."
+            ]
+          },
+          {
+            "heading": "Less Suitable For",
+            "body": [
+              "Anyone expecting marina facilities, unrestricted landing around the island or access outside current National Trust opening arrangements."
+            ]
+          },
+          {
+            "heading": "Nearby Cruising",
+            "body": [
+              "Sandbanks lies east at the harbour entrance, Poole Quay to the north-east and the quieter western harbour toward Arne and the Wareham Channel."
+            ]
+          },
+          {
+            "heading": "Skipper's Notes",
+            "body": [
+              "Land on the South Shore only. Do not use the National Trust pier for private landing, and respect the no-landing North Shore and sea-wall restrictions."
+            ]
+          },
+          {
+            "heading": "Information checked against official sources",
+            "body": [
+              "Landing rules and visitor information were checked against the National Trust’s current Brownsea Island guidance, with wider navigation context from PHC."
+            ]
+          }
+        ],
+        "oldSeaDogsView": [
+          "Brownsea is the rare harbour landmark that deserves to become the destination. The attraction for a cruising crew is not complicated: secure the boat properly, respect the landing rules and go ashore for a few hours. It changes the character of a Poole stop completely."
+        ],
+        "practicalNotes": [
+          "Check National Trust opening information and current PHC harbour guidance before planning a private-boat landing."
+        ],
+        "warnings": [
+          {
+            "text": "Use the latest Poole Harbour Commissioners Harbour Guide, Local Notices to Mariners, shipping movements, tide information and marina instructions before arrival.",
+            "severity": "safety",
+            "sourceUrl": "https://www.phc.co.uk/safety/local-notices-to-mariners/",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          },
+          {
+            "text": "Private craft may land on Brownsea Island’s South Shore only; the North Shore, sea wall and National Trust pier are not private-craft landing points.",
+            "severity": "safety",
+            "sourceUrl": "https://www.nationaltrust.org.uk/visit/dorset/brownsea-island/outdoor-activities-at-brownsea-island",
+            "verifiedAt": "2026-08-19",
+            "certainty": "verified"
+          }
+        ]
+      },
+      "navigation": {
+        "approach": [
+          "Navigate within Poole Harbour under current PHC guidance and select a safe anchoring/mooring arrangement outside navigational channels.",
+          "For private craft, land on Brownsea Island's South Shore only.",
+          "Do not land on the North Shore, sea wall or at the National Trust pier."
+        ],
+        "hazards": [
+          "Protected no-landing areas on the North Shore and sea wall.",
+          "Passenger ferry operations at the National Trust pier.",
+          "Shallow water and channels around the island require current charted navigation."
+        ]
+      },
+      "marina": {},
+      "contacts": {
+        "officialWebsite": "https://www.nationaltrust.org.uk/visit/dorset/brownsea-island",
+        "telephone": "01202 707744",
+        "email": "brownseaisland@nationaltrust.org.uk",
+        "harbourMasterOffice": "Brownsea Island, Poole Harbour, Poole, Dorset, BH13 7EE"
+      },
+      "media": {},
+      "seo": {
+        "seoTitle": "Brownsea Island Guide | Old Sea Dogs",
+        "metaDescription": "Guide to visiting Brownsea Island by boat in Poole Harbour, including South Shore landing rules, visitor information and local navigation cautions.",
+        "canonicalSlug": "brownsea-island",
+        "noindex": true
+      },
+      "verification": {
+        "sources": [
+          {
+            "label": "National Trust — Brownsea Island",
+            "url": "https://www.nationaltrust.org.uk/visit/dorset/brownsea-island",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections",
+              "contacts.officialWebsite",
+              "contacts.telephone",
+              "contacts.email",
+              "contacts.harbourMasterOffice"
+            ]
+          },
+          {
+            "label": "National Trust — Outdoor activities and private-craft landing",
+            "url": "https://www.nationaltrust.org.uk/visit/dorset/brownsea-island/outdoor-activities-at-brownsea-island",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.hazards",
+              "editorial.warnings"
+            ]
+          },
+          {
+            "label": "National Trust — Visiting Brownsea from Poole Quay",
+            "url": "https://www.nationaltrust.org.uk/visit/dorset/brownsea-island/booking-your-visit-and-travelling-to-brownsea-island",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "editorial.sections"
+            ]
+          },
+          {
+            "label": "PHC Harbour Guide",
+            "url": "https://www.phc.co.uk/leisure/harbour-guide/",
+            "accessedAt": "2026-08-19",
+            "supports": [
+              "navigation.approach",
+              "navigation.hazards"
+            ]
+          }
+        ],
+        "notes": "Researched from current public authoritative sources on 2026-08-19. Draft only; operational details should still be checked immediately before use.",
+        "verifiedAt": "2026-08-19",
+        "unresolved": [
+          {
+            "field": "navigation.anchoringOrMooring",
+            "reason": "The National Trust landing guidance does not itself establish a specific visitor anchorage or mooring for private craft. Use current charts, PHC rules and any authorised mooring information before leaving the vessel.",
+            "severity": "safety"
+          },
+          {
+            "field": "media.heroImage",
+            "reason": "Editor-supplied artwork awaits CMS upload, a proven media ID and URL, and completed alt text.",
+            "severity": "editorial"
+          }
+        ]
+      }
+    }
+  ]
+}

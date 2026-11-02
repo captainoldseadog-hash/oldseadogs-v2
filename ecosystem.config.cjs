@@ -14,6 +14,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: process.env.PORT || "3000",
+        // Nginx terminates TLS. Vinext otherwise builds redirect Locations as http.
+        VINEXT_TRUST_PROXY: "1",
         OLDSEADOGS_ENV: process.env.OLDSEADOGS_ENV || "staging",
         OLDSEADOGS_SITE_URL:
           process.env.OLDSEADOGS_SITE_URL || "https://staging.oldseadogs.com",
@@ -31,6 +33,7 @@ module.exports = {
         NODE_ENV: "production",
         PORT: process.env.PORT || "3000",
         HOST: process.env.HOST || "127.0.0.1",
+        VINEXT_TRUST_PROXY: "1",
         OLDSEADOGS_ENV: "production",
         OLDSEADOGS_SITE_URL: "https://oldseadogs.com",
         NEXT_PUBLIC_SITE_URL: "https://oldseadogs.com",

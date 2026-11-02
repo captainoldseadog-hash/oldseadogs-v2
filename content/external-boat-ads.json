@@ -1,0 +1,88 @@
+{
+  "listings": [
+    {
+      "id": "gumtree-newbridge-navigator-fareham",
+      "source": "Gumtree",
+      "title": "Sailing Boat - 19 Foot, 4 Berth MUST SELL !!",
+      "make_model": "Newbridge Navigator",
+      "year": null,
+      "price": "£400",
+      "price_note": "ono (reduced)",
+      "location": "Fareham, Hampshire",
+      "url": "https://www.gumtree.com/p/boats/-sailing-boat-19-foot-4-berth-must-sell-/1801749469",
+      "type": "19 ft sailing cruiser / dayboat",
+      "snippet": "Newbridge Navigator sailing boat - 19 foot, 4 berth with, ladder and lifting keel. For sale: Newbridge Navigator sailing boat. 19 foot 4 be…",
+      "thumbnail": "/images/boats/external/gumtree-newbridge-navigator-fareham.jpg"
+    },
+    {
+      "id": "gumtree-ywdb-poole",
+      "source": "Gumtree",
+      "title": "Yachting World Dayboat (DB661)– Good Condition",
+      "make_model": "Yachting World Dayboat",
+      "year": 2007,
+      "price": "£6,500",
+      "price_note": null,
+      "location": "Broadstone / Poole, Dorset",
+      "url": "https://www.gumtree.com/p/inflatable-boats-dinghies/yachting-world-dayboat-db661-good-condition/1801295763",
+      "type": "dayboat",
+      "snippet": "YWDB Moonrunner (DB661) for Sale. Boat number 661, built by Chris Somner in 2007 GRP with built in buoyancy. Comes with trolley and road tr…",
+      "thumbnail": "/images/boats/external/gumtree-ywdb-poole.jpg"
+    },
+    {
+      "id": "ebay-trident-24-cowes",
+      "source": "eBay",
+      "title": "Trident 24 Sailing Yacht",
+      "make_model": "Trident 24",
+      "year": null,
+      "price": "£3,055.60",
+      "price_note": "or Best Offer",
+      "location": "Cowes, Isle of Wight",
+      "url": "https://www.ebay.co.uk/itm/226120186441",
+      "type": "sailing cruiser",
+      "snippet": "sailing cruiser · Cowes, Isle of Wight · £3,055.60",
+      "thumbnail": null
+    },
+    {
+      "id": "ebay-hunter-delta-25-gosport",
+      "source": "eBay",
+      "title": "Hunter Delta 25",
+      "make_model": "Hunter Delta 25",
+      "year": 1985,
+      "price": "£5,500",
+      "price_note": "or Best Offer",
+      "location": "Gosport, Hampshire",
+      "url": "https://www.ebay.co.uk/itm/147604910117",
+      "type": "lift-keel cruising boat",
+      "snippet": "lift-keel cruising boat · Gosport, Hampshire · £5,500",
+      "thumbnail": null
+    },
+    {
+      "id": "yachtworld-contessa-32-brockenhurst",
+      "source": "YachtWorld",
+      "title": "1979 Contessa 32",
+      "make_model": "Contessa 32",
+      "year": 1979,
+      "price": "£32,250",
+      "price_note": "VAT included (broker listing)",
+      "location": "Brockenhurst / Beaulieu, Hampshire",
+      "url": "https://www.yachtworld.com/yacht/1979-contessa-32-10295766/",
+      "type": "racer/cruiser",
+      "snippet": "racer/cruiser · Brockenhurst / Beaulieu, Hampshire · £32,250",
+      "thumbnail": null
+    },
+    {
+      "id": "yachtworld-jeanneau-so403-port-solent",
+      "source": "YachtWorld",
+      "title": "2005 Jeanneau Sun Odyssey 40.3",
+      "make_model": "Jeanneau Sun Odyssey 40.3",
+      "year": 2005,
+      "price": "£79,995",
+      "price_note": "tax included",
+      "location": "Port Solent Marina, Hampshire",
+      "url": "https://www.yachtworld.com/yacht/2005-jeanneau-sun-odyssey-40-3-9768306/",
+      "type": "sailing cruiser",
+      "snippet": "sailing cruiser · Port Solent Marina, Hampshire · £79,995",
+      "thumbnail": null
+    }
+  ]
+}

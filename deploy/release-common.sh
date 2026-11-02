@@ -56,7 +56,111 @@ validate_runnable_release() {
   [[ -f "$release_path/ecosystem.config.cjs" ]] || die "Release is missing ecosystem.config.cjs: $release_path"
   [[ -d "$release_path/dist" ]] || die "Release is missing compiled dist/: $release_path"
   [[ -f "$release_path/dist/server/index.js" ]] || die "Release is missing dist/server/index.js: $release_path"
-  [[ -x "$release_path/node_modules/.bin/vinext" ]] || die "Release is not independently runnable; vinext is absent: $release_path"
+  [[ -x "$release_path/node_modules/.bin/vinext" ]] || die "Release is not independently runnable; vinext is absent: $release_path. Dependencies will not be installed. Use a release folder that can already start."
+}
+
+find_forbidden_runtime_file() {
+  local root="$1"
+  find "$root" \
+    \( -path '*/node_modules' -o -path '*/.git' \) -prune -o \
+    -type f \( \
+      -name 'editor-store.json' -o \
+      -name '.env' -o \
+      -name '.env.*' -o \
+      -name '*.log' -o \
+      -name '*.tar.gz' -o \
+      -name '*.tgz' \
+    \) -print
+}
+
+validate_prebuilt_runtime() {
+  local release_path="$1"
+  local vinext sharp_dir libvips_dir sharp_node libvips resolved_vinext resolved_root hint libvips_target
+  release_path="$(readlink -f "$release_path")" || die "Cannot resolve release path: $1"
+  vinext="$release_path/node_modules/.bin/vinext"
+  sharp_dir="$release_path/node_modules/@img/sharp-linux-x64"
+  libvips_dir="$release_path/node_modules/@img/sharp-libvips-linux-x64"
+
+  [[ -d "$release_path/node_modules" ]] || die "Prebuilt runtime is missing node_modules at $release_path. This script does not run npm ci, npm install, or npm rebuild."
+  if [[ ! -e "$vinext" ]]; then
+    die "node_modules/.bin/vinext is missing at $release_path. The release cannot start. Rebuild with npm ci and npm run build:do on linux-x64, then run deploy/release-package.sh. npm will not be run here."
+  fi
+  if [[ ! -x "$vinext" ]]; then
+    die "node_modules/.bin/vinext is not executable at $release_path. The release cannot start."
+  fi
+  resolved_vinext="$(readlink -f "$vinext")" || die "Cannot resolve node_modules/.bin/vinext in $release_path"
+  resolved_root="$(readlink -f "$release_path/node_modules")" || die "Cannot resolve node_modules in $release_path"
+  case "$resolved_vinext" in
+    "$resolved_root"/*) ;;
+    *) die "node_modules/.bin/vinext resolves outside the package: $resolved_vinext" ;;
+  esac
+  [[ -f "$release_path/node_modules/sharp/package.json" ]] || die "The sharp package is missing at $release_path/node_modules/sharp. Image derivatives cannot run. Rebuild node_modules for linux-x64 glibc."
+
+  sharp_node=""
+  libvips=""
+  if [[ -d "$sharp_dir" ]]; then
+    sharp_node="$(find "$sharp_dir" -type f -name '*.node' -print -quit)"
+  fi
+  if [[ -d "$libvips_dir" ]]; then
+    libvips="$(find "$libvips_dir" \( -type f -o -type l \) -name 'libvips*.so*' -print -quit)"
+  fi
+  if [[ -z "$sharp_node" || -z "$libvips" ]]; then
+    hint=""
+    if [[ -d "$release_path/node_modules/@img/sharp-darwin-arm64" || -d "$release_path/node_modules/@img/sharp-darwin-x64" ]]; then
+      hint=" The package contains Mac sharp binaries, which do not run on the Ubuntu Droplet."
+    elif [[ -d "$release_path/node_modules/@img/sharp-linuxmusl-x64" || -d "$release_path/node_modules/@img/sharp-linuxmusl-arm64" ]]; then
+      hint=" The package contains musl sharp binaries. The Droplet is Ubuntu glibc, not Alpine."
+    fi
+    die "sharp's linux-x64 glibc binary is missing under $release_path/node_modules/@img.${hint} Rebuild node_modules with npm ci inside a linux/amd64 glibc environment (Docker --platform linux/amd64, or the GitHub Actions workflow Build release package), then run deploy/release-package.sh. This machine will not install or rebuild sharp."
+  fi
+  if [[ -L "$libvips" ]]; then
+    libvips_target="$(readlink -f "$libvips")" || die "sharp libvips symlink is broken: $libvips"
+    case "$libvips_target" in
+      "$resolved_root"/*) ;;
+      *) die "sharp libvips resolves outside the package: $libvips_target" ;;
+    esac
+  fi
+}
+
+read_prebuilt_manifest_commit() {
+  local manifest="$1"
+  local commit error_file status line
+  error_file="$(mktemp /tmp/oldseadogs-manifest.XXXXXX)"
+  status=0
+  commit="$(node -e '
+    const fs = require("node:fs");
+    let manifest;
+    try {
+      manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    } catch (error) {
+      console.error("RELEASE_MANIFEST.json is not valid JSON");
+      process.exit(2);
+    }
+    function fail(message, code) {
+      console.error(message);
+      process.exit(code);
+    }
+    if (manifest.prebuilt !== true) fail("RELEASE_MANIFEST.json must set prebuilt to true", 3);
+    if (manifest.productionDataIncluded !== false) fail("RELEASE_MANIFEST.json must set productionDataIncluded to false. CMS data and media must not be in the package.", 4);
+    if (manifest.dependenciesIncluded !== true) fail("RELEASE_MANIFEST.json must set dependenciesIncluded to true", 5);
+    if (manifest.platform !== "linux" || manifest.arch !== "x64" || manifest.libc !== "glibc") {
+      fail("RELEASE_MANIFEST.json platform is " + manifest.platform + "/" + manifest.arch + "/" + manifest.libc + ". linux/x64/glibc is required for the Ubuntu Droplet.", 6);
+    }
+    if (typeof manifest.gitCommit !== "string" || !/^[0-9a-f]{7,40}$/i.test(manifest.gitCommit)) {
+      fail("RELEASE_MANIFEST.json is missing a gitCommit", 7);
+    }
+    if (manifest.npmOnServer !== false) fail("RELEASE_MANIFEST.json must set npmOnServer to false", 8);
+    process.stdout.write(manifest.gitCommit);
+  ' "$manifest" 2>"$error_file")" || status=$?
+  if [[ "$status" -ne 0 ]]; then
+    while IFS= read -r line; do
+      log "$line"
+    done <"$error_file"
+    rm -f "$error_file"
+    return 1
+  fi
+  rm -f "$error_file"
+  printf '%s\n' "$commit"
 }
 
 atomic_switch_current() {
@@ -73,10 +177,53 @@ atomic_switch_current() {
 
 start_or_reload_release() {
   local release_path
+  local pm2_state_file
+  local current_cwd
+  local state_status
   release_path="$(assert_release_path "$1")"
   load_runtime_environment
-  pm2 startOrReload "$release_path/ecosystem.config.cjs" --env production --update-env
-  pm2 describe "$PM2_APP_NAME" >/dev/null
+
+  pm2_state_file="$(mktemp /tmp/oldseadogs-pm2-state.XXXXXX)"
+  if ! pm2 jlist >"$pm2_state_file"; then
+    rm -f "$pm2_state_file"
+    log "Could not inspect PM2 before starting $PM2_APP_NAME"
+    return 1
+  fi
+
+  state_status=0
+  current_cwd="$(node -e '
+    const fs = require("node:fs");
+    const processes = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const appName = process.argv[2];
+    const matches = processes.filter((entry) => entry.name === appName);
+    if (matches.length === 0) process.exit(3);
+    if (matches.length !== 1) throw new Error(`Expected one PM2 process named ${appName}, found ${matches.length}`);
+    const cwd = matches[0].pm2_env?.pm_cwd;
+    if (typeof cwd !== "string" || cwd.length === 0) throw new Error(`PM2 process ${appName} has no pm_cwd`);
+    process.stdout.write(fs.realpathSync(cwd));
+  ' "$pm2_state_file" "$PM2_APP_NAME")" || state_status=$?
+  rm -f "$pm2_state_file"
+
+  case "$state_status" in
+    0)
+      if [[ "$current_cwd" == "$release_path" ]]; then
+        pm2 startOrReload "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      else
+        log "Recreating $PM2_APP_NAME to change cwd from $current_cwd to $release_path"
+        pm2 delete "$PM2_APP_NAME" || return 1
+        pm2 start "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      fi
+      ;;
+    3)
+      pm2 start "$release_path/ecosystem.config.cjs" --only "$PM2_APP_NAME" --env production --update-env || return 1
+      ;;
+    *)
+      log "Could not determine the current PM2 cwd for $PM2_APP_NAME"
+      return 1
+      ;;
+  esac
+
+  pm2 describe "$PM2_APP_NAME" >/dev/null || return 1
 }
 
 wait_for_http_200() {

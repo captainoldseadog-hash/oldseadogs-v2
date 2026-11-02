@@ -1,0 +1,54 @@
+name: Build release package
+
+# Builds a prebuilt linux-x64 archive and uploads it as an artifact.
+# This workflow does not deploy, does not read secrets, and does not
+# connect to the Droplet or Cloudflare.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - deploy/prebuilt-package
+      - "release/**"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build linux-x64 package
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Build the DigitalOcean bundle
+        run: npm run build:do
+
+      - name: Package the prebuilt release
+        run: npm run package:release
+
+      - name: Show the packaged git commit
+        run: |
+          node -e 'const fs = require("node:fs"); const name = fs.readdirSync("outputs").find((entry) => entry.endsWith(".manifest.json")); if (!name) process.exit(1); const manifest = JSON.parse(fs.readFileSync("outputs/" + name, "utf8")); console.log(manifest.gitCommit); if (manifest.prebuilt !== true || manifest.productionDataIncluded !== false || manifest.npmOnServer !== false || manifest.platform !== "linux" || manifest.arch !== "x64" || manifest.libc !== "glibc") process.exit(1);'
+
+      - name: Upload the package, checksum, and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oldseadogs-prebuilt-release
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            outputs/*.tar.gz
+            outputs/*.tar.gz.sha256
+            outputs/*.manifest.json

@@ -1,6 +1,6 @@
 # OldSeaDogs Safe Deployment
 
-> **Production release packages:** use [RELEASE_DEPLOYMENT.md](./RELEASE_DEPLOYMENT.md). The release-directory process stages and verifies a complete runtime before an atomic `current` switch and retains an offline rollback release. The in-place rsync process below is retained for historical reference and must not be used for new production package deployments.
+> **Production release packages:** use [RELEASE_DEPLOYMENT.md](./RELEASE_DEPLOYMENT.md). Build the package off the Droplet with `deploy/release-package.sh` so it already contains linux-x64 `node_modules`. `deploy/release-deploy.sh` then checks that package and switches `current`. The default path does not run `npm ci`, `npm install`, or `npm run build` on the server, and it does not write `/var/www/oldseadogs-data`. The in-place rsync process below is retained for historical reference and must not be used for new production package deployments.
 
 The live story data directory must never be overwritten by local, empty or stale data.
 

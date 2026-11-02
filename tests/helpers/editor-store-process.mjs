@@ -4,8 +4,8 @@ if (process.env.OLDSEADOGS_TEST_SCHEDULER === "true") {
   const nativeFetch = globalThis.fetch;
   globalThis.__OLDSEADOGS_SCHEDULER_FETCH__ = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
-    if (url.hostname === "127.0.0.1" && url.pathname === "/api/editor") {
-      return worker.fetch(new Request("http://localhost/api/editor", init), {});
+    if (url.hostname === "127.0.0.1" && (url.pathname === "/api/editor" || url.pathname === "/api/boats/lifecycle")) {
+      return worker.fetch(new Request(`http://localhost${url.pathname}`, init), {});
     }
     return nativeFetch(input, init);
   };

@@ -1,23 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DerivativeImage } from "../../../components/DerivativeImage.tsx";
 import { GuideCollectionBrowser } from "../../../components/GuideCollectionBrowser.tsx";
 import { GuidePublicContent } from "../../../components/GuidePublicContent.tsx";
 import { JsonLd } from "../../../components/JsonLd.tsx";
 import { GuideBreadcrumbs } from "../../../components/GuideBreadcrumbs.tsx";
 import { GuideGoogleMap } from "../../../components/GuideGoogleMap.tsx";
 import { SiteFooter } from "../../../components/SiteFooter.tsx";
-import { publicNavigationLinks } from "../../../content/sections.ts";
+
 import { solentMarinaGuideGroups } from "../../../content/solent-marina-guides.ts";
 import {
   guideArticleJsonLd,
+  guideCollectionLead,
+  guideCollectionMembers,
+  guideCruisingArea,
+  guideHubRelatedLinks,
+  guidePlaceJsonLd,
   guideCollectionJsonLd,
-  guideProductRecords,
   guidePublicPath,
+  guideRegionRecords,
 } from "../../../lib/guides.ts";
-import { getGuideBySlug, getPublishedGuides } from "../../../lib/site-content.ts";
+import type { EditableGuide } from "../../../lib/site-content.ts";
+import { publicImageAlt } from "../../../lib/public-image-alt.ts";
+import { latestStoriesForGuide } from "../../../lib/internal-links.ts";
+import { getGuideBySlug, getPublishedGuides, getPublishedStories } from "../../../lib/site-content.ts";
 import { createPageMetadata } from "../../../lib/seo.ts";
 import { breadcrumbJsonLd } from "../../../lib/structured-data.ts";
+import { SiteHeader } from "../../../components/SiteHeader";
 
 type RegionPageProps = { params: Promise<{ region: string }> };
 
@@ -25,15 +35,18 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: RegionPageProps): Promise<Metadata> {
   const { region } = await params;
-  const guides = guideProductRecords(await getPublishedGuides());
+  const guides = guideRegionRecords(await getPublishedGuides());
   const regional = guides.filter((guide) => guide.regionKey === region);
   if (regional.length) {
     const regionName = regional[0].regionName;
+    const areaGuide = guideCruisingArea(region, regional);
+    const lead = guideCollectionLead(region, regional) || regional[0];
+    const hubGuide = areaGuide || lead;
     return createPageMetadata({
-      title: `${regionName} Guides`,
-      description: `Explore Old Sea Dogs Guides to ${regionName}, including its harbours, rivers, anchorages and cruising character.`,
+      title: areaGuide?.seoTitle || `${regionName} Guides`,
+      description: areaGuide?.seoDescription || `Explore Old Sea Dogs Guides to ${regionName}, including its harbours, rivers, anchorages and cruising character.`,
       path: `/guides/${region}`,
-      image: { url: regional[0].imageUrl, alt: regional[0].imageAlt },
+      image: { url: hubGuide.imageUrl, alt: hubGuide.imageAlt },
     });
   }
   const legacyGuide = await getGuideBySlug(region);
@@ -43,6 +56,7 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
         description: legacyGuide.seoDescription || legacyGuide.summary,
         path: guidePublicPath(legacyGuide),
         noIndex: legacyGuide.noindex,
+        noIndexFollow: legacyGuide.noindex,
         image: { url: legacyGuide.imageUrl, alt: legacyGuide.imageAlt },
         type: "article",
       })
@@ -50,49 +64,118 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
 }
 
 function PrimaryNavigation() {
+  return <SiteHeader current="guides" />;
+}
+
+function GuideHubRelated({
+  guide,
+  guides,
+}: {
+  guide: EditableGuide;
+  guides: EditableGuide[];
+}) {
+  const links = guideHubRelatedLinks(guide, guides);
+  if (!links.length) return null;
   return (
-    <nav className="article-nav" aria-label="Primary navigation">
-      <Link href="/" className="brand-lockup dark" aria-label="Old Sea Dogs home">
-        <span className="brand-mark" aria-hidden="true" />
-        <span>Old Sea Dogs</span>
-      </Link>
-      <div className="nav-links section-nav-links">
-        {publicNavigationLinks.map((section) => (
-          <Link className={section.slug === "guides" ? "active" : ""} href={section.href} key={section.slug}>
-            {section.label}
-          </Link>
+    <nav className="guide-hub-related" aria-label="Related guides">
+      <p className="eyebrow">Related guides</p>
+      <ul>
+        {links.map((link) => (
+          <li key={link.slug}>
+            <Link href={guidePublicPath(link.guide)}>{link.label} <span aria-hidden="true">→</span></Link>
+          </li>
         ))}
-        <Link href="/search">Search</Link>
-      </div>
+      </ul>
     </nav>
   );
 }
 
+function guideLatestStories(
+  guide: EditableGuide,
+  stories: Awaited<ReturnType<typeof getPublishedStories>>,
+) {
+  return latestStoriesForGuide(guidePublicPath(guide), stories).map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    summary: story.summary,
+  }));
+}
+
 export default async function RegionPage({ params }: RegionPageProps) {
   const { region } = await params;
-  const allPublished = await getPublishedGuides();
-  const regional = guideProductRecords(allPublished).filter((guide) => guide.regionKey === region);
+  const [allPublished, stories] = await Promise.all([getPublishedGuides(), getPublishedStories()]);
+  const regional = guideRegionRecords(allPublished).filter((guide) => guide.regionKey === region);
 
   if (!regional.length) {
     const legacyGuide = await getGuideBySlug(region);
     if (!legacyGuide) notFound();
+    const placeJsonLd = guidePlaceJsonLd(legacyGuide);
     return (
       <main className="article-shell guides-shell guide-product-shell">
-        <JsonLd data={guideArticleJsonLd(legacyGuide)} />
+        <JsonLd data={placeJsonLd ? [guideArticleJsonLd(legacyGuide), placeJsonLd] : guideArticleJsonLd(legacyGuide)} />
         <PrimaryNavigation />
-        <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} />
+        <GuidePublicContent guide={legacyGuide} publishedGuides={allPublished} latestStories={guideLatestStories(legacyGuide, stories)} />
         <SiteFooter extraLinks={[{ href: "/guides", label: "Guides" }]} />
       </main>
     );
   }
 
   const regionName = regional[0].regionName;
-  const lead = regional.find((guide) => guide.slug === "the-solent") || regional[0];
-  const browserItems = regional.map((guide) => ({
+  const areaGuide = guideCruisingArea(region, regional);
+  if (areaGuide) {
+    const placeJsonLd = guidePlaceJsonLd(areaGuide);
+    const collectionGuides = guideCollectionMembers(region, regional);
+    const childItems = collectionGuides.map((guide) => ({
+      slug: guide.slug,
+      title: guide.title,
+      summary: guide.summary,
+      guideType: guide.guideType,
+      regionKey: guide.regionKey,
+      regionName: guide.regionName,
+      path: guidePublicPath(guide),
+      imageUrl: guide.imageUrl,
+      imageAlt: guide.imageAlt,
+    }));
+    return (
+      <main className="article-shell guides-shell guide-product-shell">
+        <JsonLd data={[
+          guideArticleJsonLd(areaGuide),
+          ...(placeJsonLd ? [placeJsonLd] : []),
+          guideCollectionJsonLd(regionName, collectionGuides),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Guides", path: "/guides" },
+            { name: regionName, path: `/guides/${region}` },
+          ]),
+        ]} />
+        <PrimaryNavigation />
+        <GuidePublicContent guide={areaGuide} publishedGuides={allPublished} latestStories={guideLatestStories(areaGuide, stories)} />
+        <GuideCollectionBrowser
+          guides={childItems}
+          searchPlaceholder={`Search ${regionName} Guides`}
+          title={`Explore ${regionName}`}
+        />
+        <SiteFooter extraLinks={[{ href: "/guides", label: "All Guides" }]} />
+      </main>
+    );
+  }
+  const lead = guideCollectionLead(region, regional)
+    || regional.find((guide) => guide.slug === "the-solent")
+    || regional[0];
+  const listedGuides = guideCollectionMembers(region, regional);
+  const placeJsonLd = guidePlaceJsonLd(lead);
+  const heroAlt = publicImageAlt({
+    alt: lead.imageAlt,
+    caption: lead.imageCaption,
+    title: lead.title,
+    fallback: regionName,
+  }) || regionName;
+  const browserItems = listedGuides.map((guide) => ({
     slug: guide.slug,
     title: guide.title,
     summary: guide.summary,
     guideType: guide.guideType,
+    regionKey: guide.regionKey,
     regionName: guide.regionName,
     path: guidePublicPath(guide),
     imageUrl: guide.imageUrl,
@@ -111,7 +194,9 @@ export default async function RegionPage({ params }: RegionPageProps) {
   return (
     <main className="article-shell guides-shell guide-product-shell">
       <JsonLd data={[
-        guideCollectionJsonLd(regionName, regional),
+        guideArticleJsonLd(lead),
+        ...(placeJsonLd ? [placeJsonLd] : []),
+        guideCollectionJsonLd(regionName, listedGuides),
         breadcrumbJsonLd([
           { name: "Home", path: "/" },
           { name: "Guides", path: "/guides" },
@@ -127,13 +212,11 @@ export default async function RegionPage({ params }: RegionPageProps) {
 
       <header className="guide-region-hero">
         <figure>
-          <img
-            src={lead.imageUrl}
-            alt=""
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
+          <DerivativeImage
+            alt={heroAlt}
+            eager
             sizes="100vw"
+            src={lead.imageUrl}
             style={{ objectPosition: lead.imageFocalPoint }}
           />
         </figure>
@@ -142,21 +225,23 @@ export default async function RegionPage({ params }: RegionPageProps) {
           <h1>{regionName}</h1>
           <p>
             A clear route into the harbours, rivers, anchorages, history and cruising
-            character of Britain&apos;s most concentrated sailing waters.
+            character of {regionName}.
           </p>
         </div>
       </header>
 
       <nav className="guide-region-routes" aria-label={`${regionName} Guide routes`}>
         <a href="#browse-by-type"><span>Browse by type</span><strong>Choose the kind of place</strong></a>
-        <a href="#all-guides"><span>Browse all Guides</span><strong>See the full Solent collection</strong></a>
+        <a href="#all-guides"><span>Browse all Guides</span><strong>See the full {regionName} collection</strong></a>
         <a href="#map-section"><span>View on map</span><strong>Orientate yourself</strong></a>
       </nav>
+
+      <GuideHubRelated guide={lead} guides={allPublished} />
 
       <div id="browse-by-type">
         <GuideCollectionBrowser
           guides={browserItems}
-          searchPlaceholder="Search Solent Guides"
+          searchPlaceholder={`Search ${regionName} Guides`}
           title={`Explore ${regionName}`}
         />
       </div>
@@ -191,7 +276,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
           <h2 id="guide-region-all-title">Read your way around {regionName}</h2>
         </div>
         <ul>
-          {regional.map((guide) => (
+          {listedGuides.map((guide) => (
             <li key={guide.slug}>
               <small>{guide.guideType}</small>
               <strong><Link href={guidePublicPath(guide)}>{guide.title}</Link></strong>

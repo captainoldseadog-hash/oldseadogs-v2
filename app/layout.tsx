@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { AdSenseLoader } from "../components/AdSenseLoader";
 import { CookieConsent } from "../components/CookieConsent";
 import { JsonLd } from "../components/JsonLd";
+import { MobileSiteHeader } from "../components/MobileSiteHeader";
 import {
   adsenseClientId,
   adsenseEnabled,
+  adsenseLoaderClientId,
+  adsenseLoaderSrc,
+  adsensePublisherId,
   createPageMetadata,
   defaultDescription,
   ga4MeasurementId,
@@ -13,15 +18,13 @@ import {
   siteUrl,
 } from "../lib/seo";
 import { organizationJsonLd, websiteJsonLd } from "../lib/structured-data";
+import { mobileGuideMenuLinks } from "../lib/guides";
+import { isAdsenseLoaderPath, isPublicPagePath } from "../lib/route-boundaries";
+import { getPublishedGuides } from "../lib/site-content";
 import "./globals.css";
 
-const adsensePublisherId = "ca-pub-7278382533036873";
 const requestPathHeader = "x-oldseadogs-request-path";
 const googleConsentDefaults = `window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments);};window.gtag("consent","default",{analytics_storage:"denied",ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",wait_for_update:500});window.__oldSeaDogsGoogleConsentDefaulted=true;`;
-
-function isPublicPagePath(pathname: string) {
-  return !pathname.startsWith("/editor") && !pathname.startsWith("/api/");
-}
 
 export const metadata: Metadata = {
   ...createPageMetadata({
@@ -42,9 +45,14 @@ export const metadata: Metadata = {
     address: false,
   },
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/favicon.png", sizes: "256x256", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default async function RootLayout({
@@ -56,8 +64,11 @@ export default async function RootLayout({
   const pathname = requestHeaders.get(requestPathHeader) || "/";
   const adsenseAccountId = adsenseClientId || adsensePublisherId;
   const isPublicPage = isPublicPagePath(pathname);
+  const guideLinks = isPublicPage ? mobileGuideMenuLinks(await getPublishedGuides()) : [];
   const shouldRenderAdsenseMeta = isPublicPage && Boolean(adsenseAccountId);
-  const shouldRenderGoogleConsent = isPublicPage && Boolean(ga4MeasurementId);
+  const adsenseLoaderActive = adsenseEnabled && adsenseLoaderClientId === adsensePublisherId;
+  const shouldRenderAdsenseLoader = isAdsenseLoaderPath(pathname) && adsenseLoaderActive;
+  const shouldRenderGoogleConsent = isPublicPage && (Boolean(ga4MeasurementId) || shouldRenderAdsenseLoader);
 
   return (
     <html lang="en">
@@ -70,6 +81,15 @@ export default async function RootLayout({
               id="oldseadogs-google-consent-default"
             />
           ) : null}
+          {shouldRenderAdsenseLoader ? (
+            // React serializes boolean async as async="" and hoists src scripts
+            // ahead of the consent default. This raw tag stays exact and follows it.
+            <noscript
+              dangerouslySetInnerHTML={{
+                __html: `</noscript><script async src="${adsenseLoaderSrc}" crossorigin="anonymous"></script><noscript>`,
+              }}
+            />
+          ) : null}
           {shouldRenderAdsenseMeta ? (
             <meta name="google-adsense-account" content={adsenseAccountId} />
           ) : null}
@@ -77,9 +97,11 @@ export default async function RootLayout({
       ) : null}
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
+        <AdSenseLoader enabled={adsenseLoaderActive} src={adsenseLoaderSrc} />
+        {isPublicPage ? <MobileSiteHeader guideLinks={guideLinks} /> : null}
         {children}
         <CookieConsent
-          adsenseClientId={adsenseClientId}
+          adsenseClientId={adsenseLoaderClientId}
           adsenseEnabled={adsenseEnabled}
           ga4Id={ga4MeasurementId}
         />

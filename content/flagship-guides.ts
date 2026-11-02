@@ -22,6 +22,8 @@ export type GuideSection = {
   links?: Array<{
     label: string;
     guideSlug: string;
+    /** Official external page. Used for tide tables and harbour links that are not another Guide. */
+    href?: string;
   }>;
 };
 

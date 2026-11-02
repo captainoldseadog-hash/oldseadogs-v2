@@ -1,5 +1,5 @@
 import { getMediaBucket } from "../db";
-import { saveLocalMediaUpload, saveLocalVideoUpload } from "./local-media-storage";
+import { EditorPhotoRejectedError, saveLocalMediaUpload, saveLocalVideoUpload, transcodeEditorPhotograph } from "./local-media-storage";
 import { makeId, saveMediaAsset, type MediaAsset } from "./site-content";
 
 export const editorMediaUploadRoute = "/api/editor/media/upload";
@@ -159,22 +159,36 @@ export async function saveEditorImageAsset({
 
   if (bucket) {
     try {
+      const decoded = await transcodeEditorPhotograph(new Uint8Array(bytes));
+      width = decoded.width;
+      height = decoded.height;
       await bucket.put(key, bytes, {
         httpMetadata: {
           contentType,
         },
       });
     } catch (error) {
+      if (error instanceof EditorPhotoRejectedError) {
+        throw new EditorMediaUploadError(error.message, 415);
+      }
       const message = error instanceof Error ? error.message : "unknown storage error";
       throw new Error(`Photo storage error: ${message}`);
     }
   } else {
-    const localUpload = await saveLocalMediaUpload({
-      bytes,
-      contentType,
-      fileName: safeName,
-      id,
-    });
+    let localUpload: Awaited<ReturnType<typeof saveLocalMediaUpload>>;
+    try {
+      localUpload = await saveLocalMediaUpload({
+        bytes,
+        contentType,
+        fileName: safeName,
+        id,
+      });
+    } catch (error) {
+      if (error instanceof EditorPhotoRejectedError) {
+        throw new EditorMediaUploadError(error.message, 415);
+      }
+      throw error;
+    }
     if (!localUpload) {
       throw new Error("Storage error. The editor could not create a persistent media file.");
     }

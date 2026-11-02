@@ -5,7 +5,11 @@ import {
   storyMatchesSection,
 } from "../content/sections";
 import { detectManufacturer, storyMatchesManufacturer } from "../content/manufacturers";
-import { type EditableStory } from "./site-content";
+import { getRelatedGuides, latestStoriesForGuide } from "./related-guides.ts";
+import { storyClearsStoryTriage } from "./story-triage.ts";
+import { type EditableGuide, type EditableStory } from "./site-content";
+
+export { latestStoriesForGuide };
 import { normalizeSearchText, searchTokens } from "./search";
 
 export type InternalLinkItem = {
@@ -14,6 +18,7 @@ export type InternalLinkItem = {
   category: string;
   summary: string;
   reason: string;
+  guidePath?: string;
 };
 
 export type InternalLinkGroup = {
@@ -56,12 +61,15 @@ function sectionForStory(story: EditableStory) {
   return oldSeaDogsSections.find((section) => storyMatchesSection(story, section));
 }
 
-function overlapScore(a: EditableStory, b: EditableStory) {
-  const aTokens = new Set(
-    searchTokens(`${a.title} ${a.summary} ${a.tags.join(" ")}`).filter(
+function storyMatchTokens(story: EditableStory) {
+  return new Set(
+    searchTokens(`${story.title} ${story.summary} ${story.tags.join(" ")}`).filter(
       (token) => token.length > 3
     )
   );
+}
+
+function overlapScore(a: EditableStory, aTokens: ReadonlySet<string>, b: EditableStory) {
   const bText = storyText(b);
   let score = 0;
 
@@ -98,9 +106,10 @@ export function findRelatedStories(
   stories: EditableStory[],
   limit = 4
 ) {
+  const currentTokens = storyMatchTokens(current);
   return stories
     .filter((story) => story.slug !== current.slug)
-    .map((story) => ({ story, score: overlapScore(current, story) }))
+    .map((story) => ({ story, score: overlapScore(current, currentTokens, story) }))
     .filter((item) => item.score > 2)
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
@@ -133,12 +142,26 @@ function detectRaceTopic(story: EditableStory) {
 
 export function getInternalLinkGroups(
   current: EditableStory,
-  stories: EditableStory[]
+  stories: EditableStory[],
+  options: {
+    relatedStories?: EditableStory[];
+    guides?: readonly Pick<EditableGuide, "slug" | "regionKey" | "canonicalPath" | "guideType" | "parentGuideSlug" | "title">[];
+  } = {},
 ): InternalLinkGroup[] {
   const groups: InternalLinkGroup[] = [];
+  if (options.guides && storyClearsStoryTriage(current)) {
+    const relatedGuides = getRelatedGuides(current, options.guides, 3);
+    if (relatedGuides.length > 0) {
+      groups.push({
+        title: "Related guides",
+        href: "/guides",
+        items: relatedGuides,
+      });
+    }
+  }
   const section = sectionForStory(current);
 
-  const related = findRelatedStories(current, stories, 4);
+  const related = options.relatedStories?.slice(0, 4) || findRelatedStories(current, stories, 4);
   if (related.length > 0) {
     groups.push({
       title: section ? `Related ${section.label.toLowerCase()} stories` : "Related stories",
@@ -235,5 +258,5 @@ export function getInternalLinkGroups(
       items: uniqueLinkItems(group.items),
     }))
     .filter((group) => group.items.length > 0)
-    .slice(0, 3);
+    .slice(0, 4);
 }

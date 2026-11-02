@@ -4,25 +4,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  consentCookieName,
   consentCookieAttributes,
-  consentLifetimeSeconds,
+  consentMaxAgeSeconds,
+  consentStorageKey,
   createConsentChoice,
+  legacyConsentCookieName,
+  legacyConsentStorageKey,
   parseConsentChoice,
-  type StoredConsentChoice,
-} from "../lib/cookie-consent";
+  type ConsentChoice,
+} from "../lib/cookie-consent.ts";
+import { isEditorPath } from "../lib/route-boundaries";
 
 type CookieConsentProps = {
   ga4Id?: string;
   adsenseClientId?: string;
   adsenseEnabled?: boolean;
+  initialChoice?: ConsentChoice | null;
+  migrateInitialChoice?: boolean;
 };
 
-type ConsentChoice = StoredConsentChoice;
-
-const storageKey = "oldseadogs_cookie_consent_v2";
-const consentCookieName = "oldseadogs_cookie_consent";
 const openPrivacyChoicesEvent = "oldseadogs:open-privacy-choices";
 const consentUpdatedEvent = "oldseadogs:cookie-consent-updated";
+const storageKey = consentStorageKey;
 
 type GoogleTagCommand = [command: string, action: string | Date, parameters?: Record<string, unknown>];
 
@@ -34,49 +38,84 @@ declare global {
   }
 }
 
-function readCookieValue(name: string) {
-  const prefix = `${name}=`;
-  const value = document.cookie
+function readCookieChoice(cookieName = consentCookieName) {
+  const prefix = `${cookieName}=`;
+  const raw = document.cookie
     .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(prefix))
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(prefix))
     ?.slice(prefix.length);
-  if (!value) return "";
+  if (!raw) return null;
   try {
-    return decodeURIComponent(value);
+    return parseConsentChoice(decodeURIComponent(raw));
   } catch {
-    return "";
+    return null;
   }
 }
 
-function readStoredChoice(): ConsentChoice | null {
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    const localChoice = parseConsentChoice(raw);
-    if (localChoice) return localChoice;
-    if (raw) window.localStorage.removeItem(storageKey);
-  } catch {
-    // A valid first-party cookie remains available when local storage is blocked.
-  }
-
-  const cookieChoice = parseConsentChoice(readCookieValue(consentCookieName));
-  if (!cookieChoice) return null;
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(cookieChoice));
-  } catch {
-    // Cookie persistence is sufficient when local storage is unavailable.
-  }
-  return cookieChoice;
-}
-
-function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
-  const nextChoice = createConsentChoice(choice);
+function persistChoiceLocally(nextChoice: ConsentChoice) {
   try {
     window.localStorage.setItem(storageKey, JSON.stringify(nextChoice));
   } catch {
-    // The first-party cookie is the fallback when local storage is unavailable.
+    // A durable first-party cookie remains available when storage is restricted.
   }
-  document.cookie = `${consentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentLifetimeSeconds)}`;
+  document.cookie = `${legacyConsentCookieName}=${encodeURIComponent(JSON.stringify(nextChoice))}; ${consentCookieAttributes(window.location, consentMaxAgeSeconds)}`;
+}
+
+async function persistChoiceOnServer(nextChoice: ConsentChoice) {
+  const response = await fetch("/api/consent", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ analytics: nextChoice.analytics, ads: nextChoice.ads }),
+    keepalive: true,
+  });
+  if (!response.ok) throw new Error("The durable consent cookie could not be saved.");
+  const payload = await response.json() as { choice?: ConsentChoice };
+  if (!payload.choice) throw new Error("The durable consent cookie response was incomplete.");
+  return payload.choice;
+}
+
+function readStoredChoice(serverChoice: ConsentChoice | null = null, migrateServerChoice = false): ConsentChoice | null {
+  let localChoice: ConsentChoice | null = null;
+  try {
+    localChoice = parseConsentChoice(window.localStorage.getItem(consentStorageKey))
+      || parseConsentChoice(window.localStorage.getItem(legacyConsentStorageKey));
+  } catch {
+    localChoice = null;
+  }
+  const cookieChoice = readCookieChoice() || readCookieChoice(legacyConsentCookieName);
+  const choice = serverChoice || localChoice || cookieChoice;
+  if (choice && (migrateServerChoice || (!serverChoice && !readCookieChoice()))) {
+    persistChoiceLocally(choice);
+    void persistChoiceOnServer(choice).catch(() => undefined);
+  }
+  if (choice && !localChoice) {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(choice));
+    } catch {
+      // The server-issued first-party cookie remains the durable source.
+    }
+  }
+  if (choice) {
+    try {
+      window.localStorage.removeItem(legacyConsentStorageKey);
+    } catch {
+      // The normalized cookie and current storage key are already persisted.
+    }
+  }
+  return choice;
+}
+
+async function saveChoice(choice: Pick<ConsentChoice, "analytics" | "ads">) {
+  let nextChoice = createConsentChoice(choice);
+  persistChoiceLocally(nextChoice);
+  try {
+    nextChoice = await persistChoiceOnServer(nextChoice);
+    persistChoiceLocally(nextChoice);
+  } catch {
+    // Retain the immediate first-party fallbacks if the endpoint is unavailable.
+  }
   window.dispatchEvent(new Event(consentUpdatedEvent));
   return nextChoice;
 }
@@ -150,9 +189,11 @@ export function CookieConsent({
   ga4Id,
   adsenseClientId,
   adsenseEnabled = false,
+  initialChoice = null,
+  migrateInitialChoice = false,
 }: CookieConsentProps) {
   const pathname = usePathname();
-  const isEditorRoute = pathname?.startsWith("/editor") ?? false;
+  const isEditorRoute = pathname ? isEditorPath(pathname) : false;
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -164,14 +205,14 @@ export function CookieConsent({
   useEffect(() => {
     ensureGoogleConsentDefaults();
     const timer = window.setTimeout(() => {
-      const storedChoice = readStoredChoice();
+      const storedChoice = readStoredChoice(initialChoice, migrateInitialChoice);
       setChoice(storedChoice);
       setAnalytics(Boolean(storedChoice?.analytics));
       setAds(Boolean(storedChoice?.ads));
       setIsReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [initialChoice, migrateInitialChoice]);
 
   useEffect(() => {
     if (!choice || isEditorRoute) return;
@@ -192,11 +233,10 @@ export function CookieConsent({
     }
 
     if (choice.ads && adsenseEnabled && adsenseClientId) {
-      loadScript(
-        "oldseadogs-adsense",
-        `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`,
-        "anonymous"
-      );
+      const adsenseSrc = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`;
+      if (!document.querySelector(`script[src="${adsenseSrc}"]`)) {
+        loadScript("oldseadogs-adsense", adsenseSrc, "anonymous");
+      }
     }
   }, [adsenseClientId, adsenseEnabled, choice, ga4Id, isEditorRoute]);
 
@@ -236,24 +276,24 @@ export function CookieConsent({
     return "Non-essential cookies rejected.";
   }, [choice, hasOptionalServices]);
 
-  function acceptAll() {
-    const nextChoice = saveChoice({ analytics: true, ads: true });
+  async function acceptAll() {
+    const nextChoice = await saveChoice({ analytics: true, ads: true });
     setChoice(nextChoice);
     setAnalytics(true);
     setAds(true);
     setShowPreferences(false);
   }
 
-  function rejectAll() {
-    const nextChoice = saveChoice({ analytics: false, ads: false });
+  async function rejectAll() {
+    const nextChoice = await saveChoice({ analytics: false, ads: false });
     setChoice(nextChoice);
     setAnalytics(false);
     setAds(false);
     setShowPreferences(false);
   }
 
-  function savePreferences() {
-    const nextChoice = saveChoice({ analytics, ads });
+  async function savePreferences() {
+    const nextChoice = await saveChoice({ analytics, ads });
     setChoice(nextChoice);
     setShowPreferences(false);
   }
@@ -310,14 +350,14 @@ export function CookieConsent({
         ) : null}
       </div>
       <div className="cookie-actions">
-        <button className="cookie-action-primary" type="button" onClick={acceptAll}>
+        <button className="cookie-action-primary" type="button" onClick={() => void acceptAll()}>
           Accept all
         </button>
-        <button type="button" onClick={rejectAll}>
+        <button type="button" onClick={() => void rejectAll()}>
           Reject non-essential
         </button>
         {showPreferences ? (
-          <button type="button" onClick={savePreferences}>
+          <button type="button" onClick={() => void savePreferences()}>
             Save choices
           </button>
         ) : (

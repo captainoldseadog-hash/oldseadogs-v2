@@ -1,12 +1,24 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { guideSectionImagesFor } from "../content/guide-image-placements.ts";
+import { publicImageAlt } from "../lib/public-image-alt";
+import { DerivativeImage } from "./DerivativeImage.tsx";
+import { FittedImage } from "./FittedImage";
+import { dedupeCredit } from "../lib/image-fit";
+import { presentationForImage } from "../lib/image-presentation";
+import { readImageSize } from "../lib/image-derivatives.ts";
+import { derivativeImageUrl, derivativeSrcSet, isNeedlesHeroImage, isRenderableImageReference, mobileSourceSrcSet } from "../lib/responsive-image.ts";
+import { publicMediaVariantUrl } from "../lib/public-media";
 import { contactEmail } from "../lib/seo.ts";
 import {
+  guideCollectionPath,
+  guideEditorialLinkMatches,
   guidePublicPath,
   relatedGuides,
 } from "../lib/guides.ts";
 import type { EditableGuide } from "../lib/site-content.ts";
 import { GuideBreadcrumbs } from "./GuideBreadcrumbs.tsx";
+import { NewsletterSignup } from "./NewsletterSignup.tsx";
 import { GuideGoogleMap } from "./GuideGoogleMap.tsx";
 import { GuideSectionNavigation } from "./GuideSectionNavigation.tsx";
 
@@ -287,18 +299,100 @@ function HamblePointPracticalReference() {
   );
 }
 
+async function GuideHeroPicture({ guide }: { guide: EditableGuide }) {
+  const size = await readImageSize(guide.imageUrl).catch(() => null);
+  const dedicatedMobile = publicMediaVariantUrl(guide.imageUrl, "mobile");
+  const needlesHero = isNeedlesHeroImage(guide.imageUrl);
+  const frame = await presentationForImage({
+    url: guide.imageUrl,
+    slot: "guide-hero",
+    fit: guide.imageFit,
+    focalPoint: guide.imageFocalPoint,
+    alt: guide.imageAlt,
+    caption: guide.imageCaption,
+    slug: guide.slug,
+  });
+  if (frame.presentation === "contain") {
+    return (
+      <FittedImage
+        alt={publicImageAlt({
+          alt: guide.imageAlt,
+          caption: guide.imageCaption,
+          title: guide.title,
+        })}
+        className="guide-hero-fit"
+        eager
+        focalPoint={frame.focalPoint || guide.imageFocalPoint}
+        height={frame.height || size?.height}
+        presentation="contain"
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        slot="guide-hero"
+        src={derivativeImageUrl(guide.imageUrl, needlesHero ? 1200 : 1600)}
+        srcSet={derivativeSrcSet(guide.imageUrl, needlesHero ? [768, 1200] : [768, 1200, 1600]) || undefined}
+        width={frame.width || size?.width}
+      />
+    );
+  }
+  return (
+    <picture>
+      <source
+        media="(max-width: 1024px)"
+        sizes="100vw"
+        srcSet={mobileSourceSrcSet(guide.imageUrl, dedicatedMobile)}
+      />
+      <DerivativeImage
+        alt={publicImageAlt({
+          alt: guide.imageAlt,
+          caption: guide.imageCaption,
+          title: guide.title,
+        })}
+        displayWidth={needlesHero ? 1200 : undefined}
+        eager
+        height={size?.height}
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        src={guide.imageUrl}
+        style={{ objectPosition: guide.imageFocalPoint }}
+        width={size?.width}
+        widths={needlesHero ? [768, 1200] : undefined}
+      />
+    </picture>
+  );
+}
+
 export function GuidePublicContent({
   guide,
   publishedGuides,
   preview = false,
+  latestStories = [],
 }: {
   guide: EditableGuide;
   publishedGuides: EditableGuide[];
   preview?: boolean;
+  latestStories?: Array<{ slug: string; title: string; summary: string }>;
 }) {
-  const related = relatedGuides(guide, publishedGuides, "relatedGuideSlugs");
-  const cruiseOn = relatedGuides(guide, publishedGuides, "cruiseOnGuideSlugs");
-  const bySlug = new Map(publishedGuides.map((item) => [item.slug, item]));
+  const publishedOnly = publishedGuides.filter((item) => item.status === "published");
+  const related = relatedGuides(guide, publishedOnly, "relatedGuideSlugs");
+  const cruiseOn = relatedGuides(guide, publishedOnly, "cruiseOnGuideSlugs");
+  const bySlug = new Map(publishedOnly.map((item) => [item.slug, item]));
+  const parent = guide.parentGuideSlug
+    ? publishedOnly.find((item) => item.slug === guide.parentGuideSlug)
+    : guide.parentGuideId
+      ? publishedOnly.find((item) => item.id === guide.parentGuideId || item.externalId === guide.parentGuideId || item.internalId === guide.parentGuideId)
+      : undefined;
+  const children = publishedOnly.filter((item) => item.slug !== guide.slug && (
+    item.parentGuideSlug === guide.slug
+    || Boolean(item.parentGuideId && guide.id && item.parentGuideId === guide.id)
+    || Boolean(item.parentGuideId && guide.externalId && item.parentGuideId === guide.externalId)
+    || Boolean(item.parentGuideId && guide.internalId && item.parentGuideId === guide.internalId)
+  ));
+  const siblings = parent
+    ? publishedOnly.filter((item) => item.slug !== guide.slug && (
+        item.parentGuideSlug === parent.slug
+        || Boolean(item.parentGuideId && parent.id && item.parentGuideId === parent.id)
+        || Boolean(item.parentGuideId && parent.externalId && item.parentGuideId === parent.externalId)
+        || Boolean(item.parentGuideId && parent.internalId && item.parentGuideId === parent.internalId)
+      ))
+    : [];
   const previous = guide.previousGuideSlug ? bySlug.get(guide.previousGuideSlug) : undefined;
   const next = guide.nextGuideSlug ? bySlug.get(guide.nextGuideSlug) : undefined;
   const isHamblePoint = guide.slug === "hamble-point-marina";
@@ -382,6 +476,21 @@ export function GuidePublicContent({
       : undefined,
   };
   const primarySources = primarySourcesByGuideSlug[guide.slug] || [];
+  const linkedEditorialSlugs = new Set<string>();
+  const linkedParagraph = (paragraph: string) => {
+    const matches = guideEditorialLinkMatches(paragraph, guide.slug, publishedOnly, linkedEditorialSlugs);
+    if (!matches.length) return paragraph;
+    const content: ReactNode[] = [];
+    let cursor = 0;
+    for (const match of matches) {
+      content.push(paragraph.slice(cursor, match.start));
+      content.push(<Link href={guidePublicPath(match.guide)} key={`${match.guide.slug}-${match.start}`}>{match.label}</Link>);
+      linkedEditorialSlugs.add(match.guide.slug);
+      cursor = match.end;
+    }
+    content.push(paragraph.slice(cursor));
+    return content;
+  };
 
   return (
     <>
@@ -405,26 +514,31 @@ export function GuidePublicContent({
         { label: guide.title },
       ]} />
 
+      {parent || children.length || siblings.length ? (
+        <nav className="guide-relationship-navigation" aria-label="Guide relationships">
+          {parent ? <Link className="guide-relationship-parent" href={guidePublicPath(parent)}>Back to {parent.title}</Link> : null}
+          {children.length ? <div><span>In this collection</span>{children.map((item) => <Link href={guidePublicPath(item)} key={item.slug}>{item.title}</Link>)}</div> : null}
+          {!children.length && siblings.length ? <div><span>Nearby Guides</span>{siblings.map((item) => <Link href={guidePublicPath(item)} key={item.slug}>{item.title}</Link>)}</div> : null}
+        </nav>
+      ) : null}
+
       <header className="guide-product-hero">
-        <figure>
-          <img
-            src={guide.imageUrl}
-            alt={guide.imageAlt}
-            decoding="async"
-            fetchPriority="high"
-            loading="eager"
-            sizes="100vw"
-            style={{ objectPosition: guide.imageFocalPoint }}
-          />
+        {isRenderableImageReference(guide.imageUrl) ? <figure>
+          <GuideHeroPicture guide={guide} />
           {guide.imageCaption || guide.imageCredit || guide.artworkCredit ? (
             <figcaption>
               {guide.imageCaption}
-              {guide.imageCredit || guide.artworkCredit
-                ? ` · ${guide.imageCredit || guide.artworkCredit}`
+              {dedupeCredit(guide.imageCredit || guide.artworkCredit || "")
+                ? ` · ${dedupeCredit(guide.imageCredit || guide.artworkCredit || "")}`
                 : ""}
             </figcaption>
           ) : null}
-        </figure>
+        </figure> : preview ? (
+          <aside className="guide-image-pending" role="status">
+            <span>Hero image pending</span>
+            <strong>Select approved artwork from the Media Library before publication.</strong>
+          </aside>
+        ) : null}
         <div>
           <p className="eyebrow">Old Sea Dogs Guides</p>
           <h1>{guide.title}</h1>
@@ -451,7 +565,7 @@ export function GuidePublicContent({
               : `${guide.guideType} · ${guide.regionName}`
         }</p>
         <h2 id="guide-introduction-title">{isCowes || isYarmouth || isPortsmouth || isRiverHamble || isBeaulieuRiver || isNewtownCreek || isSouthamptonWater ? "Overview" : `Welcome to ${guide.title}`}</h2>
-        {(guide.introduction || "").split("\n\n").map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        {(guide.introduction || "").split("\n\n").map((paragraph) => <p key={paragraph}>{linkedParagraph(paragraph)}</p>)}
       </section>
 
       {isRiverHamble ? <RiverHambleSnapshot guide={guide} /> : null}
@@ -540,28 +654,39 @@ export function GuidePublicContent({
               <h2>{section.heading}</h2>
               {section.body.map((paragraph, paragraphIndex) => (
                 <div key={`${anchor}-${paragraphIndex}`}>
-                  <p>{paragraph}</p>
+                  <p>{linkedParagraph(paragraph)}</p>
                   {guide.inlineImages
                     .filter((image) => image.sectionIndex === sectionIndex && image.paragraphIndex === paragraphIndex)
                     .sort((left, right) => left.order - right.order)
                     .map((image) => (
                       <figure className="article-inline-figure" key={image.id}>
-                        <img loading="lazy" src={image.url} alt={image.alt} />
-                        <figcaption>{image.caption}{image.credit ? ` · ${image.credit}` : ""}</figcaption>
+                        <DerivativeImage
+                          alt={publicImageAlt({ alt: image.alt, caption: image.caption, title: guide.title })}
+                          sizes="(max-width: 760px) calc(100vw - 28px), 860px"
+                          src={image.url}
+                        />
+                        <figcaption>{image.caption}{dedupeCredit(image.credit || "") ? ` · ${dedupeCredit(image.credit || "")}` : ""}</figcaption>
                       </figure>
                     ))}
                 </div>
               ))}
               {guideSectionImagesFor(guide.slug, section.heading).map((image) => (
                 <figure className="article-inline-figure" key={image.id}>
-                  <img loading="lazy" src={image.url} alt={image.alt} />
+                  <DerivativeImage
+                    alt={publicImageAlt({ alt: image.alt, title: guide.title })}
+                    sizes="(max-width: 760px) calc(100vw - 28px), 860px"
+                    src={image.url}
+                  />
                 </figure>
               ))}
               {section.listItems?.length ? <ul>{section.listItems.map((item) => <li key={item}>{item}</li>)}</ul> : null}
               {section.links?.length ? (
                 <div className="guide-section-links" aria-label={`Continue from ${section.heading}`}>
                   {section.links.flatMap((link) => {
-                    const linkedGuide = bySlug.get(link.guideSlug);
+                    if (link.href && /^https?:\/\//i.test(link.href)) {
+                      return [<a href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">{link.label} <span aria-hidden="true">→</span></a>];
+                    }
+                    const linkedGuide = link.guideSlug ? bySlug.get(link.guideSlug) : undefined;
                     return linkedGuide
                       ? [<Link href={guidePublicPath(linkedGuide)} key={link.guideSlug}>{link.label} <span aria-hidden="true">→</span></Link>]
                       : [];
@@ -647,7 +772,12 @@ export function GuidePublicContent({
             {related.map((item) => (
               <article className="guide-card" key={item.slug}>
                 <Link className="guide-card-image" href={guidePublicPath(item)}>
-                  <img loading="lazy" src={item.imageUrl} alt={item.imageAlt} />
+                  <DerivativeImage
+                    alt={publicImageAlt({ alt: item.imageAlt, caption: item.imageCaption, title: item.title })}
+                    sizes="(max-width: 640px) calc(100vw - 40px), 360px"
+                    src={item.imageUrl}
+                    widths={[480, 768]}
+                  />
                 </Link>
                 <div>
                   <p className="eyebrow">{item.guideType}</p>
@@ -664,7 +794,7 @@ export function GuidePublicContent({
         {previous ? (
           <Link href={guidePublicPath(previous)}><span>Previous Guide</span><strong>{previous.title}</strong></Link>
         ) : (
-          <Link href={guide.regionKey ? `/guides/${guide.regionKey}` : "/guides"}>
+          <Link href={guideCollectionPath(guide)}>
             <span>Previous</span>
             <strong>{guide.regionName ? `${guide.regionName} collection` : "All Old Sea Dogs Guides"}</strong>
           </Link>
@@ -675,6 +805,24 @@ export function GuidePublicContent({
           <Link href="/guides"><span>Next</span><strong>All Old Sea Dogs Guides</strong></Link>
         )}
       </nav>
+
+      {latestStories.length > 0 ? (
+        <section className="guide-latest-stories" aria-labelledby="guide-latest-stories-title">
+          <p className="eyebrow">From the archive</p>
+          <h2 id="guide-latest-stories-title">Latest stories</h2>
+          <div className="internal-link-group">
+            <div className="internal-link-list">
+              {latestStories.map((story) => (
+                <Link href={`/stories/${story.slug}`} key={story.slug}>
+                  <span>Story</span>
+                  <strong>{story.title}</strong>
+                  <small>{story.summary}</small>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="guide-feedback" aria-labelledby="guide-feedback-title">
         <p className="eyebrow">Local knowledge</p>
@@ -688,6 +836,10 @@ export function GuidePublicContent({
           Send Guide feedback
         </a>
       </section>
+
+      {guide.guideType === "Marina" || guide.guideType === "Harbour" ? (
+        <NewsletterSignup placement="guide" />
+      ) : null}
     </>
   );
 }

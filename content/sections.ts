@@ -50,63 +50,75 @@ export const oldSeaDogsSections: OldSeaDogsSection[] = [
     label: "News",
     slug: "news",
     categories: ["News"],
-    description: "Latest boating, yachting, marina, yard, and industry stories.",
+    description: "Latest boating and yachting news, from marinas and yards to launches, races and the wider marine industry.",
   },
   {
     label: "Shows",
     slug: "shows",
     categories: ["Shows"],
-    description: "Boat shows, marine exhibitions, launches, and show reports.",
+    description: "Boat show reports, marine exhibitions, new launches and the stands worth a visit on the waterfront.",
   },
   {
     label: "Races",
     slug: "races",
     categories: ["Racing", "Races", "Regatta", "Regattas"],
-    description: "Offshore racing, regattas, records, fleets, and results.",
+    description: "Offshore racing, regattas, records, fleets and results from the events Old Sea Dogs follow.",
   },
   {
     label: "Reviews",
     slug: "reviews",
     categories: ["Boat Reviews", "Reviews"],
-    description: "Boat reviews, yacht launches, sea trials, and owner-minded notes.",
+    description: "Boat reviews, yacht launches, sea trials and owner-minded notes on the craft that matter.",
   },
   {
     label: "Gear",
     slug: "gear",
     categories: ["Gear"],
-    description: "Equipment, electronics, clothing, safety gear, and useful kit.",
+    description: "Equipment, electronics, clothing, safety gear and other useful kit for time on the water.",
   },
   {
     label: "Destinations",
     slug: "destinations",
     categories: ["Destinations"],
-    description: "Places to sail, harbours to visit, and waters worth exploring.",
+    description: "Places to sail, harbours to visit and cruising waters worth exploring with Old Sea Dogs.",
   },
   {
     label: "Masterclass",
     slug: "masterclass",
     categories: ["Masterclass"],
-    description: "Practical seamanship, maintenance, handling, and how-to articles.",
+    description: "Practical seamanship, maintenance, boat handling and how-to articles from the Old Sea Dogs desk.",
   },
   {
     label: "Lifestyle",
     slug: "lifestyle",
     categories: ["Lifestyle"],
-    description: "The people, places, culture, and pleasures around life afloat.",
+    description: "The people, places, culture and everyday pleasures that make up life afloat with Old Sea Dogs.",
   },
   {
     label: "Clubs",
     slug: "clubs",
     categories: ["Clubs"],
-    description: "Yacht clubs, sailing clubs, clubhouses, traditions, and member stories.",
+    description: "Yacht clubs, sailing clubs, clubhouses, traditions and the member stories that surround them.",
   },
   {
     label: "Ports",
     slug: "ports",
     categories: ["Ports"],
-    description: "Ports, marinas, waterfronts, and practical harbour information.",
+    description: "Ports, marinas, waterfronts and the practical harbour information sailors actually need.",
   },
 ];
+
+export const boatsForSaleNavigationLink = {
+  href: "/boats-for-sale",
+  label: "Boats for Sale",
+  slug: "boats-for-sale",
+} as const;
+
+export const throughTheLensNavigationLink = {
+  href: "/through-the-lens",
+  label: "Through the Lens",
+  slug: "through-the-lens",
+} as const;
 
 export const publicNavigationLinks = [
   ...oldSeaDogsSections.map((section) => ({
@@ -114,12 +126,22 @@ export const publicNavigationLinks = [
     label: section.label,
     slug: section.slug,
   })),
+  throughTheLensNavigationLink,
   {
     href: "/guides",
     label: "Guides",
     slug: "guides",
   },
+  boatsForSaleNavigationLink,
 ] as const;
+
+/**
+ * Desktop mast rows. The first seven links are the news departments
+ * (News through Masterclass). The second row is places, the gallery,
+ * Guides and Boats for Sale. Splitting here keeps both rows a similar
+ * width so the menu stays one deliberate pair of lines from 1024px up.
+ */
+export const desktopNavigationRowBreak = 7;
 
 function categoryKey(category: string) {
   return category.trim().toLowerCase().replace(/\s+/g, " ");

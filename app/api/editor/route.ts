@@ -3,8 +3,14 @@ import {
   HomepageContentProvider,
   isHomepageLatestStory,
 } from "../../../lib/homepage-content-provider";
-import { runSourceWatch } from "../../../lib/source-watch-runner";
+import { runSourceWatch, scrapeStoryUrl } from "../../../lib/source-watch-runner";
+import { compareStoriesNewestCreated, storyMatchesWorkflow } from "../../../lib/story-list";
+import { parseCmsIdList, validateDraftCleanup } from "../../../lib/story-cleanup";
+import { listRecentlyScrappedDrafts, readScrappedDraft, scrappedBackupRoots } from "../../../lib/scrapped-story-backup";
+import { getDbOrNull } from "../../../db";
+import { storyDeletionEligibility, storySourceCounts } from "../../../lib/story-management";
 import { getDeploymentInfo } from "../../../lib/deployment-info";
+import { isGalleryPublicRolloutEnabled } from "../../../lib/gallery-public.js";
 import { getInstagramConnectorStatus, syncInstagramGallery, testInstagramConnection } from "../../../lib/instagram-gallery";
 import { disconnectInstagram, refreshInstagramToken } from "../../../lib/instagram-oauth";
 import {
@@ -71,6 +77,14 @@ import {
 } from "../../../lib/editorial-quality";
 import { type PressReleaseAttachment, type PressReleaseStatus } from "../../../lib/press-release-utils";
 import { getMediaPublicationProhibition, validateMediaRights } from "../../../lib/media-rights";
+import {
+  GuideManagementError,
+  duplicate as duplicateGuideDraft,
+  publish as publishGuideRecord,
+  saveDraft as saveGuideDraft,
+  unpublish as unpublishGuideRecord,
+} from "../../../lib/guide-management.ts";
+import { confirmGuideImport, validateGuideImport } from "../../../lib/guide-import.ts";
 
 type EditorData = Awaited<ReturnType<typeof getEditorData>>;
 type EditorStory = EditorData["stories"][number];
@@ -154,6 +168,8 @@ type HomepageDiagnosticsContext = {
   latestIds: Set<string>;
   latestSlugs: Set<string>;
   hiddenIds: Set<string>;
+  storyManagement: EditorData["storyManagement"];
+  referencedStoryIds: Set<string>;
 };
 
 function editorErrorResponse(error: unknown, fallback: string) {
@@ -286,6 +302,20 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
       (story.imageUrl && !story.imageCredit ? 6 : 0)
   );
   const qualityLabel = score >= 82 ? "Ready" : score >= 62 ? "Review" : "Needs work";
+  const management = context?.storyManagement[story.id] ?? {
+    source: "legacy" as const,
+    origin: "legacy" as const,
+    label: "Archive · read-only",
+    writable: false,
+    editable: false,
+  };
+  const deletion = storyDeletionEligibility({
+    story,
+    management,
+    homepageIds: context?.homepageIds,
+    homepageSlugs: context?.homepageSlugs,
+    referencedStoryIds: context?.referencedStoryIds,
+  });
 
   return {
     id: story.id,
@@ -304,6 +334,8 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
     imageAlt: story.imageAlt,
     imageCredit: story.imageCredit,
     imageCaption: story.imageCaption,
+    imageFit: story.imageFit || "auto",
+    imageFocalPoint: story.imageFocalPoint || "",
     videoUrl: story.videoUrl,
     videoCaption: story.videoCaption,
     videoPosition: story.videoPosition,
@@ -317,6 +349,8 @@ function compactStory(story: EditorStory, context?: HomepageDiagnosticsContext) 
     editorialStatus: story.editorialStatus,
     statusHistory: story.statusHistory,
     noindex: story.noindex,
+    management,
+    deletion,
     homepageLeadEligible: isHomepageLeadSelectable(story),
     homepageLeadDiagnostics: buildHomepageLeadDiagnostics({
       story,
@@ -386,6 +420,8 @@ function buildHomepageDiagnosticsContext(data: EditorData): HomepageDiagnosticsC
     latestIds,
     latestSlugs,
     hiddenIds,
+    storyManagement: data.storyManagement,
+    referencedStoryIds: new Set(data.pressReleases.map((item) => item.storyId).filter(Boolean)),
   };
 }
 
@@ -508,7 +544,11 @@ function makeRecentActivity(data: EditorData) {
     .slice(0, 10);
 }
 
-function auditStory(story: EditorStory, stories: EditorStory[]) {
+function auditStory(
+  story: EditorStory,
+  stories: EditorStory[],
+  context: HomepageDiagnosticsContext
+) {
   const publicationIssues = validateStoryForPublication(story);
   const headlineReport = analyzeHeadlineQuality({
     title: story.title,
@@ -534,7 +574,7 @@ function auditStory(story: EditorStory, stories: EditorStory[]) {
   ].filter(Boolean);
 
   return {
-    story: compactStory(story),
+    story: compactStory(story, context),
     flags,
     primaryFix: flags[0] || "No blocking audit flags",
   };
@@ -611,9 +651,9 @@ async function bridgeEditorView(request: Request) {
     const filtered = data.stories
       .filter((story) => storyMatchesStatus(story, status))
       .filter((story) => queue === "scraped" ? isReviewQueueStory(story) : true)
-      .filter((story) => !workflow || story.editorialStatus.trim().toLowerCase() === workflow)
+      .filter((story) => storyMatchesWorkflow(story, workflow))
       .filter((story) => storyMatchesQuery(story, query))
-      .sort((a, b) => storyUpdatedStamp(b).localeCompare(storyUpdatedStamp(a)));
+      .sort(compareStoriesNewestCreated);
     const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
     const page = Math.min(Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1), pageCount);
     const start = (page - 1) * pageSize;
@@ -627,6 +667,10 @@ async function bridgeEditorView(request: Request) {
         pageCount,
         total: filtered.length,
       },
+      sourceCounts: storySourceCounts(Object.fromEntries(
+        filtered.map((story) => [story.id, data.storyManagement[story.id]])
+      )),
+      storeVersion: data.storyStoreVersion,
       stories: filtered.slice(start, start + pageSize).map((story) => compactStory(story, homepageContext)),
       media: data.media
         .slice(0, 80)
@@ -637,9 +681,20 @@ async function bridgeEditorView(request: Request) {
   if (view === "story") {
     const id = url.searchParams.get("id") || "";
     const story = data.stories.find((item) => item.id === id || item.slug === id);
+    const management = story ? data.storyManagement[story.id] : null;
+    const deletion = story && management
+      ? storyDeletionEligibility({
+          story,
+          management,
+          homepageIds: homepageContext.homepageIds,
+          homepageSlugs: homepageContext.homepageSlugs,
+          referencedStoryIds: homepageContext.referencedStoryIds,
+        })
+      : null;
     return {
       view,
-      story: story ?? null,
+      story: story ? { ...story, management, deletion } : null,
+      management,
       revisions: story ? await getStoryRevisions(story.id) : [],
       media: data.media
         .slice(0, 60)
@@ -649,7 +704,7 @@ async function bridgeEditorView(request: Request) {
 
   if (view === "audit") {
     const rows = data.stories
-      .map((story) => auditStory(story, data.stories))
+      .map((story) => auditStory(story, data.stories, homepageContext))
       .filter((row) => row.flags.length > 0)
       .sort((a, b) => b.story.updatedAt.localeCompare(a.story.updatedAt))
       .slice(0, 120);
@@ -762,7 +817,7 @@ async function bridgeEditorView(request: Request) {
         thumbnailUrl: `/api/media/${item.mediaId}?variant=thumbnail`,
       })),
       stories: data.stories.map((story) => ({ id: story.id, title: story.title, status: story.status })),
-      publicRollout: false,
+      publicRollout: isGalleryPublicRolloutEnabled(data.settings.galleryPublicRollout),
     };
   }
 
@@ -1070,6 +1125,7 @@ export async function POST(request: Request) {
       action?: string;
       story?: Parameters<typeof saveStory>[0];
       guide?: Parameters<typeof saveGuide>[0];
+      expectedUpdatedAt?: string;
       settings?: Parameters<typeof saveSettings>[0];
       homepage?: Parameters<typeof saveHomepageSettings>[0];
       galleryCategory?: Parameters<typeof saveGalleryCategory>[0];
@@ -1089,21 +1145,31 @@ export async function POST(request: Request) {
       imageAlt?: string;
       imageCredit?: string;
       imageCaption?: string;
+      imageFit?: string;
+      imageFocalPoint?: string;
       bodyBlock?: string;
       bodyPlacement?: "top" | "bottom";
       confirm?: boolean;
       allowMissingImage?: boolean;
       backupBeforeDelete?: boolean;
+      backupId?: string;
       sourceWatchOptions?: {
         maxSources?: number;
         maxDraftsPerSource?: number;
         previewOnly?: boolean;
       };
+      scrapeUrl?: string;
+      saveScrapedDraft?: boolean;
       workflowStatus?: string;
       status?: "draft" | "scheduled" | "published" | "unpublished";
       collection?: string;
       replacementCollection?: string;
       homepageSource?: string;
+      format?: "json" | "csv";
+      content?: string | unknown;
+      mode?: "create-draft" | "update-draft";
+      source?: "bulk-import" | "skill-import";
+      planToken?: string;
     };
     try {
       payload = (await request.json()) as typeof payload;
@@ -1123,6 +1189,11 @@ export async function POST(request: Request) {
 
     if (payload.action === "checkSources") {
       return privateJson({ result: await runSourceWatch(payload.sourceWatchOptions) });
+    }
+
+    if (payload.action === "scrapeStoryUrl") {
+      if (!payload.scrapeUrl?.trim()) return privateJson({ error: "Enter an article URL to scrape." }, { status: 400 });
+      return privateJson({ result: await scrapeStoryUrl(payload.scrapeUrl, { saveDraft: Boolean(payload.saveScrapedDraft) }) });
     }
 
     if (payload.action === "publishScheduledStories") {
@@ -1277,6 +1348,69 @@ export async function POST(request: Request) {
       return privateJson({ guide: await saveGuide(payload.guide ?? {}) });
     }
 
+    if (payload.action === "saveGuideDraft") {
+      return privateJson({
+        ok: true,
+        guide: await saveGuideDraft(
+          payload.guide ?? {},
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
+    }
+
+    if (payload.action === "duplicateGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await duplicateGuideDraft(
+          payload.id,
+          payload.guide ?? {},
+          getRequestEmail(request) || "Bridge editor",
+        ),
+      });
+    }
+
+    if (payload.action === "publishGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await publishGuideRecord(
+          payload.id,
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
+    }
+
+    if (payload.action === "unpublishGuide" && payload.id) {
+      return privateJson({
+        ok: true,
+        guide: await unpublishGuideRecord(
+          payload.id,
+          getRequestEmail(request) || "Bridge editor",
+          payload.expectedUpdatedAt,
+        ),
+      });
+    }
+
+    if (payload.action === "validateGuideImport") {
+      return privateJson({
+        ok: true,
+        plan: await validateGuideImport({
+          format: payload.format === "csv" ? "csv" : "json",
+          content: payload.content ?? "",
+          mode: payload.mode === "update-draft" ? "update-draft" : undefined,
+          source: payload.source === "skill-import" ? "skill-import" : "bulk-import",
+        }),
+      });
+    }
+
+    if (payload.action === "confirmGuideImport" && payload.planToken) {
+      return privateJson(await confirmGuideImport(
+        payload.planToken,
+        getRequestEmail(request) || "Bridge editor",
+      ));
+    }
+
     if (payload.action === "saveStoryImage" && payload.id && payload.imageUrl) {
       return privateJson({
         story: await saveStoryImage(
@@ -1284,7 +1418,9 @@ export async function POST(request: Request) {
           payload.imageUrl,
           payload.imageAlt ?? "",
           payload.imageCredit ?? "",
-          payload.imageCaption ?? ""
+          payload.imageCaption ?? "",
+          payload.imageFit ?? "auto",
+          payload.imageFocalPoint ?? ""
         ),
       });
     }
@@ -1355,7 +1491,14 @@ export async function POST(request: Request) {
           editorialWarnings: getEditorialWarnings({ ...story, status: "published" }),
         }, { status: 409 });
       }
-      const next = { ...story, status: "draft" as const, scheduledPublishAt: "", editorialStatus: "Draft" };
+      const unpublishing = payload.status === "unpublished";
+      const next = {
+        ...story,
+        status: unpublishing ? "unpublished" as const : "draft" as const,
+        scheduledPublishAt: "",
+        publishedAt: unpublishing ? "" : story.publishedAt,
+        editorialStatus: unpublishing ? "Unpublished" : "Draft",
+      };
       return privateJson({
         story: await saveStory({
           ...next,
@@ -1377,11 +1520,83 @@ export async function POST(request: Request) {
       if (!payload.backupBeforeDelete) {
         return privateJson({ error: "Deletion requires a verified backup first." }, { status: 400 });
       }
+      const editorData = await getEditorData();
+      const settings = editorData.settings;
+      const homepageIds = [
+        settings.homepageLeadStoryId,
+        ...parseCmsIdList(settings.homepageLatestStoryIds),
+        ...parseCmsIdList(settings.homepageEditorsChoiceStoryIds),
+        ...parseCmsIdList(settings.homepageHiddenStoryIds),
+      ].filter(Boolean);
+      const validation = validateDraftCleanup({
+        ids,
+        stories: editorData.stories,
+        homepageIds,
+        homepageSlugs: [settings.homepageLeadStorySlug].filter(Boolean),
+        referencedStoryIds: editorData.pressReleases.map((item) => item.storyId).filter(Boolean),
+        management: editorData.storyManagement,
+      });
+      if (!validation.ok) {
+        return privateJson({
+          error: `No stories were deleted. ${validation.errors.join(" ")}`,
+          errors: validation.errors,
+          refreshRequired: validation.refreshRequired,
+        }, { status: 409 });
+      }
       const backup = await createPreBulkDeleteBackup(`pre-bulk-delete-${new Date().toISOString().slice(0, 10)}`);
-      for (const id of ids) {
+      for (const id of validation.selected.map((story) => story.id)) {
         await deleteStory(id);
       }
-      return privateJson({ ok: true, deleted: ids.length, backup });
+      return privateJson({ ok: true, deleted: validation.selected.length, backup });
+    }
+
+    if (payload.action === "listScrappedStories" || payload.action === "restoreScrappedStory") {
+      if (getDbOrNull()) {
+        return privateJson({
+          stories: [],
+          available: false,
+          error: payload.action === "restoreScrappedStory"
+            ? "Restore is unavailable while stories are stored in the database. The pre-delete backup is a full file snapshot, so copying one story out of it could bring back the wrong record."
+            : undefined,
+          note: "Restore is unavailable while stories are stored in the database. The pre-delete backup is a full file snapshot, so copying one story out of it could bring back the wrong record.",
+        }, { status: payload.action === "restoreScrappedStory" ? 409 : 200 });
+      }
+      const roots = scrappedBackupRoots({ OLDSEADOGS_BACKUP_DIR: process.env.OLDSEADOGS_BACKUP_DIR });
+      if (payload.action === "listScrappedStories") {
+        const editorData = await getEditorData();
+        const stories = await listRecentlyScrappedDrafts(new Set(editorData.stories.map((story) => story.id)), roots);
+        return privateJson({
+          stories,
+          available: true,
+          note: stories.length ? "" : "No scrapped drafts are waiting in recent pre-delete backups.",
+        });
+      }
+      if (!payload.confirm) {
+        return privateJson({ error: "Confirm this restore before continuing." }, { status: 400 });
+      }
+      if (!payload.backupId || !payload.id) {
+        return privateJson({ error: "Choose the scrapped draft to restore." }, { status: 400 });
+      }
+      const editorData = await getEditorData();
+      if (editorData.stories.some((story) => story.id === payload.id)) {
+        return privateJson({ error: "That story is already in the editor, so it was not overwritten." }, { status: 409 });
+      }
+      const loaded = await readScrappedDraft(payload.backupId, payload.id, roots);
+      if (!loaded.ok) return privateJson({ error: loaded.error }, { status: 404 });
+      if (loaded.story.status !== "draft") {
+        return privateJson({ error: "That backup copy is not a private draft, so it was not restored." }, { status: 409 });
+      }
+      const restored = await saveStory({
+        ...(loaded.story as Parameters<typeof saveStory>[0]),
+        id: payload.id,
+        status: "draft",
+        editorialStatus: "Draft",
+        publishedAt: "",
+        scheduledPublishAt: "",
+        publicationOverride: undefined,
+        statusChangedBy: getRequestEmail(request) || "Bridge restore",
+      });
+      return privateJson({ story: restored, backupPath: loaded.backupPath });
     }
 
     if (payload.action === "saveSettings") {
@@ -1601,6 +1816,9 @@ export async function POST(request: Request) {
 
     return privateJson({ error: "I could not recognise that editor action." }, { status: 400 });
   } catch (error) {
+    if (error instanceof GuideManagementError) {
+      return privateJson({ ok: false, error: error.message, validationErrors: error.issues }, { status: error.status });
+    }
     if (error instanceof PublicationOverrideRequiredError) {
       return privateJson({
         ok: false,

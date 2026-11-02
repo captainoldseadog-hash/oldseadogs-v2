@@ -79,6 +79,28 @@ export function ukDateTimeInputToIso(value: string) {
   return sameParts(partsInUk(candidate), desired) ? candidate.toISOString() : "";
 }
 
+export function formatUkDateTime(value: string) {
+  if (!value) return "Not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  try {
+    // dateStyle and timeStyle cannot be combined with timeZoneName. That
+    // pairing throws and blanks the Scheduled Stories page.
+    return new Intl.DateTimeFormat("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: ukTimeZone,
+      timeZoneName: "short",
+    }).format(date);
+  } catch {
+    return date.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+  }
+}
+
 export function isoToUkDateTimeInput(value: string) {
   if (!value.trim()) return "";
   const date = new Date(value);

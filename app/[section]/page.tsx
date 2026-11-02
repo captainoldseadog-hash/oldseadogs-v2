@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DerivativeImage } from "../../components/DerivativeImage";
+import { ResponsiveStoryImage } from "../../components/ResponsiveStoryImage";
 import { PortsInteractiveMap } from "../../components/PortsInteractiveMap";
 import { SiteFooter } from "../../components/SiteFooter";
 import { getClubProfileExcerpt } from "../../content/club-profiles";
@@ -9,13 +11,16 @@ import {
   getOldSeaDogsSection,
   displayCategoryLabel,
   getSectionHeroArtwork,
-  oldSeaDogsSections,
   storyMatchesSection,
 } from "../../content/sections";
-import { formatDate } from "../../content/stories";
+import { storyListingDateLabel } from "../../lib/story-header-date";
 import { isLogoLikeStoryImage } from "../../content/story-images";
+import { dedupeCredit } from "../../lib/image-fit";
+import { presentationForStories } from "../../lib/image-presentation";
+import { resolvePublicPage } from "../../lib/public-page";
 import { getPublishedStories, hasStoryPhoto } from "../../lib/site-content";
-import { createPageMetadata } from "../../lib/seo";
+import { createPageMetadata, robotsMetadata } from "../../lib/seo";
+import { SiteHeader } from "../../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +39,9 @@ function makeSectionHref(slug: string, page = 1) {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: SectionPageProps): Promise<Metadata> {
-  const { section: sectionSlug } = await params;
+  const [{ section: sectionSlug }, query] = await Promise.all([params, searchParams]);
   const section = getOldSeaDogsSection(sectionSlug);
 
   if (!section) {
@@ -44,11 +50,21 @@ export async function generateMetadata({
     };
   }
 
+  const stories = (await getPublishedStories()).filter((story) => storyMatchesSection(story, section));
+  const pageCount = Math.max(1, Math.ceil(stories.length / 80));
+  const currentPage = resolvePublicPage(query?.page, pageCount);
+  if (currentPage === null) {
+    return {
+      title: "Page not found | Old Sea Dogs",
+      robots: robotsMetadata(true),
+    };
+  }
+
   return {
     ...createPageMetadata({
       title: section.label,
       description: section.description,
-      path: `/${section.slug}`,
+      path: makeSectionHref(section.slug, currentPage),
     }),
     description: section.description,
   };
@@ -67,12 +83,11 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
   );
   const pageSize = 80;
   const pageCount = Math.max(1, Math.ceil(stories.length / pageSize));
-  const requestedPage = Number.parseInt(query?.page ?? "1", 10);
-  const currentPage = Number.isFinite(requestedPage)
-    ? Math.min(Math.max(requestedPage, 1), pageCount)
-    : 1;
+  const currentPage = resolvePublicPage(query?.page, pageCount);
+  if (currentPage === null) notFound();
   const start = (currentPage - 1) * pageSize;
   const pageStories = stories.slice(start, start + pageSize);
+  const storyFrames = await presentationForStories(pageStories, "story-card");
   const pageStart = stories.length === 0 ? 0 : start + 1;
   const pageEnd = Math.min(start + pageSize, stories.length);
   const heroPhoto = getSectionHeroArtwork(section.slug);
@@ -84,24 +99,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
 
   return (
     <main className="article-shell section-shell">
-      <nav className="article-nav" aria-label="Section navigation">
-        <Link href="/" className="brand-lockup dark">
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Old Sea Dogs</span>
-        </Link>
-        <div className="nav-links section-nav-links">
-          {oldSeaDogsSections.map((item) => (
-            <Link
-              className={item.slug === section.slug ? "active" : ""}
-              href={`/${item.slug}`}
-              key={item.slug}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link href="/search">Search</Link>
-        </div>
-      </nav>
+      <SiteHeader current={section.slug} label="Section navigation" />
 
       <header
         className={`section-page-hero ${
@@ -113,11 +111,11 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
       >
         {heroPhoto ? (
           <figure className="section-hero-artwork">
-            <img
-              src={heroPhoto.imageUrl}
+            <DerivativeImage
               alt={heroPhoto.imageAlt}
-              loading="eager"
-              decoding="async"
+              eager
+              sizes="100vw"
+              src={heroPhoto.imageUrl}
               style={{ objectPosition: heroPhoto.focalPoint }}
             />
           </figure>
@@ -131,7 +129,7 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
         {heroPhoto ? (
           <div className="section-hero-credit">
             <span>{heroPhoto.imageCaption}</span>
-            {heroPhoto.imageCredit ? <small>{heroPhoto.imageCredit}</small> : null}
+            {heroPhoto.imageCredit ? <small>{dedupeCredit(heroPhoto.imageCredit)}</small> : null}
           </div>
         ) : null}
       </header>
@@ -153,9 +151,10 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
 
         {pageStories.length > 0 ? (
           <div className="story-grid section-story-grid">
-            {pageStories.map((story) => {
+            {pageStories.map((story, index) => {
               const storyHasPhoto = hasStoryPhoto(story);
-              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story);
+              const frame = storyFrames[index];
+              const storyImageLooksLikeLogo = isLogoLikeStoryImage(story) && frame?.presentation !== "contain";
               return (
                 <article
                   className={`story-card ${storyHasPhoto ? "" : "text-only-story"}`}
@@ -163,21 +162,27 @@ export default async function SectionPage({ params, searchParams }: SectionPageP
                 >
                   {storyHasPhoto ? (
                     <Link href={`/stories/${story.slug}`} className="image-link">
-                      <span
+                      <ResponsiveStoryImage
+                        alt={story.imageAlt || story.title}
                         className={`story-image ${storyImageLooksLikeLogo ? "club-logo-image" : ""}`}
-                        role="img"
-                        aria-label={story.imageAlt}
-                        style={{ backgroundImage: `url(${story.imageUrl})` }}
+                        focalPoint={frame?.focalPoint}
+                        height={frame?.height}
+                        presentation={frame?.presentation}
+                        probe={frame?.probe}
+                        sizes="(max-width: 640px) calc(100vw - 30px), 390px"
+                        slot="story-card"
+                        src={story.imageUrl}
+                        width={frame?.width}
                       >
                         {story.imageCredit ? (
-                          <small className="image-credit-chip">{story.imageCredit}</small>
+                          <small className="image-credit-chip">{dedupeCredit(story.imageCredit)}</small>
                         ) : null}
-                      </span>
+                      </ResponsiveStoryImage>
                     </Link>
                   ) : null}
                   <div className="story-card-body">
                     <div className="story-meta">
-                      <span>{formatDate(story.date)}</span>
+                      <span>{storyListingDateLabel(story)}</span>
                       <span>{displayCategoryLabel(story.category)}</span>
                     </div>
                     <h3>

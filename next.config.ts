@@ -20,20 +20,65 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/img/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "no-cache, must-revalidate",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
           },
         ],
+      },
+      {
+        source: "/api/editor",
+        headers: privateNoStoreHeaders,
       },
       {
         source: "/api/editor/:path*",
         headers: privateNoStoreHeaders,
       },
       {
+        source: "/api/search",
+        headers: privateNoStoreHeaders,
+      },
+      {
         source: "/api/search/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/api/social/track",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/api/boats/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/list-your-boat",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+      {
+        source: "/boats-for-sale/manage/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/verify/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/keep/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/boats-for-sale/relist/:path*",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/editor",
         headers: privateNoStoreHeaders,
       },
       {

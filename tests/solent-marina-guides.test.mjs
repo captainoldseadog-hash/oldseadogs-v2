@@ -227,10 +227,15 @@ test("Phase Two uses the shared Phase One fact grid and omits unavailable values
 
 test("Phase Two preserves the approved homepage, cookie and story-publication code byte for byte", async () => {
   const protectedFiles = {
-    // c9e5068: approved responsive/lazy story images and one canonical link per story card.
-    "app/page.tsx": "4f65e1c5f48d91b05bbc8914b94e9a4eb5c12ce2385ba4c082ba5d522e0b5342",
-    // c9e5068: approved versioned local storage with secure first-party cookie fallback.
-    "components/CookieConsent.tsx": "1d47afe6695c04493b4cb37355ab6402e188143cd56a7e4fd6ce01af3a905872",
+    // Desktop homepage sections, the prefetched lead, the Substack signup,
+    // responsive image derivatives, the Boats for Sale teaser, and the two-row site header.
+    // The app-style mobile homepage is an extra block, hidden from 1024px up.
+    // Small or flat graphics use a whole-image frame; large photographs stay cover.
+    // Story cards label the Europe/London publish day from publishedAt.
+    "app/page.tsx": "5e7e9f3008c28d437b1d3f612c0a3c409192d6c711e9c208f11cee2e82c4e0f7",
+    // Mobile persistence follow-up: retain legacy recovery and add the server-issued durable cookie path.
+    // AdSense head loader: skip a second adsbygoogle.js tag when the public head already has it.
+    "components/CookieConsent.tsx": "8da3224b7dd47a53a88a271d76fd998dfcdb150d2df0861cdd28b43f2c92d211",
     "lib/homepage-content-provider.ts": "35ec2f84464b12337b80611532a507673e9061221d4508f26fa111d2f71546f7",
     "content/homepage-production-snapshot.ts": "464346a0a9c6be2b34b168aae6a53b8d28b53016ad41d6c17a85c41a18ca1066",
     "lib/editor-publication.js": "c5c4377dc76886a536edfa05a9135985d1eb455b22d395d40d9e9f11f64d8c56",

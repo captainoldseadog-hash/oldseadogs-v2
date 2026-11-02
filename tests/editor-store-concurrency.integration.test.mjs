@@ -334,3 +334,24 @@ test("concurrent published edits create one revision for every committed save", 
   assert.equal(store.stories.find((item) => item.id === original.id).publishedAt, original.publishedAt);
   await assert.rejects(fs.access(`${storePath}.lock`));
 });
+
+test("concurrent story and Guide Draft saves retain both records and homepage settings", async () => {
+  const settingsBefore = structuredClone((await readStore()).settings);
+  const words = Array.from({ length: 90 }, (_, index) => `guideword${index + 1}`).join(" ");
+  const [storyResponse, guideResponse] = await Promise.all([
+    post(workers[0], {
+      action: "saveStory",
+      story: { id: "story-beside-guide", slug: "story-beside-guide", title: "Story beside Guide", category: "News", body: ["A concurrent story Draft."], status: "draft" },
+    }),
+    post(workers[1], {
+      action: "saveGuideDraft",
+      guide: { slug: "guide-beside-story", title: "Guide beside story", guideType: "Marina", regionKey: "solent", regionName: "The Solent", summary: "Concurrent Guide Draft", introduction: "A disposable Guide Draft.", sections: [{ heading: "Overview", body: [words] }], imageUrl: "/images/guides/guides-marina-hamble-point-hero-v1.png", imageAlt: "A Guide artwork fixture" },
+    }),
+  ]);
+  assert.equal(storyResponse.status, 200);
+  assert.equal(guideResponse.status, 200);
+  const store = await readStore();
+  assert.equal(store.stories.filter((item) => item.id === "story-beside-guide").length, 1);
+  assert.equal(store.guides.filter((item) => item.slug === "guide-beside-story").length, 1);
+  assert.deepEqual(store.settings, settingsBefore);
+});
